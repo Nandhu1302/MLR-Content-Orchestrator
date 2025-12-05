@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Sparkles,
   Target,
   TrendingUp,
-  BookOpen,
   Plus,
   Library
 } from "lucide-react";
@@ -24,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useContentManagement } from "@/hooks/useContentManagement";
 import Header from "@/components/Header";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useLocation } from "react-router-dom";
+import { ThemeContentInitializer } from "@/services/themeContentInitializer";
 
 const StrategyAndInsights = () => {
   const navigate = useNavigate();
@@ -81,7 +80,32 @@ const StrategyAndInsights = () => {
     navigate(`/theme-intelligence/${themeId}`);
   };
 
-  const handleUseTheme = async (themeId) => {
+  // Transform ThemeLibraryEntry to ThemeData format for ThemeContentInitializer
+  const transformThemeToThemeData = (theme) => {
+    return {
+      id: theme.id,
+      theme_name: theme.name,
+      core_message: theme.key_message || theme.description,
+      therapeutic_focus: theme.description?.split('.')[0] || selectedBrand?.therapeutic_area || 'General',
+      target_audience: theme.audience_segments?.[0] || 'HCP',
+      key_benefits: theme.content_suggestions?.key_points || [theme.key_message || 'Key clinical benefits'],
+      clinical_positioning: theme.rationale?.primary_insight || theme.description || 'Clinical positioning',
+      emotional_tone: theme.messaging_framework?.tone_guidance || 'Professional',
+      content_pillars: theme.content_suggestions?.key_points || [],
+      proof_points: theme.content_suggestions?.proof_points || theme.rationale?.supporting_data || [],
+      differentiation_claims: theme.messaging_framework?.competitive_differentiators || [],
+      cta_frameworks: theme.call_to_action ? [theme.call_to_action] : ['Learn more'],
+      visual_concepts: theme.content_suggestions?.visual_elements || [],
+      messaging_hierarchy: {
+        primary: theme.key_message || theme.description,
+        secondary: theme.content_suggestions?.key_points?.slice(0, 2) || [],
+        supporting: theme.content_suggestions?.key_points?.slice(2) || []
+      }
+    };
+  };
+
+  // AI-powered theme usage that generates content using ThemeContentInitializer
+  const handleUseThemeWithAI = async (theme) => {
     if (!selectedBrand?.id || !user?.id) {
       toast({
         title: "Error",
@@ -91,13 +115,10 @@ const StrategyAndInsights = () => {
       return;
     }
 
-    const theme = themes.find(t => t.id === themeId);
-    if (!theme) return;
-
     try {
       toast({
-        title: "Creating Content",
-        description: "Setting up your content with the selected theme...",
+        title: "Generating Content",
+        description: "Creating AI-powered content from theme using Evidence Library...",
       });
 
       // Create project
@@ -122,25 +143,83 @@ const StrategyAndInsights = () => {
         throw new Error("Failed to create project");
       }
 
-      // Populate campaign_themes table for lineage tracking
-      await supabase.from('campaign_themes').insert({
-        campaign_id: newProject.id,
-        theme_id: theme.id,
-        brand_id: selectedBrand.id,
-        selection_reason: 'Selected from Strategy & Insights Hub',
-        status: 'active',
-        created_by: user.id
+      // Populate campaign_themes table for lineage tracking (non-blocking)
+      try {
+        const { error: campaignThemeError } = await supabase.from('campaign_themes').insert({
+          campaign_id: newProject.id,
+          theme_id: theme.id,
+          brand_id: selectedBrand.id,
+          selection_reason: 'Selected from Strategy & Insights Hub',
+          status: 'active',
+          created_by: user.id
+        }).select().single();
+        
+        if (campaignThemeError) {
+          console.warn('Non-critical: Failed to create campaign_theme record:', campaignThemeError);
+        }
+      } catch (ctError) {
+        console.warn('Non-critical: campaign_themes insert failed:', ctError);
+      }
+
+      // Transform theme to ThemeData format
+      const themeData = transformThemeToThemeData(theme);
+      
+      // ✅ FIX: Use first asset type from theme's asset_types array, fallback to 'mass-email'
+      const assetType = theme.asset_types?.[0] || 'mass-email';
+      console.log('🎯 Creating asset with type:', assetType, 'from theme asset_types:', theme.asset_types);
+
+      // Generate AI content using ThemeContentInitializer
+      console.log('🚀 Generating AI content from theme:', theme.name);
+      const initializedContent = await ThemeContentInitializer.initializeFromTheme(
+        assetType,
+        themeData,
+        {
+          indication: selectedBrand.therapeutic_area,
+          intake_audience: theme.audience_segments?.[0] || 'Physician-Specialist',
+          intake_objective: 'clinical-education',
+          theme_id: theme.id,
+          strategicContext: {
+            campaignObjective: 'clinical-education',
+            keyMessage: theme.key_message || theme.description,
+            targetAudience: theme.audience_segments?.[0] || 'Physician-Specialist',
+            indication: selectedBrand.therapeutic_area,
+            assetType: assetType
+          }
+        },
+        selectedBrand.id,
+        {
+          useThemeContent: true,
+          useIntakeContext: true,
+          generateMissingContent: true, // This triggers AI generation
+          assetTypeOptimization: true
+        }
+      );
+
+      console.log('✅ AI content generated:', {
+        completeness: initializedContent.completeness,
+        sources: Object.keys(initializedContent.generationSources),
+        contentKeys: Object.keys(initializedContent.content)
       });
 
-      // Create first asset and navigate to editor
+      // Create asset with AI-generated content and citation data
       const newAsset = await createAsset({
-        asset_name: `${theme.name} - Draft 1`,
-        asset_type: 'email',
+        asset_name: `${theme.name} - Email`,
+        asset_type: assetType,
         status: 'draft',
-        primary_content: {},
+        primary_content: initializedContent.content, // AI-generated content!
         metadata: {
           created_from_theme: true,
-          theme_id: theme.id
+          theme_id: theme.id,
+          generation_sources: initializedContent.generationSources,
+          completeness: initializedContent.completeness,
+          suggestions: initializedContent.suggestions,
+          // ✅ Store citation data for Evidence & Modules tab
+          citation_data: initializedContent.citationData || {
+            claimsUsed: [],
+            referencesUsed: [],
+            modulesUsed: [],
+            visualsUsed: []
+          }
         },
         channel_specifications: {},
         performance_prediction: {},
@@ -152,7 +231,63 @@ const StrategyAndInsights = () => {
         throw new Error("Failed to create asset");
       }
 
-      // Record theme usage (will auto-promote to ready-for-use on first use)
+      // ✅ CRITICAL: Save evidence data to BOTH dedicated columns AND metadata
+      // This ensures evidence displays properly in Evidence & Modules panel
+      if (initializedContent.citationData) {
+        const claimsUsed = initializedContent.citationData.claimsUsed || [];
+        const referencesUsed = initializedContent.citationData.referencesUsed || [];
+        const modulesUsed = initializedContent.citationData.modulesUsed || [];
+        const visualsUsed = initializedContent.citationData.visualsUsed || [];
+        
+        console.log('📚 Saving evidence to dedicated columns:', {
+          claimsUsed: claimsUsed.length,
+          referencesUsed: referencesUsed.length,
+          modulesUsed: modulesUsed.length,
+          visualsUsed: visualsUsed.length,
+          assetId: newAsset.id
+        });
+        
+        // IMPORTANT: Empty arrays mean no evidence was generated - log warning
+        if (claimsUsed.length === 0 && referencesUsed.length === 0) {
+          console.warn('⚠️ No evidence data generated! Check edge function logs for generate-initial-content');
+        }
+        
+        const { error: evidenceError } = await supabase
+          .from('content_assets')
+          .update({
+            claims_used: claimsUsed.map((c) => ({
+              claimId: c.claimId || c.id,
+              claimDisplayId: c.claimDisplayId || c.display_id,
+              claimText: c.claimText || c.text,
+              citationNumber: c.citationNumber,
+              linkedReferences: c.linkedReferences || []
+            })),
+            references_used: referencesUsed.map((r) => ({
+              referenceId: r.referenceId || r.id,
+              referenceDisplayId: r.referenceDisplayId || r.display_id,
+              formattedCitation: r.formattedCitation || r.formatted_citation || r.text,
+              citationNumber: r.citationNumber
+            })),
+            metadata: {
+              ...newAsset.metadata,
+              citation_data: {
+                claimsUsed,
+                referencesUsed,
+                modulesUsed,
+                visualsUsed
+              }
+            }
+          })
+          .eq('id', newAsset.id);
+        
+        if (evidenceError) {
+          console.error('❌ Failed to save evidence columns:', evidenceError);
+        } else {
+          console.log('✅ Evidence columns saved successfully');
+        }
+      }
+
+      // Record theme usage
       await ThemeService.recordThemeUsage(
         theme.id,
         'campaign',
@@ -161,18 +296,30 @@ const StrategyAndInsights = () => {
       );
 
       toast({
-        title: "Content Ready",
-        description: "Opening editor with your theme..."
+        title: "Content Generated",
+        description: `AI-generated content is ready with ${initializedContent.completeness}% completeness`
       });
       
-      navigate(`/content-editor/${newAsset.id}`);
+      // Explicit navigation with logging
+      const editorPath = `/content-editor/${newAsset.id}`;
+      console.log('🔄 Navigating to content editor:', editorPath);
+      navigate(editorPath);
+      
     } catch (error) {
-      console.error('Error creating content from theme:', error);
+      console.error('Error creating AI content from theme:', error);
       toast({
         title: "Error",
-        description: "Failed to create content from theme",
+        description: error instanceof Error ? error.message : "Failed to generate content from theme",
         variant: "destructive"
       });
+    }
+  };
+
+  // Legacy handler for ThemeCard (uses same AI flow)
+  const handleUseTheme = async (themeId) => {
+    const theme = themes.find(t => t.id === themeId);
+    if (theme) {
+      await handleUseThemeWithAI(theme);
     }
   };
 
@@ -338,6 +485,7 @@ const StrategyAndInsights = () => {
 
           {currentView === 'library' && (
             <ThemeLibrary
+              onThemeSelect={handleUseThemeWithAI}
               onThemeDetails={(theme) => navigate(`/theme-versions/${theme.id}`)}
             />
           )}

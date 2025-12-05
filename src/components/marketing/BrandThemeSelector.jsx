@@ -6,18 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Palette, Settings2 } from 'lucide-react';
 import { BrandService } from '@/services/brandService';
-
 import { blendBrandThemes, applyBlendedTheme } from '@/utils/brandThemeBlender';
 import { useSlideTheme } from '@/contexts/SlideThemeContext';
 
-
-
 const BrandThemeSelector = ({ compact = false, onThemeChange }) => {
-  const [brands, setBrands] = useState<BrandProfile[]>([]);
-  const [primaryBrandId, setPrimaryBrandId] = useState<string>('');
-  const [secondaryBrandId, setSecondaryBrandId] = useState<string>('none');
+  const [brands, setBrands] = useState([]);
+  const [primaryBrandId, setPrimaryBrandId] = useState('');
+  const [secondaryBrandId, setSecondaryBrandId] = useState('none');
   const [blendIntensity, setBlendIntensity] = useState(30);
-  const { setPrimaryBrandId, setSecondaryBrandId } = useSlideTheme();
+  
+  // Renamed context setters to avoid collision with useState setters and match usage in applyTheme
+  const { setPrimaryBrandId: setContextPrimaryBrandId, setSecondaryBrandId: setContextSecondaryBrandId } = useSlideTheme();
 
   useEffect(() => {
     loadBrands();
@@ -44,7 +43,7 @@ const BrandThemeSelector = ({ compact = false, onThemeChange }) => {
 
   const applyTheme = () => {
     const primary = brands.find(b => b.id === primaryBrandId);
-    const secondary = secondaryBrandId !== 'none' ? brands.find(b => b.id === secondaryBrandId) ;
+    const secondary = secondaryBrandId !== 'none' ? brands.find(b => b.id === secondaryBrandId) : null;
 
     if (primary) {
       const blendedTheme = blendBrandThemes(primary, secondary || null, blendIntensity);
@@ -52,8 +51,12 @@ const BrandThemeSelector = ({ compact = false, onThemeChange }) => {
       onThemeChange?.(primary, secondary || null, blendIntensity);
       
       // Update context for footer
-      setContextPrimaryBrandId(primaryBrandId);
-      setContextSecondaryBrandId(secondaryBrandId !== 'none' ? secondaryBrandId );
+      if (typeof setContextPrimaryBrandId === 'function') {
+        setContextPrimaryBrandId(primaryBrandId);
+      }
+      if (typeof setContextSecondaryBrandId === 'function') {
+        setContextSecondaryBrandId(secondaryBrandId !== 'none' ? secondaryBrandId : null);
+      }
     }
   };
 
@@ -75,7 +78,7 @@ const BrandThemeSelector = ({ compact = false, onThemeChange }) => {
       <div className="flex items-center gap-3 bg-card border border-border rounded-lg px-3 py-2">
         <div className="flex items-center gap-2">
           <Palette className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium whitespace-nowrap">Theme/span>
+          <span className="text-sm font-medium whitespace-nowrap">Theme</span>
         </div>
         
         <div className="flex items-center gap-2 flex-1">

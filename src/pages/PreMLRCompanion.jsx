@@ -7,17 +7,17 @@ import Header from "@/components/Header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { 
   Shield,
   CheckCircle,
   AlertTriangle,
   FileText,
-  Lightbulb,
   History,
-  BookOpen
+  BookOpen,
+  Library,
+  ShieldAlert,
+  TrendingDown
 } from "lucide-react";
 import { AssetMetadataPanel } from "@/components/mlr/AssetMetadataPanel";
 import { HighlightedContentEditor } from "@/components/mlr/HighlightedContentEditor";
@@ -25,7 +25,34 @@ import { ClaimsValidationPanel } from "@/components/mlr/ClaimsValidationPanel";
 import { ReferenceValidationPanel } from "@/components/mlr/ReferenceValidationPanel";
 import { RegulatoryCompliancePanel } from "@/components/mlr/RegulatoryCompliancePanel";
 import { MLRMemoryPanel } from "@/components/mlr/MLRMemoryPanel";
+import { SafetyRequirementsPanel } from "@/components/mlr/SafetyRequirementsPanel";
+import { ApprovedContentLibraryPanel } from "@/components/mlr/ApprovedContentLibraryPanel";
+import { MLRPatternsPanel } from "@/components/mlr/MLRPatternsPanel";
 import { moduleBridge } from "@/services/moduleBridge";
+import { supabase } from "@/integrations/supabase/client";
+
+// Extract content string from primary_content JSONB structure
+const extractContentString = (primaryContent) => {
+  if (!primaryContent) return '';
+  if (typeof primaryContent === 'string') return primaryContent;
+  
+  const parts = [];
+  if (primaryContent.subject) parts.push(`Subject: ${primaryContent.subject}`);
+  if (primaryContent.preheader) parts.push(`Preheader: ${primaryContent.preheader}`);
+  if (primaryContent.headline) parts.push(`Headline: ${primaryContent.headline}`);
+  if (primaryContent.heroHeadline) parts.push(`Hero Headline: ${primaryContent.heroHeadline}`);
+  if (primaryContent.heroSubheadline) parts.push(`Hero Subheadline: ${primaryContent.heroSubheadline}`);
+  if (primaryContent.keyMessage) parts.push(`Key Message: ${primaryContent.keyMessage}`);
+  if (primaryContent.body) parts.push(primaryContent.body);
+  if (primaryContent.bodyText) parts.push(primaryContent.bodyText);
+  if (primaryContent.clinicalEvidence) parts.push(`Clinical Evidence: ${primaryContent.clinicalEvidence}`);
+  if (primaryContent.safetyInformation) parts.push(`Safety Information: ${primaryContent.safetyInformation}`);
+  if (primaryContent.cta) parts.push(`CTA: ${primaryContent.cta}`);
+  if (primaryContent.heroCta) parts.push(`Hero CTA: ${primaryContent.heroCta}`);
+  if (primaryContent.disclaimer) parts.push(`Disclaimer: ${primaryContent.disclaimer}`);
+  
+  return parts.join('\n\n');
+};
 
 const PreMLRCompanion = () => {
   const navigate = useNavigate();
@@ -39,7 +66,8 @@ const PreMLRCompanion = () => {
     claims: { valid: 0, warnings: 0, failures: 0 },
     references: { valid: 0, missing: 0 },
     regulatory: { passed: 0, failed: 0 },
-    mlrMemory: { suggestions: 0, acknowledged: 0 }
+    mlrMemory: { suggestions: 0, acknowledged: 0 },
+    safety: { required: 0, present: 0, missing: 0 }
   });
   const [cachedResults, setCachedResults] = useState({
     claims: null,
@@ -59,28 +87,67 @@ const PreMLRCompanion = () => {
     setIsLoading(true);
     
     try {
-      // Get context from previous modules via moduleBridge
       const contentStudioContext = moduleBridge.getModuleContext('content-studio');
       const strategyContext = moduleBridge.getModuleContext('strategy-insights');
       const initiativeContext = moduleBridge.getModuleContext('initiative-hub');
       
-      // Check for specific asset ID from URL params
       const assetId = searchParams.get('assetId');
       
+      // Priority 1: Use moduleBridge context if asset matches
       if (assetId && contentStudioContext?.selectedAsset?.id === assetId) {
+        console.log('📚 Loading asset from moduleBridge context:', assetId);
         setContentAsset(contentStudioContext.selectedAsset);
         const contextData = {
           ...contentStudioContext,
           strategyThemes: strategyContext?.themes || [],
           campaignObjectives: initiativeContext?.objectives || [],
-          brandId: selectedBrand?.id || null
+          brandId: contentStudioContext.selectedAsset?.brand_id || selectedBrand?.id || null,
+          therapeuticArea: contentStudioContext.selectedAsset?.metadata?.therapeutic_area
         };
         setAssetContext(contextData);
-        
-        // Make context available globally for validation panels
         globalThis.mlrDemoContext = contextData;
-      } else {
-        // Initialize with demo content for development
+      } 
+      // Priority 2: Fetch from database if assetId provided
+      else if (assetId) {
+        console.log('📚 Fetching asset from database:', assetId);
+        const { data: asset, error } = await supabase
+          .from('content_assets')
+          .select('*')
+          .eq('id', assetId)
+          .single();
+        
+        if (asset && !error) {
+          // Transform database asset to expected MLR format
+          const contentAsset = {
+            id: asset.id,
+            title: asset.asset_name,
+            type: asset.asset_type,
+            content: extractContentString(asset.primary_content),
+            status: asset.status,
+            metadata: asset.metadata,
+            claims_used: asset.claims_used,
+            references_used: asset.references_used,
+            target_audience: asset.target_audience,
+            primary_content: asset.primary_content,
+            brand_id: asset.brand_id
+          };
+          
+          setContentAsset(contentAsset);
+          setAssetContext({
+            brandId: asset.brand_id,
+            therapeuticArea: asset.metadata?.therapeutic_area,
+            assetType: asset.asset_type,
+            targetAudience: asset.target_audience
+          });
+          
+          console.log('✅ Asset loaded from database successfully');
+        } else {
+          console.error('❌ Failed to load asset from database:', error);
+          initializeDemoContent();
+        }
+      }
+      // Priority 3: Demo content fallback
+      else {
         initializeDemoContent();
       }
       
@@ -94,16 +161,9 @@ const PreMLRCompanion = () => {
 
   const initializeDemoContent = () => {
     const demoContext = BrandDemoContentGenerator.generateBrandDemoContent(selectedBrand);
-    
     setContentAsset(demoContext.selectedAsset);
     setAssetContext(demoContext);
-    
-    // Make context available globally for validation panels
     globalThis.mlrDemoContext = demoContext;
-  };
-
-  const handleBackToDashboard = () => {
-    navigate('/');
   };
 
   const handleValidationUpdate = (panelType, summary) => {
@@ -113,40 +173,32 @@ const PreMLRCompanion = () => {
     }));
   };
 
-  const handleResultsCache = (panelType, results) => {
-    setCachedResults(prev => ({
-      ...prev,
-      [panelType]: results,
-      lastAnalyzed: {
-        ...prev.lastAnalyzed,
-        [panelType]: Date.now()
-      }
-    }));
-  };
-
-  const getTimeSinceAnalysis = (panelType) => {
-    const timestamp = cachedResults.lastAnalyzed[panelType];
-    if (!timestamp) return null;
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}m ago`;
-  };
-
   const getTotalIssues = () => {
     return validationSummary.claims.warnings + 
            validationSummary.claims.failures + 
            validationSummary.references.missing + 
-           validationSummary.regulatory.failed;
+           validationSummary.regulatory.failed +
+           validationSummary.safety.missing;
   };
 
   const getMLRReadinessScore = () => {
     const total = validationSummary.claims.valid + 
                   validationSummary.references.valid + 
-                  validationSummary.regulatory.passed;
+                  validationSummary.regulatory.passed +
+                  validationSummary.safety.present;
     const issues = getTotalIssues();
-    return Math.max(0, Math.round((total / (total + issues)) * 100)) || 0;
+    return Math.max(0, Math.round((total / (total + issues + 1)) * 100)) || 0;
   };
+
+  const panelConfig = [
+    { id: 'claims', label: 'Claims', icon: FileText, badge: validationSummary.claims.failures },
+    { id: 'references', label: 'References', icon: BookOpen, badge: validationSummary.references.missing },
+    { id: 'safety', label: 'Safety', icon: ShieldAlert, badge: validationSummary.safety.missing },
+    { id: 'patterns', label: 'Patterns', icon: TrendingDown, badge: null },
+    { id: 'regulatory', label: 'Regulatory', icon: Shield, badge: validationSummary.regulatory.failed },
+    { id: 'mlr-memory', label: 'Memory', icon: History, badge: validationSummary.mlrMemory.suggestions },
+    { id: 'library', label: 'Library', icon: Library, badge: null },
+  ];
 
   if (isLoading) {
     return (
@@ -199,7 +251,7 @@ const PreMLRCompanion = () => {
       <div className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Left Panel - Asset Context */}
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
             <div className="h-full border-r">
               <AssetMetadataPanel 
                 asset={contentAsset}
@@ -211,13 +263,13 @@ const PreMLRCompanion = () => {
           
           <ResizableHandle />
           
-          {/* Central Panel - Content Editor with Highlighting */}
-          <ResizablePanel defaultSize={50} minSize={35}>
+          {/* Central Panel - Content Editor */}
+          <ResizablePanel defaultSize={45} minSize={35}>
             <div className="h-full flex flex-col">
               <HighlightedContentEditor
                 asset={contentAsset}
                 onContentChange={setContentAsset}
-                validationHighlights={[]} // Will be populated by validation panels
+                validationHighlights={[]}
               />
             </div>
           </ResizablePanel>
@@ -225,47 +277,28 @@ const PreMLRCompanion = () => {
           <ResizableHandle />
           
           {/* Right Panel - Validation Sections */}
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+          <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
             <div className="h-full border-l flex flex-col">
-              {/* Validation Panel Tabs */}
+              {/* Enhanced Panel Tabs */}
               <div className="border-b p-2">
-                <div className="grid grid-cols-2 gap-1">
-                  <Button
-                    size="sm"
-                    variant={activeValidationPanel === 'claims' ? 'default' : 'ghost'}
-                    onClick={() => setActiveValidationPanel('claims')}
-                    className="justify-start"
-                  >
-                    <FileText className="h-3 w-3 mr-1" />
-                    Claims
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={activeValidationPanel === 'references' ? 'default' : 'ghost'}
-                    onClick={() => setActiveValidationPanel('references')}
-                    className="justify-start"
-                  >
-                    <BookOpen className="h-3 w-3 mr-1" />
-                    References
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={activeValidationPanel === 'regulatory' ? 'default' : 'ghost'}
-                    onClick={() => setActiveValidationPanel('regulatory')}
-                    className="justify-start"
-                  >
-                    <Shield className="h-3 w-3 mr-1" />
-                    Regulatory
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={activeValidationPanel === 'mlr-memory' ? 'default' : 'ghost'}
-                    onClick={() => setActiveValidationPanel('mlr-memory')}
-                    className="justify-start"
-                  >
-                    <History className="h-3 w-3 mr-1" />
-                    MLR Memory
-                  </Button>
+                <div className="flex flex-wrap gap-1">
+                  {panelConfig.map((panel) => (
+                    <Button
+                      key={panel.id}
+                      size="sm"
+                      variant={activeValidationPanel === panel.id ? 'default' : 'ghost'}
+                      onClick={() => setActiveValidationPanel(panel.id)}
+                      className="justify-start text-xs relative"
+                    >
+                      <panel.icon className="h-3 w-3 mr-1" />
+                      {panel.label}
+                      {panel.badge !== null && panel.badge > 0 && (
+                        <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
+                          {panel.badge}
+                        </span>
+                      )}
+                    </Button>
+                  ))}
                 </div>
               </div>
               
@@ -285,6 +318,20 @@ const PreMLRCompanion = () => {
                   <ReferenceValidationPanel 
                     content={contentAsset?.content || ''}
                     onValidationUpdate={(summary) => handleValidationUpdate('references', summary)}
+                  />
+                )}
+
+                {activeValidationPanel === 'safety' && (
+                  <SafetyRequirementsPanel 
+                    content={contentAsset?.content || ''}
+                    assetType={contentAsset?.type}
+                    onValidationUpdate={(summary) => handleValidationUpdate('safety', summary)}
+                  />
+                )}
+
+                {activeValidationPanel === 'patterns' && (
+                  <MLRPatternsPanel 
+                    content={contentAsset?.content || ''}
                   />
                 )}
                 
@@ -307,6 +354,10 @@ const PreMLRCompanion = () => {
                     assetContext={assetContext}
                     onValidationUpdate={(summary) => handleValidationUpdate('mlrMemory', summary)}
                   />
+                )}
+
+                {activeValidationPanel === 'library' && (
+                  <ApprovedContentLibraryPanel />
                 )}
               </div>
             </div>

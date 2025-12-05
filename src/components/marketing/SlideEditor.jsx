@@ -9,8 +9,6 @@ import { RotateCcw } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
-
-
 const SlideEditor = ({ currentSlide }) => {
   const { slideData, updateSlideData, resetToDefaults, isDirty } = useMarketingDeck();
 
@@ -63,7 +61,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={problem.percentage}
               onChange={(e) => {
                 const newProblems = [...slideData.industryProblems];
-                newProblems[index] = { ...newProblems[index], percentage.target.value };
+                newProblems[index] = { ...newProblems[index], percentage: e.target.value };
                 updateSlideData('industryProblems', newProblems);
               }}
             />
@@ -75,7 +73,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={problem.label}
               onChange={(e) => {
                 const newProblems = [...slideData.industryProblems];
-                newProblems[index] = { ...newProblems[index], label.target.value };
+                newProblems[index] = { ...newProblems[index], label: e.target.value };
                 updateSlideData('industryProblems', newProblems);
               }}
             />
@@ -87,7 +85,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={problem.description}
               onChange={(e) => {
                 const newProblems = [...slideData.industryProblems];
-                newProblems[index] = { ...newProblems[index], description.target.value };
+                newProblems[index] = { ...newProblems[index], description: e.target.value };
                 updateSlideData('industryProblems', newProblems);
               }}
             />
@@ -99,7 +97,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={problem.impact}
               onChange={(e) => {
                 const newProblems = [...slideData.industryProblems];
-                newProblems[index] = { ...newProblems[index], impact.target.value };
+                newProblems[index] = { ...newProblems[index], impact: e.target.value };
                 updateSlideData('industryProblems', newProblems);
               }}
             />
@@ -136,7 +134,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={result.metric}
                 onChange={(e) => {
                   const newResults = [...slideData.earlyAdopterResults];
-                  newResults[index] = { ...newResults[index], metric.target.value };
+                  newResults[index] = { ...newResults[index], metric: e.target.value };
                   updateSlideData('earlyAdopterResults', newResults);
                 }}
               />
@@ -149,7 +147,7 @@ const SlideEditor = ({ currentSlide }) => {
                 onChange={(e) => {
                   if (validateNumber(e.target.value, 'Before Value')) {
                     const newResults = [...slideData.earlyAdopterResults];
-                    newResults[index] = { ...newResults[index], before.target.value };
+                    newResults[index] = { ...newResults[index], before: e.target.value };
                     updateSlideData('earlyAdopterResults', newResults);
                   }
                 }}
@@ -164,7 +162,7 @@ const SlideEditor = ({ currentSlide }) => {
                 onChange={(e) => {
                   if (validateNumber(e.target.value, 'After Value')) {
                     const newResults = [...slideData.earlyAdopterResults];
-                    newResults[index] = { ...newResults[index], after.target.value };
+                    newResults[index] = { ...newResults[index], after: e.target.value };
                     updateSlideData('earlyAdopterResults', newResults);
                   }
                 }}
@@ -178,7 +176,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={result.improvement}
                 onChange={(e) => {
                   const newResults = [...slideData.earlyAdopterResults];
-                  newResults[index] = { ...newResults[index], improvement.target.value };
+                  newResults[index] = { ...newResults[index], improvement: e.target.value };
                   updateSlideData('earlyAdopterResults', newResults);
                 }}
                 placeholder="e.g., 70% reduction"
@@ -202,7 +200,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={phase.phase}
               onChange={(e) => {
                 const newPhases = [...slideData.implementationPhases];
-                newPhases[index] = { ...newPhases[index], phase.target.value };
+                newPhases[index] = { ...newPhases[index], phase: e.target.value };
                 updateSlideData('implementationPhases', newPhases);
               }}
             />
@@ -214,7 +212,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={phase.weeks}
               onChange={(e) => {
                 const newPhases = [...slideData.implementationPhases];
-                newPhases[index] = { ...newPhases[index], weeks.target.value };
+                newPhases[index] = { ...newPhases[index], weeks: e.target.value };
                 updateSlideData('implementationPhases', newPhases);
               }}
               placeholder="e.g., Weeks 1-4"
@@ -229,7 +227,7 @@ const SlideEditor = ({ currentSlide }) => {
                 const newPhases = [...slideData.implementationPhases];
                 newPhases[index] = { 
                   ...newPhases[index], 
-                  deliverables.target.value.split(',').map(d => d.trim()).filter(Boolean)
+                  deliverables: e.target.value.split(',').map(d => d.trim()).filter(Boolean)
                 };
                 updateSlideData('implementationPhases', newPhases);
               }}
@@ -245,7 +243,7 @@ const SlideEditor = ({ currentSlide }) => {
                 const newPhases = [...slideData.implementationPhases];
                 newPhases[index] = { 
                   ...newPhases[index], 
-                  milestones.target.value.split(',').map(m => m.trim()).filter(Boolean)
+                  milestones: e.target.value.split(',').map(m => m.trim()).filter(Boolean)
                 };
                 updateSlideData('implementationPhases', newPhases);
               }}
@@ -269,7 +267,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={painPoint.area}
               onChange={(e) => {
                 const newPainPoints = [...slideData.clientPainPoints];
-                newPainPoints[index] = { ...newPainPoints[index], area.target.value };
+                newPainPoints[index] = { ...newPainPoints[index], area: e.target.value };
                 updateSlideData('clientPainPoints', newPainPoints);
               }}
             />
@@ -283,7 +281,7 @@ const SlideEditor = ({ currentSlide }) => {
                 const newPainPoints = [...slideData.clientPainPoints];
                 newPainPoints[index] = { 
                   ...newPainPoints[index], 
-                  symptoms.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                  symptoms: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
                 };
                 updateSlideData('clientPainPoints', newPainPoints);
               }}
@@ -297,7 +295,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={painPoint.cost}
               onChange={(e) => {
                 const newPainPoints = [...slideData.clientPainPoints];
-                newPainPoints[index] = { ...newPainPoints[index], cost.target.value };
+                newPainPoints[index] = { ...newPainPoints[index], cost: e.target.value };
                 updateSlideData('clientPainPoints', newPainPoints);
               }}
               placeholder="e.g., $1.2M/year"
@@ -320,7 +318,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={cost.category}
               onChange={(e) => {
                 const newCosts = [...slideData.hiddenCosts];
-                newCosts[index] = { ...newCosts[index], category.target.value };
+                newCosts[index] = { ...newCosts[index], category: e.target.value };
                 updateSlideData('hiddenCosts', newCosts);
               }}
             />
@@ -334,7 +332,7 @@ const SlideEditor = ({ currentSlide }) => {
                 const newCosts = [...slideData.hiddenCosts];
                 newCosts[index] = { 
                   ...newCosts[index], 
-                  items.target.value.split(',').map(i => i.trim()).filter(Boolean)
+                  items: e.target.value.split(',').map(i => i.trim()).filter(Boolean)
                 };
                 updateSlideData('hiddenCosts', newCosts);
               }}
@@ -358,7 +356,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={feature.feature}
               onChange={(e) => {
                 const newFeatures = [...slideData.competitiveFeatures];
-                newFeatures[index] = { ...newFeatures[index], feature.target.value };
+                newFeatures[index] = { ...newFeatures[index], feature: e.target.value };
                 updateSlideData('competitiveFeatures', newFeatures);
               }}
             />
@@ -371,7 +369,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={feature.us}
                 onChange={(e) => {
                   const newFeatures = [...slideData.competitiveFeatures];
-                  newFeatures[index] = { ...newFeatures[index], us.target.value };
+                  newFeatures[index] = { ...newFeatures[index], us: e.target.value };
                   updateSlideData('competitiveFeatures', newFeatures);
                 }}
               />
@@ -383,7 +381,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={feature.veeva}
                 onChange={(e) => {
                   const newFeatures = [...slideData.competitiveFeatures];
-                  newFeatures[index] = { ...newFeatures[index], veeva.target.value };
+                  newFeatures[index] = { ...newFeatures[index], veeva: e.target.value };
                   updateSlideData('competitiveFeatures', newFeatures);
                 }}
               />
@@ -395,7 +393,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={feature.translation}
                 onChange={(e) => {
                   const newFeatures = [...slideData.competitiveFeatures];
-                  newFeatures[index] = { ...newFeatures[index], translation.target.value };
+                  newFeatures[index] = { ...newFeatures[index], translation: e.target.value };
                   updateSlideData('competitiveFeatures', newFeatures);
                 }}
               />
@@ -407,7 +405,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={feature.dam}
                 onChange={(e) => {
                   const newFeatures = [...slideData.competitiveFeatures];
-                  newFeatures[index] = { ...newFeatures[index], dam.target.value };
+                  newFeatures[index] = { ...newFeatures[index], dam: e.target.value };
                   updateSlideData('competitiveFeatures', newFeatures);
                 }}
               />
@@ -430,7 +428,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={risk.risk}
               onChange={(e) => {
                 const newRisks = [...slideData.riskMatrix];
-                newRisks[index] = { ...newRisks[index], risk.target.value };
+                newRisks[index] = { ...newRisks[index], risk: e.target.value };
                 updateSlideData('riskMatrix', newRisks);
               }}
             />
@@ -443,7 +441,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={risk.probability}
                 onChange={(e) => {
                   const newRisks = [...slideData.riskMatrix];
-                  newRisks[index] = { ...newRisks[index], probability.target.value as 'low' | 'medium' | 'high' };
+                  newRisks[index] = { ...newRisks[index], probability: e.target.value };
                   updateSlideData('riskMatrix', newRisks);
                 }}
                 className="w-full px-3 py-2 border border-input rounded-md bg-background"
@@ -460,7 +458,7 @@ const SlideEditor = ({ currentSlide }) => {
                 value={risk.impact}
                 onChange={(e) => {
                   const newRisks = [...slideData.riskMatrix];
-                  newRisks[index] = { ...newRisks[index], impact.target.value as 'low' | 'medium' | 'high' };
+                  newRisks[index] = { ...newRisks[index], impact: e.target.value };
                   updateSlideData('riskMatrix', newRisks);
                 }}
                 className="w-full px-3 py-2 border border-input rounded-md bg-background"
@@ -478,7 +476,7 @@ const SlideEditor = ({ currentSlide }) => {
               value={risk.mitigation}
               onChange={(e) => {
                 const newRisks = [...slideData.riskMatrix];
-                newRisks[index] = { ...newRisks[index], mitigation.target.value };
+                newRisks[index] = { ...newRisks[index], mitigation: e.target.value };
                 updateSlideData('riskMatrix', newRisks);
               }}
               rows={3}
@@ -517,7 +515,7 @@ const SlideEditor = ({ currentSlide }) => {
                   value={metric.metric}
                   onChange={(e) => {
                     const newMetrics = { ...slideData.successMetrics };
-                    newMetrics.speed[index] = { ...newMetrics.speed[index], metric.target.value };
+                    newMetrics.speed[index] = { ...newMetrics.speed[index], metric: e.target.value };
                     updateSlideData('successMetrics', newMetrics);
                   }}
                 />
@@ -531,7 +529,7 @@ const SlideEditor = ({ currentSlide }) => {
                     onChange={(e) => {
                       if (validateMetricValue(e.target.value, 'Baseline')) {
                         const newMetrics = { ...slideData.successMetrics };
-                        newMetrics.speed[index] = { ...newMetrics.speed[index], baseline.target.value };
+                        newMetrics.speed[index] = { ...newMetrics.speed[index], baseline: e.target.value };
                         updateSlideData('successMetrics', newMetrics);
                       }
                     }}
@@ -545,7 +543,7 @@ const SlideEditor = ({ currentSlide }) => {
                     onChange={(e) => {
                       if (validateMetricValue(e.target.value, 'Current')) {
                         const newMetrics = { ...slideData.successMetrics };
-                        newMetrics.speed[index] = { ...newMetrics.speed[index], current.target.value };
+                        newMetrics.speed[index] = { ...newMetrics.speed[index], current: e.target.value };
                         updateSlideData('successMetrics', newMetrics);
                       }
                     }}
@@ -558,7 +556,7 @@ const SlideEditor = ({ currentSlide }) => {
                     value={metric.improvement}
                     onChange={(e) => {
                       const newMetrics = { ...slideData.successMetrics };
-                      newMetrics.speed[index] = { ...newMetrics.speed[index], improvement.target.value };
+                      newMetrics.speed[index] = { ...newMetrics.speed[index], improvement: e.target.value };
                       updateSlideData('successMetrics', newMetrics);
                     }}
                   />
@@ -579,7 +577,7 @@ const SlideEditor = ({ currentSlide }) => {
                   value={metric.metric}
                   onChange={(e) => {
                     const newMetrics = { ...slideData.successMetrics };
-                    newMetrics.quality[index] = { ...newMetrics.quality[index], metric.target.value };
+                    newMetrics.quality[index] = { ...newMetrics.quality[index], metric: e.target.value };
                     updateSlideData('successMetrics', newMetrics);
                   }}
                 />
@@ -593,7 +591,7 @@ const SlideEditor = ({ currentSlide }) => {
                     onChange={(e) => {
                       if (validateMetricValue(e.target.value, 'Baseline')) {
                         const newMetrics = { ...slideData.successMetrics };
-                        newMetrics.quality[index] = { ...newMetrics.quality[index], baseline.target.value };
+                        newMetrics.quality[index] = { ...newMetrics.quality[index], baseline: e.target.value };
                         updateSlideData('successMetrics', newMetrics);
                       }
                     }}
@@ -607,7 +605,7 @@ const SlideEditor = ({ currentSlide }) => {
                     onChange={(e) => {
                       if (validateMetricValue(e.target.value, 'Current')) {
                         const newMetrics = { ...slideData.successMetrics };
-                        newMetrics.quality[index] = { ...newMetrics.quality[index], current.target.value };
+                        newMetrics.quality[index] = { ...newMetrics.quality[index], current: e.target.value };
                         updateSlideData('successMetrics', newMetrics);
                       }
                     }}
@@ -620,7 +618,7 @@ const SlideEditor = ({ currentSlide }) => {
                     value={metric.improvement}
                     onChange={(e) => {
                       const newMetrics = { ...slideData.successMetrics };
-                      newMetrics.quality[index] = { ...newMetrics.quality[index], improvement.target.value };
+                      newMetrics.quality[index] = { ...newMetrics.quality[index], improvement: e.target.value };
                       updateSlideData('successMetrics', newMetrics);
                     }}
                   />
@@ -641,7 +639,7 @@ const SlideEditor = ({ currentSlide }) => {
                   value={metric.metric}
                   onChange={(e) => {
                     const newMetrics = { ...slideData.successMetrics };
-                    newMetrics.cost[index] = { ...newMetrics.cost[index], metric.target.value };
+                    newMetrics.cost[index] = { ...newMetrics.cost[index], metric: e.target.value };
                     updateSlideData('successMetrics', newMetrics);
                   }}
                 />
@@ -655,7 +653,7 @@ const SlideEditor = ({ currentSlide }) => {
                     onChange={(e) => {
                       if (validateMetricValue(e.target.value, 'Baseline')) {
                         const newMetrics = { ...slideData.successMetrics };
-                        newMetrics.cost[index] = { ...newMetrics.cost[index], baseline.target.value };
+                        newMetrics.cost[index] = { ...newMetrics.cost[index], baseline: e.target.value };
                         updateSlideData('successMetrics', newMetrics);
                       }
                     }}
@@ -670,7 +668,7 @@ const SlideEditor = ({ currentSlide }) => {
                     onChange={(e) => {
                       if (validateMetricValue(e.target.value, 'Current')) {
                         const newMetrics = { ...slideData.successMetrics };
-                        newMetrics.cost[index] = { ...newMetrics.cost[index], current.target.value };
+                        newMetrics.cost[index] = { ...newMetrics.cost[index], current: e.target.value };
                         updateSlideData('successMetrics', newMetrics);
                       }
                     }}
@@ -684,7 +682,7 @@ const SlideEditor = ({ currentSlide }) => {
                     value={metric.improvement}
                     onChange={(e) => {
                       const newMetrics = { ...slideData.successMetrics };
-                      newMetrics.cost[index] = { ...newMetrics.cost[index], improvement.target.value };
+                      newMetrics.cost[index] = { ...newMetrics.cost[index], improvement: e.target.value };
                       updateSlideData('successMetrics', newMetrics);
                     }}
                     placeholder="e.g., 57%"
@@ -700,8 +698,8 @@ const SlideEditor = ({ currentSlide }) => {
 
   const getEditorForSlide = () => {
     switch (currentSlide) {
-      case 0 renderTitleSlideEditor();
-      case 1 renderIndustryProblemsEditor();
+      case 0: return renderTitleSlideEditor();
+      case 1: return renderIndustryProblemsEditor();
       case 2: // Client Pain Points slide
         return renderClientPainPointsEditor();
       case 3: // Hidden Costs slide
@@ -716,7 +714,8 @@ const SlideEditor = ({ currentSlide }) => {
         return renderROIMetricsEditor();
       case 9: // Risk Matrix slide
         return renderRiskMatrixEditor();
-      default (
+      default:
+        return (
           <div className="text-center text-muted-foreground py-8">
             <p>Editor for this slide coming soon</p>
             <p className="text-sm mt-2">All major slides now have editors available!</p>
