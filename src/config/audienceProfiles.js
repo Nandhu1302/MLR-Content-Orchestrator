@@ -1,22 +1,13 @@
-export interface AudienceProfile {
-  audienceType: string;
-  displayName: string;
-  description: string;
-  defaultTone: string;
-  defaultDepth: string;
-  defaultTerminology: string;
-  contentCharacteristics: {
-    leadWith: string;
-    emphasize: string[];
-    avoid: string[];
-    structure: string;
-  };
-  typicalObjectives: string[];
-  callToActionStyle: string;
-}
+/**
+ * Audience Profiles Configuration (JavaScript)
+ *
+ * Defines audience profiles and specialist overrides to guide content generation.
+ * This file dictates tone, depth, and content priorities for various healthcare professionals (HCPs)
+ * and patient/caregiver groups.
+ */
 
 // Specialist-specific profile overrides by indication focus
-export const SPECIALIST_PROFILES: Record<string, Partial<AudienceProfile>> = {
+export const SPECIALIST_PROFILES = {
   'oncologist': {
     contentCharacteristics: {
       leadWith: 'Most compelling efficacy data from pivotal oncology trials (OS, PFS, ORR)',
@@ -152,7 +143,7 @@ export const SPECIALIST_PROFILES: Record<string, Partial<AudienceProfile>> = {
   }
 };
 
-export const BASE_AUDIENCE_PROFILES: Record<string, AudienceProfile> = {
+export const BASE_AUDIENCE_PROFILES = {
   'physician-specialist': {
     audienceType: 'physician-specialist',
     displayName: 'Physician - Specialist',
@@ -413,9 +404,12 @@ export const BASE_AUDIENCE_PROFILES: Record<string, AudienceProfile> = {
 /**
  * Get specialist profile with indication-specific overrides
  */
-export const getSpecialistProfile = (specialistType: string, indication?: string): AudienceProfile => {
+export const getSpecialistProfile = (specialistType, indication) => {
   const baseProfile = BASE_AUDIENCE_PROFILES['physician-specialist'];
   const specialistOverrides = SPECIALIST_PROFILES[specialistType] || {};
+  
+  // Note: The original TypeScript logic allowed for merging partial overrides.
+  // We replicate this merging in JavaScript to ensure base characteristics are maintained.
   
   return {
     ...baseProfile,
@@ -431,14 +425,14 @@ export const getSpecialistProfile = (specialistType: string, indication?: string
 /**
  * Get audience profile by type
  */
-export const getAudienceProfile = (audienceType: string): AudienceProfile | null => {
+export const getAudienceProfile = (audienceType) => {
   return BASE_AUDIENCE_PROFILES[audienceType] || null;
 };
 
 /**
  * Get all audience types for selection
  */
-export const getAllAudienceTypes = (): { value: string; label: string; description: string }[] => {
+export const getAllAudienceTypes = () => {
   return Object.values(BASE_AUDIENCE_PROFILES).map(profile => ({
     value: profile.audienceType,
     label: profile.displayName,
