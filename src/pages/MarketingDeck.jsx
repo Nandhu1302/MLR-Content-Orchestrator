@@ -21,7 +21,7 @@ import SolutionSlide from "@/components/marketing/slides/SolutionSlide";
 import IntelligenceSlide from "@/components/marketing/slides/IntelligenceSlide";
 import WorkflowDetailSlide from "@/components/marketing/slides/WorkflowDetailSlide";
 import IntegrationSlide from "@/components/marketing/slides/IntegrationSlide";
-import EcosystemPositioningSlide from "@/components/marketing/slides/EcosystemPositioningSlide";
+// REMOVED: import EcosystemPositioningSlide from "@/components/marketing/slides/EcosystemPositioningSlide";
 import CaseStudySlide from "@/components/marketing/slides/CaseStudySlide";
 import DemoProofSlide from "@/components/marketing/slides/DemoProofSlide";
 import CompetitiveDetailSlide from "@/components/marketing/slides/CompetitiveDetailSlide";
@@ -45,7 +45,7 @@ const slides = [
   IntelligenceSlide,
   WorkflowDetailSlide,
   IntegrationSlide,
-  EcosystemPositioningSlide,
+  // REMOVED: EcosystemPositioningSlide,
   CaseStudySlide,
   DemoProofSlide,
   CompetitiveDetailSlide,
@@ -162,92 +162,92 @@ const MarketingDeckContent = ({ embedded = false }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-        {/* Navigation Bar */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border px-6 py-3 print:hidden">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-4">
-              <h1 className="text-lg font-semibold text-foreground">Content Orchestrator Marketing Deck</h1>
-              <span className="text-sm font-medium text-muted-foreground bg-muted px-3 py-1 rounded-md">
-                Slide {currentSlide + 1} / {slides.length}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowEditor(!showEditor)}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                {showEditor ? 'Hide' : 'Edit'} Content
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/marketing-deck/video")}
-              >
-                <Video className="w-4 h-4 mr-2" />
-                Video Generator
-              </Button>
-              <ExportMenu
-                currentSlide={currentSlide}
-                onExportPDF={() => handleExportPDF(currentSlide, slides.length, setCurrentSlide)}
-                onExportPNG={() => handleExportPNG(currentSlide)}
-                onExportAllPNG={() => handleExportAllPNG(currentSlide, slides.length, setCurrentSlide)}
-                onExportPPT={handleExportPPT}
-                onExportDOCX={() => handleExportDOCX(currentSlide, slides.length, setCurrentSlide)}
-                onCopyLink={() => handleCopySlideLink(currentSlide)}
-                isExporting={isExporting}
-              />
-            </div>
+      {/* Navigation Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border px-6 py-3 print:hidden">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold text-foreground">Content Orchestrator Marketing Deck</h1>
+            <span className="text-sm font-medium text-muted-foreground bg-muted px-3 py-1 rounded-md">
+              Slide {currentSlide + 1} / {slides.length}
+            </span>
           </div>
-          <BrandThemeSelector />
-        </div>
-
-        {/* Slide Container */}
-        <div className="pt-32 flex items-center justify-center min-h-screen p-8">
-          <div className={`flex gap-4 w-full ${showEditor ? 'max-w-[1800px]' : 'max-w-7xl'}`}>
-            <div className={`aspect-video bg-card rounded-lg shadow-2xl overflow-hidden ${showEditor ? 'flex-1' : 'w-full'}`}>
-              <div data-slide-content className="w-full h-full bg-white relative">
-                <CurrentSlideComponent />
-                <SlideFooter primaryBrandId={primaryBrandId || undefined} secondaryBrandId={secondaryBrandId || undefined} />
-              </div>
-            </div>
-            
-            {showEditor && (
-              <div className="w-[400px] rounded-lg shadow-2xl overflow-hidden">
-                <SlideEditor currentSlide={currentSlide} />
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowEditor(!showEditor)}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              {showEditor ? 'Hide' : 'Edit'} Content
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/marketing-deck/video")}
+            >
+              <Video className="w-4 h-4 mr-2" />
+              Video Generator
+            </Button>
+            <ExportMenu
+              currentSlide={currentSlide}
+              onExportPDF={() => handleExportPDF(currentSlide, slides.length, setCurrentSlide)}
+              onExportPNG={() => handleExportPNG(currentSlide)}
+              onExportAllPNG={() => handleExportAllPNG(currentSlide, slides.length, setCurrentSlide)}
+              onExportPPT={handleExportPPT}
+              onExportDOCX={() => handleExportDOCX(currentSlide, slides.length, setCurrentSlide)}
+              onCopyLink={() => handleCopySlideLink(currentSlide)}
+              isExporting={isExporting}
+            />
           </div>
         </div>
+        <BrandThemeSelector />
+      </div>
 
-        {/* Navigation Controls */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 print:hidden bg-card/80 backdrop-blur-lg border border-border rounded-full px-6 py-3 shadow-lg">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
-            disabled={currentSlide === 0}
-            className="rounded-full"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
+      {/* Slide Container */}
+      <div className="pt-32 flex items-center justify-center min-h-screen p-8">
+        <div className={`flex gap-4 w-full ${showEditor ? 'max-w-[1800px]' : 'max-w-7xl'}`}>
+          <div className={`aspect-video bg-card rounded-lg shadow-2xl overflow-hidden ${showEditor ? 'flex-1' : 'w-full'}`}>
+            <div data-slide-content className="w-full h-full bg-white relative">
+              <CurrentSlideComponent />
+              <SlideFooter primaryBrandId={primaryBrandId || undefined} secondaryBrandId={secondaryBrandId || undefined} />
+            </div>
+          </div>
           
-          <span className="text-sm font-medium text-foreground min-w-[60px] text-center">
-            {currentSlide + 1} / {slides.length}
-          </span>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentSlide(prev => Math.min(slides.length - 1, prev + 1))}
-            disabled={currentSlide === slides.length - 1}
-            className="rounded-full"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+          {showEditor && (
+            <div className="w-[400px] rounded-lg shadow-2xl overflow-hidden">
+              <SlideEditor currentSlide={currentSlide} />
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Navigation Controls */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 print:hidden bg-card/80 backdrop-blur-lg border border-border rounded-full px-6 py-3 shadow-lg">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
+          disabled={currentSlide === 0}
+          className="rounded-full"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </Button>
+        
+        <span className="text-sm font-medium text-foreground min-w-[60px] text-center">
+          {currentSlide + 1} / {slides.length}
+        </span>
+        
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setCurrentSlide(prev => Math.min(slides.length - 1, prev + 1))}
+          disabled={currentSlide === slides.length - 1}
+          className="rounded-full"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </Button>
+      </div>
+    </div>
   );
 };
 
