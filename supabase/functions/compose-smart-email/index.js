@@ -1,363 +1,1571 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+// EmailTemplateRenderer interfaces and class (inlined for edge function)
+interface EmailTemplate {
+  templateId: string;
+  templateName: string;
+  audienceType: 'HCP' | 'Patient' | 'Caregiver';
+  layoutType: 'professional' | 'clinical' | 'patient-friendly';
+  sections: {
+    hero: {
+      required: boolean;
+      supportsImage: boolean;
+      maxHeight: string;
+    };
+    dataSection: {
+      required: boolean;
+      supportsCharts: boolean;
+      supportsTables: boolean;
+      maxVisualizations: number;
+    };
+    bodyContent: {
+      required: boolean;
+      columns: 1 | 2;
+      maxLength: number;
+    };
+    disclaimer: {
+      required: boolean;
+      position: 'inline' | 'footer';
+    };
+  };
+}
+interface EmailComponents {
+  text: {
+    subject: string;
+    preheader?: string;
+    headline: string;
+    body: string;
+    cta: string;
+    disclaimer: string;
+  };
+  visualizations: Array<{
+    id: string;
+    type: string;
+    title: string;
+    imageUrl: string;
+    altText: string;
+    captionHTML: string;
+  }>;
+  tables: Array<{
+    id: string;
+    title: string;
+    tableHTML: string;
+    caption: string;
+    footnotes: string[];
+    placementHint?: string; // 'after_paragraph_X' or contextual keyword
+  }>;
+  images: Array<{
+    id: string;
+    imageUrl: string;
+    altText: string;
+    placement: 'hero' | 'inline' | 'footer';
+    caption?: string;
+  }>;
+  referencesSection?: string;
+}
+interface CitationData {
+  claimsUsed?: Array<{
+    id: string;
+    claim_id_display?: string;
+    claim_text: string;
+    claim_type?: string;
+    source_section?: string;
+  }>;
+  referencesUsed?: Array<{
+    id: string;
+    reference_id_display?: string;
+    reference_text: string;
+    formatted_citation?: string;
+    study_name?: string;
+    journal?: string;
+    publication_year?: number;
+  }>;
+  visualsUsed?: Array<{
+    id: string;
+    title: string;
+    visual_type: string;
+    visual_data?: any;
+    storage_path?: string;
+  }>;
+}
+class EmailTemplateRenderer {
+  private static templates: Map<string, EmailTemplate> = new Map([
+    ['professional', {
+      templateId: 'professional',
+      templateName: 'Professional HCP',
+      audienceType: 'HCP',
+      layoutType: 'professional',
+      sections: {
+        hero: { required: false, supportsImage: true, maxHeight: '300px' },
+        dataSection: { required: false, supportsCharts: true, supportsTables: true, maxVisualizations: 5 },
+        bodyContent: { required: true, columns: 1, maxLength: 2000 },
+        disclaimer: { required: true, position: 'footer' }
+      }
+    }],
+    ['clinical', {
+      templateId: 'clinical',
+      templateName: 'Clinical Data-Heavy',
+      audienceType: 'HCP',
+      layoutType: 'clinical',
+      sections: {
+        hero: { required: false, supportsImage: false, maxHeight: '0px' },
+        dataSection: { required: true, supportsCharts: true, supportsTables: true, maxVisualizations: 10 },
+        bodyContent: { required: true, columns: 1, maxLength: 3000 },
+        disclaimer: { required: true, position: 'footer' }
+      }
+    }],
+    ['patient-friendly', {
+      templateId: 'patient-friendly',
+      templateName: 'Patient Education',
+      audienceType: 'Patient',
+      layoutType: 'patient-friendly',
+      sections: {
+        hero: { required: false, supportsImage: true, maxHeight: '400px' },
+        dataSection: { required: false, supportsCharts: true, supportsTables: false, maxVisualizations: 3 },
+        bodyContent: { required: true, columns: 1, maxLength: 1500 },
+        disclaimer: { required: true, position: 'inline' }
+      }
+    }]
+  ]);
+  static getTemplate(templateId: string): EmailTemplate | undefined {
+    return this.templates.get(templateId);
+  }
+  static render(
+    templateId: string,
+    components: EmailComponents,
+    brandStyles?: Record<string, any>
+  ): string {
+    const template = this.getTemplate(templateId) ||
+      this.getTemplate('professional')!;
+    return this.renderTemplate(template, components, brandStyles || {});
+  }
+  private static renderTemplate(
+    template: EmailTemplate,
+    components: EmailComponents,
+    brandStyles: Record<string, any>
+  ): string {
+    const { text, visualizations, tables, images, referencesSection } = components;
+    const primaryColor = brandStyles.primaryColor || '#0066cc';
+    const secondaryColor = brandStyles.secondaryColor || '#333333';
+    const fontFamily = brandStyles.fontFamily || 'Arial, sans-serif';
+    const heroImage = images.find(img => img.placement === 'hero');
+    const hasHero = !!heroImage && template.sections.hero.supportsImage;
+    const hasVisualizations = visualizations.length > 0 && template.sections.dataSection.supportsCharts;
+    // Get body paragraphs with inline tables integrated
+    const bodyWithInlineTables = this.integrateTablesIntoParagraphs(text.body, tables, template);
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${text.subject}</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: ${fontFamily}; background-color: #f4f4f4; }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    .preheader { display: none; max-height: 0; overflow: hidden; }
+    .hero { padding: 0; }
+    .hero img { display: block; width: 100%; max-height: ${template.sections.hero.maxHeight}; object-fit: cover; }
+    .header { padding: 35px 40px 20px; background: linear-gradient(135deg, ${primaryColor}08, ${primaryColor}03); border-bottom: 3px solid ${primaryColor}; }
+    .headline { font-size: 26px; line-height: 1.35; color: ${secondaryColor}; margin: 0; font-weight: 700; letter-spacing: -0.3px; }
+    .body-text { padding: 25px 40px 30px; font-size: 15px; line-height: 1.7; color: #444444; }
+    .body-text p { margin: 0 0 18px; }
+    .body-text p:last-child { margin-bottom: 0; }
+    .body-text sup { font-size: 10px; color: ${primaryColor}; font-weight: 700; cursor: pointer; vertical-align: super; padding: 0 1px; }
+    .body-text sup:hover { text-decoration: underline; }
+    .visual-section { padding: 0 40px 25px; }
+    .visual-item { margin-bottom: 25px; }
+    .visual-title { font-size: 16px; color: ${secondaryColor}; margin: 0 0 10px; font-weight: 600; }
+    .visual-image { display: block; width: 100%; border: 1px solid #e0e0e0; padding: 10px; background-color: #fafafa; border-radius: 6px; }
+    .visual-caption { margin: 10px 0 0; font-size: 12px; color: #666666; font-style: italic; }
+    /* Inline table styling - integrated within body */
+    .inline-table-wrapper { margin: 25px 0; }
+    .cta-section { padding: 10px 40px 35px; text-align: center; }
+    .cta-button { display: inline-block; padding: 16px 45px; background: linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 12px ${primaryColor}40; transition: all 0.2s ease; }
+    .cta-button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px ${primaryColor}50; }
+    /* References section styling */
+    .references-section { padding: 25px 40px; background: linear-gradient(180deg, #f8f9fb, #f5f6f8); border-top: 1px solid #e8eaed; }
+    .references-title { font-size: 13px; font-weight: 700; color: ${secondaryColor}; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .references-list { margin: 0; padding-left: 0; font-size: 11px; line-height: 1.6; color: #555555; list-style: none; }
+    .references-list li { margin-bottom: 8px; padding-left: 0; position: relative; }
+    .references-list li strong { color: ${primaryColor}; }
+    /* Disclaimer styling */
+    .disclaimer { padding: 25px 40px 30px; background-color: #fafafa; border-top: 1px solid #eee; font-size: 11px; line-height: 1.6; color: #777777; }
+    .disclaimer strong { display: block; margin-bottom: 8px; color: #555; font-size: 12px; }
+    .disclaimer p { margin: 4px 0; }
+    /* Data table styling - responsive with scroll */
+    .data-table { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .data-table-title { background: linear-gradient(135deg, ${primaryColor}, ${primaryColor}ee); color: white; padding: 14px 18px; font-size: 14px; font-weight: 600; margin: 0; letter-spacing: 0.2px; }
+    .data-table .table-scroll-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .data-table table { width: 100%; border-collapse: collapse; min-width: 400px; table-layout: auto; }
+    .data-table th { background: #f8f9fb; padding: 10px 12px; text-align: left; font-size: 11px; color: #555; border-bottom: 2px solid #e5e7eb; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+    .data-table td { padding: 10px 12px; font-size: 12px; color: #333; border-bottom: 1px solid #f0f0f0; word-break: break-word; max-width: 200px; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:nth-child(even) { background: #fafbfc; }
+    .data-table tr:hover { background: #f5f7fa; }
+    .data-table-footnotes { padding: 12px 18px; background: #f9fafb; font-size: 11px; color: #666; border-top: 1px solid #e5e7eb; }
+    .data-table-footnotes p { margin: 4px 0; }
+    /* Visual asset image styling */
+    .visual-asset-container { margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .visual-asset-image { width: 100%; display: block; }
+    .visual-asset-caption { padding: 12px 18px; background: #f8f9fb; font-size: 12px; color: #555; border-top: 1px solid #e5e7eb; }
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; border-radius: 0 !important; }
+      .header, .body-text, .visual-section, .cta-section, .disclaimer, .references-section { padding-left: 20px !important; padding-right: 20px !important; }
+      .headline { font-size: 22px !important; }
+      .cta-button { padding: 14px 35px !important; }
+      .data-table { margin-left: -10px; margin-right: -10px; border-radius: 0; }
+      .data-table table { min-width: 350px; }
+      .data-table th, .data-table td { padding: 8px 6px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body style="background-color: #f4f4f4; margin: 0; padding: 25px 0;">
+  <div class="container">
+    ${text.preheader ? `<div class="preheader">${text.preheader}</div>` : ''}
+    ${hasHero ? `
+    <div class="hero">
+      <img src="${heroImage.imageUrl}" alt="${heroImage.altText}" />
+    </div>
+    ` : ''}
+    <div class="header">
+      <h1 class="headline">${text.headline}</h1>
+    </div>
+    <div class="body-text">
+      ${bodyWithInlineTables}
+    </div>
+    ${hasVisualizations ? `
+    <div class="visual-section">
+      ${visualizations.slice(0, template.sections.dataSection.maxVisualizations).map(viz => `
+      <div class="visual-item">
+        <h3 class="visual-title">${viz.title}</h3>
+        ${viz.captionHTML || ''}
+      </div>
+      `).join('')}
+    </div>
+    ` : ''}
+    <div class="cta-section">
+      <a href="#" class="cta-button">${text.cta}</a>
+    </div>
+    ${referencesSection ? `
+    <div class="references-section">
+      <h4 class="references-title">References</h4>
+      ${referencesSection}
+    </div>
+    ` : ''}
+    <div class="disclaimer">
+      <strong>Important Safety Information</strong>
+      ${this.formatDisclaimer(text.disclaimer)}
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+  // Integrate tables into body paragraphs at intelligent positions
+  private static integrateTablesIntoParagraphs(body: string, tables: any[], template: EmailTemplate): string {
+    if (!tables.length || !template.sections.dataSection.supportsTables) {
+      return this.formatBodyText(body);
+    }
+    const paragraphs = body.split('\n\n').filter(para => para.trim());
+    if (paragraphs.length === 0) {
+      return this.formatBodyText(body);
+    }
+    // Keywords that indicate good table placement points
+    const tableRelevanceKeywords = [
+      'efficacy', 'trial', 'study', 'results', 'data', 'outcomes', 'demonstrated',
+      'showed', 'achieved', 'rates', 'patients', 'clinical', 'response', 'reduction',
+      'improvement', 'evidence', 'analysis', 'compared', 'versus', 'vs'
+    ];
+    // Find best placement for each table
+    const tablePlacements: Map<number, any[]> = new Map();
+    tables.forEach((table, tableIndex) => {
+      // Check if table has placement hint
+      if (table.placementHint && table.placementHint.startsWith('after_paragraph_')) {
+        const paraIndex = parseInt(table.placementHint.replace('after_paragraph_', ''), 10);
+        if (!isNaN(paraIndex) && paraIndex >= 0 && paraIndex < paragraphs.length) {
+          const existing = tablePlacements.get(paraIndex) || [];
+          existing.push(table);
+          tablePlacements.set(paraIndex, existing);
+          return;
+        }
+      }
+      // Find paragraph with most relevance keywords
+      let bestParagraphIndex = Math.min(1, paragraphs.length - 1); // Default: after 2nd paragraph
+      let bestScore = 0;
+      paragraphs.forEach((para, paraIndex) => {
+        const paraLower = para.toLowerCase();
+        let score = 0;
+        tableRelevanceKeywords.forEach(keyword => {
+          if (paraLower.includes(keyword)) {
+            score += 1;
+          }
+        });
+        // Prefer middle paragraphs slightly
+        if (paraIndex > 0 && paraIndex < paragraphs.length - 1) {
+          score += 0.5;
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestParagraphIndex = paraIndex;
+        }
+      });
+      const existing = tablePlacements.get(bestParagraphIndex) || [];
+      existing.push(table);
+      tablePlacements.set(bestParagraphIndex, existing);
+    });
+    // Build HTML with tables inserted after relevant paragraphs
+    let html = '';
+    paragraphs.forEach((para, index) => {
+      html += `<p>${para.trim()}</p>`;
+      // Insert tables after this paragraph if assigned
+      const tablesForThisParagraph = tablePlacements.get(index) || [];
+      tablesForThisParagraph.forEach(table => {
+        html += `<div class="inline-table-wrapper">${table.tableHTML}</div>`;
+      });
+    });
+    return html;
+  }
+  private static formatBodyText(body: string): string {
+    return body
+      .split('\n\n')
+      .filter(para => para.trim())
+      .map(para => `<p>${para.trim()}</p>`)
+      .join('');
+  }
+  private static formatDisclaimer(disclaimer: string): string {
+    return disclaimer
+      .split('\n')
+      .filter(line => line.trim())
+      .map(line => `<p style="margin: 4px 0;">${line.trim()}</p>`)
+      .join('');
+  }
+}
+// Audience Profile System (inlined for edge function)
+interface AudienceProfile {
+  leadWith: string[];
+  emphasize: string[];
+  avoid: string[];
+  structure: string[];
+  tone: string;
+  depth: string;
+  terminology: string;
+}
+const SPECIALIST_PROFILES: Record<string, Partial<AudienceProfile>> = {
+  'oncologist': {
+    leadWith: ['Clinical trial data and efficacy outcomes', 'Survival benefits and response rates'],
+    emphasize: ['Evidence from pivotal trials', 'MOA in cancer treatment', 'Safety profile in oncology patients'],
+    avoid: ['Overgeneralized benefits', 'Non-specific quality of life claims'],
+    structure: ['Start with trial data', 'Present efficacy clearly', 'Address safety transparently']
+  },
+  'cardiologist': {
+    leadWith: ['Cardiovascular outcomes data', 'Risk reduction statistics'],
+    emphasize: ['MACE reduction', 'Long-term safety in CV populations', 'Real-world evidence'],
+    avoid: ['Vague heart health claims', 'Non-cardiac benefits as primary message'],
+    structure: ['Lead with CV outcomes', 'Show risk stratification data', 'Include guideline alignment']
+  },
+  'pulmonologist': {
+    leadWith: ['Lung function improvements', 'Respiratory outcomes data'],
+    emphasize: ['FVC/FEV1 improvements', 'Exacerbation reduction', 'Disease progression data'],
+    avoid: ['Generic respiratory benefits', 'Oversimplified lung health claims'],
+    structure: ['Present pulmonary function data', 'Show disease progression curves', 'Address long-term management']
+  },
+  'endocrinologist': {
+    leadWith: ['HbA1c reduction', 'Glycemic control data'],
+    emphasize: ['Metabolic outcomes', 'Weight management data', 'CV safety profile'],
+    avoid: ['Generic diabetes management claims', 'Oversimplified metabolic benefits'],
+    structure: ['Lead with glycemic efficacy', 'Show metabolic benefits', 'Address CV safety']
+  },
+  'dermatologist': {
+    leadWith: ['Skin clearance data', 'EASI/IGA scores'],
+    emphasize: ['Visible improvements timeline', 'Itch reduction', 'QoL improvements'],
+    avoid: ['Vague skin health claims', 'Non-specific cosmetic benefits'],
+    structure: ['Show clearance data with timelines', 'Present validated dermatology scales', 'Include patient-reported outcomes']
+  },
+  'neurologist': {
+    leadWith: ['Neurological outcomes', 'Stroke prevention data'],
+    emphasize: ['Risk reduction statistics', 'Cognitive/functional outcomes', 'Safety in neurological populations'],
+    avoid: ['Generic brain health claims', 'Oversimplified neurological benefits'],
+    structure: ['Present neurological endpoints', 'Show risk stratification', 'Address neuroprotection data']
+  },
+  'ent-specialist': {
+    leadWith: ['Symptom scores', 'Polyp reduction data'],
+    emphasize: ['Objective nasal measures', 'Symptom improvement timelines', 'Reduced need for surgery'],
+    avoid: ['Vague sinus health claims', 'Non-specific ENT benefits'],
+    structure: ['Show validated ENT outcome measures', 'Present visual evidence if available', 'Include patient symptom improvements']
+  }
+};
+const BASE_AUDIENCE_PROFILES: Record<string, AudienceProfile> = {
+  'physician-specialist': {
+    leadWith: ['Clinical evidence', 'Mechanism of action', 'Differentiation vs competitors'],
+    emphasize: ['Efficacy data', 'Safety profile', 'Patient selection criteria'],
+    avoid: ['Overly promotional language', 'Unsubstantiated claims', 'Emotional appeals'],
+    structure: ['Problem → Solution → Evidence → Clinical application'],
+    tone: 'Professional, evidence-based, peer-to-peer',
+    depth: 'High clinical depth with specific data points',
+    terminology: 'Medical terminology appropriate for specialists'
+  },
+  'physician-primary-care': {
+    leadWith: ['Practical clinical utility', 'Clear patient selection', 'Simple dosing'],
+    emphasize: ['Real-world applicability', 'Safety and tolerability', 'Guideline alignment'],
+    avoid: ['Overly complex mechanisms', 'Subspecialty-only information', 'Impractical protocols'],
+    structure: ['Clinical scenario → Treatment approach → Key points → Action'],
+    tone: 'Professional but accessible',
+    depth: 'Moderate depth with practical focus',
+    terminology: 'Clear medical terms with context'
+  },
+  'patient': {
+    leadWith: ['Patient benefits', 'How treatment works', 'What to expect'],
+    emphasize: ['Quality of life improvements', 'Safety and side effects', 'Support resources'],
+    avoid: ['Medical jargon', 'Complex mechanisms', 'Scary statistics without context'],
+    structure: ['What it is → How it helps → What to expect → How to take it'],
+    tone: 'Empathetic, supportive, educational',
+    depth: 'Simple explanations with analogies',
+    terminology: 'Plain language with key terms explained'
+  }
+};
+function getAudienceProfile(audienceType: string, specialistType?: string): AudienceProfile {
+  const baseProfile = BASE_AUDIENCE_PROFILES[audienceType] ||
+    BASE_AUDIENCE_PROFILES['physician-specialist'];
+  if (specialistType && SPECIALIST_PROFILES[specialistType]) {
+    return {
+      ...baseProfile,
+      ...SPECIALIST_PROFILES[specialistType]
+    } as AudienceProfile;
+  }
+  return baseProfile;
+}
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Removed the non-null assertion operator (?? '')
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') || '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-);
-
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-
-// Removed TypeScript interfaces (TranslationRequest, TranslationResult).
-
+// Determine email template based on target audience
+const determineTemplate = (targetAudience: string, assetType: string, hasClinicalData: boolean) => {
+  const audience = targetAudience?.toLowerCase() || 'hcp';
+  if (audience === 'patient' ||
+      audience === 'caregiver' ||
+      assetType === 'patient-email') {
+    return 'patient-friendly';
+  } else if (audience === 'hcp' ||
+             audience === 'healthcare professional') {
+    if (hasClinicalData) {
+      return 'clinical';
+    }
+    return 'professional';
+  }
+  return 'professional';
+};
+// Render table from visual_data JSON with responsive sizing
+function renderVisualAssetTable(visualAsset: any): string {
+  const visualData = visualAsset.visual_data || {};
+  const title = visualAsset.title || 'Data Table';
+  const headers = visualData.headers ||
+                  visualData.columns ||
+                  [];
+  const rows = visualData.rows ||
+               visualData.data ||
+               [];
+  const footnotes = visualData.footnotes || [];
+  if (!headers.length && !rows.length) {
+    return `<div class="data-table"><p style="padding: 15px; color: #666;">No table data available</p></div>`;
+  }
+  // Calculate column count for responsive sizing
+  const columnCount = headers.length ||
+                      (rows[0]?.length || 0);
+  const isWideTable = columnCount > 4;
+  const cellStyle = isWideTable ? 'font-size: 11px; padding: 8px 6px;' : '';
+  const headerStyle = isWideTable ? 'font-size: 10px; padding: 8px 6px;' : '';
+  const tableMinWidth = isWideTable ? 'min-width: 500px;' : '';
+  return `
+  <div class="data-table">
+    <h4 class="data-table-title">${title}</h4>
+    <div class="table-scroll-wrapper">
+      <table style="${tableMinWidth}">
+        ${headers.length > 0 ? `
+        <thead>
+          <tr>${headers.map((h: string) => `<th style="${headerStyle}">${h}</th>`).join('')}</tr>
+        </thead>
+        ` : ''}
+        <tbody>
+          ${rows.map((row: string[]) => `
+          <tr>${row.map((cell: string) => `<td style="${cellStyle}">${cell}</td>`).join('')}</tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${footnotes.length > 0 ? `
+    <div class="data-table-footnotes">
+      ${footnotes.map((fn: string) => `<p>* ${fn}</p>`).join('')}
+    </div>
+    ` : ''}
+  </div>
+  `;
+}
+// Render image asset with signed URL
+function renderVisualAssetImage(visualAsset: any, signedUrl?: string): string {
+  const title = visualAsset.title || 'Visual Asset';
+  const caption = visualAsset.caption || '';
+  const imageUrl = signedUrl ||
+                   visualAsset.imageUrl ||
+                   '';
+  if (!imageUrl) {
+    return `<div class="visual-asset-container"><p style="padding: 15px; color: #666;">Image not available</p></div>`;
+  }
+  return `
+  <div class="visual-asset-container">
+    <img src="${imageUrl}" alt="${title}" class="visual-asset-image" />
+    ${caption ? `<div class="visual-asset-caption">${caption}</div>` : ''}
+  </div>
+  `;
+}
+// Format references section
+function formatReferencesSection(citations: CitationData): string {
+  if (!citations) return '';
+  const references: string[] = [];
+  let refNumber = 1;
+  // Add claims as references
+  if (citations.claimsUsed?.length) {
+    citations.claimsUsed.forEach(claim => {
+      if (!claim) return;
+      const claimId = claim.id || '';
+      const displayId = claim.claim_id_display ||
+                        (claimId ? `CML-${claimId.substring(0, 4)}` : `CML-${refNumber}`);
+      const claimText = claim.claim_text || 'Clinical claim';
+      references.push(`<li><strong>[${refNumber}]</strong> ${claimText} <em style="color: #888;">(${displayId})</em></li>`);
+      refNumber++;
+    });
+  }
+  // Add formal references
+  if (citations.referencesUsed?.length) {
+    citations.referencesUsed.forEach(ref => {
+      if (!ref) return;
+      const citation = ref.formatted_citation ||
+                       ref.reference_text ||
+                       'Reference';
+      const refId = ref.id || '';
+      const displayId = ref.reference_id_display ||
+                        (refId ? `REF-${refId.substring(0, 4)}` : '');
+      const journalInfo = ref.journal && ref.publication_year
+        ? ` ${ref.journal}, ${ref.publication_year}`
+        : '';
+      references.push(`<li><strong>[${refNumber}]</strong> ${citation}${journalInfo}${displayId ? ` <em style="color: #888;">(${displayId})</em>` : ''}</li>`);
+      refNumber++;
+    });
+  }
+  if (references.length === 0) return '';
+  return `<ol class="references-list">${references.join('')}</ol>`;
+}
+// Add citation superscripts to body text
+function addCitationSuperscripts(bodyText: string, citations: CitationData): string {
+  if (!citations.claimsUsed?.length && !citations.referencesUsed?.length) {
+    return bodyText;
+  }
+  // Create a map of citation numbers
+  const citationMap = new Map<string, number>();
+  let refNumber = 1;
+  citations.claimsUsed?.forEach(claim => {
+    if (!claim) return;
+    const claimId = claim.id || '';
+    const displayId = claim.claim_id_display ||
+                      (claimId ? `CML-${claimId.substring(0, 4)}` : `CML-${refNumber}`);
+    citationMap.set(displayId, refNumber);
+    citationMap.set(displayId.toUpperCase(), refNumber);
+    citationMap.set(displayId.toLowerCase(), refNumber);
+    if (claimId) {
+      citationMap.set(claimId, refNumber);
+      citationMap.set(claimId.toUpperCase(), refNumber);
+    }
+    refNumber++;
+  });
+  citations.referencesUsed?.forEach(ref => {
+    if (!ref) return;
+    const refId = ref.id || '';
+    const displayId = ref.reference_id_display ||
+                      (refId ? `REF-${refId.substring(0, 4)}` : `REF-${refNumber}`);
+    citationMap.set(displayId, refNumber);
+    citationMap.set(displayId.toUpperCase(), refNumber);
+    citationMap.set(displayId.toLowerCase(), refNumber);
+    if (refId) {
+      citationMap.set(refId, refNumber);
+      citationMap.set(refId.toUpperCase(), refNumber);
+    }
+    refNumber++;
+  });
+  // Replace [CLAIM:XXX] and [REF:XXX] markers with superscripts
+  let processedText = bodyText;
+  // Replace claim markers (case insensitive)
+  processedText = processedText.replace(/\[CLAIM:([^\]]+)\]/gi, (match, claimId) => {
+    const trimmedId = claimId.trim();
+    const num = citationMap.get(trimmedId) ||
+                citationMap.get(trimmedId.toUpperCase()) ||
+                citationMap.get(trimmedId.toLowerCase());
+    return num ? `<sup>[${num}]</sup>` : '';
+  });
+  // Replace reference markers (case insensitive)
+  processedText = processedText.replace(/\[REF:([^\]]+)\]/gi, (match, refId) => {
+    const trimmedId = refId.trim();
+    const num = citationMap.get(trimmedId) ||
+                citationMap.get(trimmedId.toUpperCase()) ||
+                citationMap.get(trimmedId.toLowerCase());
+    return num ? `<sup>[${num}]</sup>` : '';
+  });
+  return processedText;
+}
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
-
-  const startTime = Date.now();
-
+  const requestId = crypto.randomUUID();
   try {
-    // Type annotation removed
-    const request = await req.json();
-    const {
-      sourceText,
-      sourceLanguage,
-      targetLanguage,
-      contentType,
+    const { textContent, piData, evidenceContext, context, citationData, brandId } = await req.json();
+    console.log(`[${requestId}] 📧 Smart Email Composition Started`, {
+      hasTextContent: !!textContent,
+      hasPIData: !!piData,
+      hasEvidence: !!evidenceContext,
+      hasCitationData: !!citationData,
       brandId,
-      therapeuticArea,
-      projectId,
-      assetId,
-      preferredEngine = 'auto',
-      includeConfidenceScoring = true,
-    } = request;
-
-    console.log(`[translate-content] Request received for ${brandId}/${assetId} from ${sourceLanguage} to ${targetLanguage} using ${preferredEngine}`);
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    // Step 1: Fetch Brand Glossary and Translation Memory (TM)
-    const [glossaryData, tmData] = await Promise.all([
-      supabase
-        .from('brand_glossary')
+      context
+    });
+    // Initialize Supabase client for fetching visual assets
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Track intelligence usage
+    const intelligenceUsed: any[] = [];
+    // Fetch real visual assets from database if brandId provided
+    let dbVisualAssets: any[] = [];
+    if (brandId) {
+      console.log(`[${requestId}] 📊 Fetching visual assets for brand: ${brandId}`);
+      const { data: visualAssets, error: visualError } = await supabase
+        .from('visual_assets')
         .select('*')
-        .eq('brand_id', brandId),
-      supabase
-        .from('translation_memory')
-        .select('*')
-        .eq('source_language', sourceLanguage)
-        .eq('target_language', targetLanguage)
         .eq('brand_id', brandId)
-        .eq('source_text', sourceText)
-        .limit(1)
-    ]);
-
-    const glossary = glossaryData.data || [];
-    const translationMemoryHit = tmData.data?.[0];
-
-    if (translationMemoryHit) {
-      console.log('[translate-content] TM HIT. Returning cached translation.');
-      const result = {
-        id: translationMemoryHit.id,
-        translatedText: translationMemoryHit.translated_text,
-        engine: 'TM',
-        overallQualityScore: 100, // TM hits are considered 100% accurate
-        processingTimeMs: Date.now() - startTime,
-        glossaryMatches: [],
-        suggestions: [],
-      };
-      
-      // Update TM usage count asynchronously
-      updateTranslationMemoryUsage(translationMemoryHit.id);
-      
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Step 2: Select and Run Translation Engine
-    let engineToUse = preferredEngine;
-    if (preferredEngine === 'auto') {
-      engineToUse = await autoSelectEngine(request);
-    }
-    
-    let translatedText;
-    let engine;
-    
-    // Non-null assertion (!) removed, replaced with explicit check
-    const GeminiTranslation = await Deno.env.get("SUPABASE_URL") + "/functions/v1/translate-gemini";
-    
-    const translationPromises = [];
-    let translationResponse;
-
-    switch (engineToUse) {
-      case 'gemini-pro':
-        console.log('[translate-content] Using Gemini-Pro for translation.');
-        translationResponse = await fetch(GeminiTranslation, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${LOVABLE_API_KEY}` // Using LOVABLE_API_KEY for internal function calls
-          },
-          body: JSON.stringify({ sourceText, sourceLanguage, targetLanguage, glossary, brandId, therapeuticArea }),
-        });
-        
-        if (!translationResponse.ok) throw new Error(`Gemini translation failed: ${translationResponse.statusText}`);
-        
-        const geminiResult = await translationResponse.json();
-        translatedText = geminiResult.translatedText;
-        engine = 'gemini-pro';
-        break;
-
-      case 'deepl':
-        console.log('[translate-content] Using DeepL simulation.');
-        translatedText = await simulateDeepLTranslation(sourceText, sourceLanguage, targetLanguage, glossary);
-        engine = 'deepl';
-        break;
-
-      case 'google':
-        console.log('[translate-content] Using Google simulation.');
-        translatedText = await simulateGoogleTranslation(sourceText, sourceLanguage, targetLanguage, glossary);
-        engine = 'google';
-        break;
-
-      default:
-        throw new Error(`Invalid or unsupported engine: ${engineToUse}`);
-    }
-
-    // Step 3: Run Quality Scoring (Simulated)
-    const processingTime = Date.now() - startTime;
-    const qualityScores = includeConfidenceScoring
-      ? await runQualityScoring(translatedText, sourceText, targetLanguage, glossary, brandId, therapeuticArea, processingTime)
-      : {
-          overallQualityScore: 80,
-          medicalAccuracyScore: 80,
-          brandConsistencyScore: 80,
-          culturalAdaptationScore: 80,
-          regulatoryComplianceScore: 80,
-          glossaryMatches: [],
-          suggestions: [],
-        };
-        
-    const overallQualityScore = qualityScores.overallQualityScore;
-
-    // Step 4: Store in Translation Memory (TM) and Log Performance
-    const { data: newTM } = await supabase
-      .from('translation_memory')
-      .insert({
-        brand_id: brandId,
-        source_language: sourceLanguage,
-        target_language: targetLanguage,
-        source_text: sourceText,
-        translated_text: translatedText,
-        engine_used: engine,
-        quality_score: overallQualityScore,
-        usage_count: 1,
-      })
-      .select()
-      .single();
-
-    if (newTM) {
-        console.log(`[translate-content] Stored in TM (ID: ${newTM.id})`);
-    }
-
-    await logEnginePerformance(
-      engine,
-      sourceLanguage,
-      targetLanguage,
-      therapeuticArea,
-      contentType,
-      overallQualityScore,
-      processingTime
-    );
-
-    // Step 5: Return Final Result
-    const finalResult = {
-      id: newTM?.id || 'new-translation-' + Date.now(),
-      translatedText,
-      engine,
-      ...qualityScores,
-      processingTimeMs: processingTime,
-    };
-
-    return new Response(JSON.stringify(finalResult), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    const processingTime = Date.now() - startTime;
-    console.error('[translate-content] Error:', error);
-    return new Response(JSON.stringify({
-      error: error instanceof Error ? error.message : 'Unknown error',
-      id: 'error-' + Date.now(),
-      translatedText: '',
-      engine: 'error',
-      overallQualityScore: 0,
-      processingTimeMs: processingTime,
-      glossaryMatches: [],
-      suggestions: [],
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
-
-// Type annotations removed
-async function autoSelectEngine(request) {
-    const { sourceLanguage, targetLanguage } = request;
-
-    // Rule 1: Prioritize DeepL for major European languages (simulated)
-    if (sourceLanguage === 'en' && ['de', 'fr', 'es', 'it'].includes(targetLanguage)) {
-        return 'deepl';
-    }
-    
-    // Rule 2: Prioritize Google for Asian languages (simulated)
-    if (['zh', 'ja', 'ko'].includes(targetLanguage)) {
-        return 'google';
-    }
-
-    // Rule 3: Default to Gemini for medical/scientific content or other languages
-    return 'gemini-pro';
-}
-
-// Type annotations removed
-async function runQualityScoring(translatedText, sourceText, targetLanguage, glossary, brandId, therapeuticArea, processingTime) {
-  // SIMULATION: In a real scenario, this would involve LLM calls or specific translation quality APIs.
-  // The complexity and context of the input is used to determine a simulated score.
-  
-  let score = 90; // Start with a high base score
-  const glossaryMatches = [];
-  const suggestions = [];
-
-  // 1. Brand Consistency (Glossary Check)
-  for (const item of glossary) {
-    if (sourceText.includes(item.source_term)) {
-      if (translatedText.includes(item.target_term)) {
-        score += 2;
-        glossaryMatches.push(item.source_term);
+        .limit(10);
+      if (visualError) {
+        console.error(`[${requestId}] Error fetching visual assets:`, visualError);
       } else {
-        score -= 5;
-        suggestions.push(`Verify translation of brand term "${item.source_term}"`);
+        dbVisualAssets = visualAssets || [];
+        console.log(`[${requestId}] ✅ Fetched ${dbVisualAssets.length} visual assets from database`);
       }
     }
-  }
-
-  // 2. Regulatory/Medical Accuracy (Simulated)
-  if (therapeuticArea === 'oncology' || therapeuticArea === 'cardiology') {
-    score -= 5; // Higher complexity = higher risk
-  }
-  
-  if (translatedText.length < sourceText.length * 0.8 || translatedText.length > sourceText.length * 1.5) {
-      score -= 3; // Length mismatch suggests structural issues
-  }
-
-  // Final scoring calculation
-  const overallQualityScore = Math.min(100, Math.max(70, score));
-  const medicalAccuracyScore = Math.min(100, Math.max(70, score + 2)); // Slightly higher than overall
-  const brandConsistencyScore = Math.min(100, Math.max(70, score + (glossaryMatches.length > 0 ? 5 : -5)));
-  const culturalAdaptationScore = Math.min(100, Math.max(70, score));
-  const regulatoryComplianceScore = Math.min(100, Math.max(70, score));
-
-
-  return {
-    overallQualityScore,
-    medicalAccuracyScore,
-    brandConsistencyScore,
-    culturalAdaptationScore,
-    regulatoryComplianceScore,
-    glossaryMatches,
-    suggestions,
-  };
-}
-
-// Type annotations removed
-async function updateTranslationMemoryUsage(tmId) {
-  // Updates usage count in the background
-  try {
-    await supabase.rpc('increment_tm_usage', { tm_id: tmId });
-  } catch (e) {
-    console.error('Failed to update TM usage:', e);
-  }
-}
-
-// Type annotations removed
-async function logEnginePerformance(engine, sourceLanguage, targetLanguage, therapeuticArea, contentType, qualityScore, processingTime) {
-  const existingResult = await supabase
-    .from('translation_engine_performance')
-    .select('*')
-    .eq('engine_name', engine)
-    .eq('source_language', sourceLanguage)
-    .eq('target_language', targetLanguage)
-    .single();
-    
-  // Check for errors or no data
-  const existing = existingResult.data;
-
-  if (existing) {
-    // Update existing performance record
-    await supabase
-      .from('translation_engine_performance')
-      .update({
-        average_confidence: (existing.average_confidence * existing.total_translations + qualityScore) / (existing.total_translations + 1),
-        average_accuracy: (existing.average_accuracy * existing.total_translations + qualityScore) / (existing.total_translations + 1),
-        total_translations: existing.total_translations + 1,
-        successful_translations: existing.successful_translations + (qualityScore >= 70 ? 1 : 0),
-        human_approval_rate: (existing.human_approval_rate * existing.total_translations + (qualityScore >= 70 ? 100 : 0)) / (existing.total_translations + 1),
-        avg_processing_time_ms: (existing.avg_processing_time_ms * existing.total_translations + processingTime) / (existing.total_translations + 1)
-      })
-      .eq('id', existing.id);
-  } else {
-    // Create new performance record
-    await supabase
-      .from('translation_engine_performance')
-      .insert({
-        engine_name: engine,
-        source_language: sourceLanguage,
-        target_language: targetLanguage,
-        therapeutic_area: therapeuticArea,
-        content_type: contentType,
-        average_confidence: qualityScore,
-        average_accuracy: qualityScore,
-        total_translations: 1,
-        successful_translations: qualityScore >= 70 ? 1 : 0,
-        human_approval_rate: qualityScore >= 70 ? 100 : 0,
-        avg_processing_time_ms: processingTime
+    // Fetch complete visual data for citation visuals (they may have incomplete data)
+    let completeCitationVisuals: any[] = [];
+    const visualsFromCitation = citationData?.visualsUsed || [];
+    console.log(`[${requestId}] 📊 Visuals from citation data: ${visualsFromCitation.length}`,
+      visualsFromCitation.length > 0 ? JSON.stringify(visualsFromCitation[0]) : 'empty');
+    if (visualsFromCitation.length > 0) {
+      // Handle both 'id' and 'visualId' property names (different sources use different naming)
+      const citationVisualIds = visualsFromCitation
+        .map((v: any) => v.id ||
+                          v.visualId ||
+                          v.visual_id)
+        .filter(Boolean);
+      console.log(`[${requestId}] 📊 Fetching complete data for ${citationVisualIds.length} citation visuals:`, citationVisualIds);
+      if (citationVisualIds.length > 0) {
+        const { data: completeVisuals, error: completeError } = await supabase
+          .from('visual_assets')
+          .select('*')
+          .in('id', citationVisualIds);
+        if (completeError) {
+          console.error(`[${requestId}] Error fetching complete citation visuals:`, completeError);
+        } else {
+          completeCitationVisuals = completeVisuals || [];
+          console.log(`[${requestId}] ✅ Fetched complete data for ${completeCitationVisuals.length} citation visuals`);
+        }
+      }
+    }
+    // Determine appropriate template based on context
+    const selectedTemplate = context.targetAudience?.toLowerCase().includes('patient') ? 'patient-friendly' : 'professional';
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error(`[${requestId}] ❌ LOVABLE_API_KEY not configured`);
+      return new Response(
+        JSON.stringify({ success: false, error: 'AI service not configured', requestId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    // Get specialist-aware audience profile
+    const audienceProfile = getAudienceProfile(
+      context.targetAudience || 'physician-specialist',
+      context.specialistType
+    );
+    // Track evidence usage from PI data
+    if (piData) {
+      if (piData.clinicalTrialResults?.length > 0) {
+        piData.clinicalTrialResults.forEach((trial: any) => {
+          intelligenceUsed.push({
+            type: 'evidence',
+            source: trial.source || 'Clinical Trial',
+            id: trial.studyName || 'trial-' + Math.random(),
+            content: trial.data || trial.studyName || 'Clinical trial data',
+            confidence: 0.95
+          });
+        });
+      }
+      if (piData.efficacyData?.length > 0) {
+        piData.efficacyData.forEach((eff: any) => {
+          intelligenceUsed.push({
+            type: 'evidence',
+            source: eff.source || 'Efficacy Data',
+            id: 'efficacy-' + Math.random(),
+            content: `${eff.metric}: ${eff.value}`,
+            confidence: 0.92
+          });
+        });
+      }
+      if (piData.safetyData?.length > 0) {
+        intelligenceUsed.push({
+          type: 'evidence',
+          source: 'Safety Profile',
+          id: 'safety-data',
+          content: `${piData.safetyData.length} safety data points included`,
+          confidence: 0.90
+        });
+      }
+    }
+    // Track citation data usage
+    if (citationData) {
+      if (citationData.claimsUsed?.length > 0) {
+        citationData.claimsUsed.forEach((claim: any) => {
+          intelligenceUsed.push({
+            type: 'evidence',
+            source: 'Clinical Claim',
+            id: claim.claim_id_display || claim.id,
+            content: claim.claim_text,
+            confidence: 0.95
+          });
+        });
+      }
+      if (citationData.referencesUsed?.length > 0) {
+        citationData.referencesUsed.forEach((ref: any) => {
+          intelligenceUsed.push({
+            type: 'evidence',
+            source: 'Clinical Reference',
+            id: ref.reference_id_display || ref.id,
+            content: ref.reference_text || ref.formatted_citation,
+            confidence: 0.93
+          });
+        });
+      }
+      if (citationData.visualsUsed?.length > 0) {
+        citationData.visualsUsed.forEach((visual: any) => {
+          intelligenceUsed.push({
+            type: 'evidence',
+            source: 'Visual Asset',
+            id: visual.id,
+            content: visual.title,
+            confidence: 0.90
+          });
+        });
+      }
+    }
+    // Track evidence context usage
+    if (evidenceContext) {
+      if (evidenceContext.claims?.length > 0) {
+        evidenceContext.claims.forEach((claim: any) => {
+          intelligenceUsed.push({
+            type: 'evidence',
+            source: 'Clinical Claim Library',
+            id: claim.id || 'claim-' + Math.random(),
+            content: claim.claim_text || claim.text || 'Clinical claim',
+            confidence: claim.confidence_score || 0.88
+          });
+        });
+      }
+      if (evidenceContext.references?.length > 0) {
+        intelligenceUsed.push({
+          type: 'evidence',
+          source: 'Reference Library',
+          id: 'references',
+          content: `${evidenceContext.references.length} clinical references available`,
+          confidence: 0.85
+        });
+      }
+    }
+    // Track audience intelligence
+    if (context.specialistType) {
+      intelligenceUsed.push({
+        type: 'audience',
+        source: 'Specialist Profile',
+        id: 'specialist-profile',
+        content: `Content tailored for ${context.specialistDisplayName || context.specialistType}`,
+        confidence: 0.93
       });
+    }
+    // Track brand intelligence
+    intelligenceUsed.push({
+      type: 'brand',
+      source: 'Therapeutic Area',
+      id: 'therapeutic-area',
+      content: `${context.therapeuticArea} guidelines applied`,
+      confidence: 0.90
+    });
+    // Track performance intelligence from asset metadata
+    if (context.performanceData) {
+      context.performanceData.forEach((p: any) => {
+        intelligenceUsed.push({
+          type: 'performance',
+          source: 'Campaign Performance',
+          id: p.id || 'perf-' + Math.random(),
+          content: `${p.campaign_name}: ${p.engagement_score || 0}% engagement`,
+          confidence: 0.87
+        });
+      });
+    }
+    // Track competitive intelligence from asset metadata
+    if (context.competitiveData) {
+      context.competitiveData.forEach((c: any) => {
+        intelligenceUsed.push({
+          type: 'competitive',
+          source: 'Competitive Intelligence',
+          id: c.id || 'comp-' + Math.random(),
+          content: `${c.competitor_name}: ${c.title}`,
+          confidence: 0.82
+        });
+      });
+    }
+    // Build AI prompt with all available data INCLUDING CITATION DATA for embedding markers
+    const prompt = buildEnhancementPrompt(textContent, piData, context, evidenceContext, citationData);
+    // Build specialist-aware system prompt
+    const systemPrompt = buildSystemPrompt(context, audienceProfile);
+    // Single AI call to enhance content with structured output
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'enhance_email_content',
+              description: 'Return enhanced email content with improved copy and embedded citation markers',
+              parameters: {
+                type: 'object',
+                properties: {
+                  subject: {
+                    type: 'string',
+                    description: 'Enhanced subject line (max 60 chars)'
+                  },
+                  preheader: {
+                    type: 'string',
+                    description: 'Enhanced preheader (max 100 chars)'
+                  },
+                  headline: {
+                    type: 'string',
+                    description: 'Compelling headline with key benefit'
+                  },
+                  body_paragraphs: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Array of body paragraphs (2-4 paragraphs) with [CLAIM:CML-XXXX] markers embedded where clinical claims support the text'
+                  },
+                  cta: {
+                    type: 'string',
+                    description: 'Clear call to action'
+                  },
+                  disclaimer: {
+                    type: 'string',
+                    description: 'Required disclaimer text'
+                  },
+                  table_placements: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        after_paragraph: { type: 'number', description: '0-indexed paragraph number to place table after' },
+                        table_keyword: { type: 'string', description: 'Keyword to match table title (e.g., "efficacy", "trial")' }
+                      }
+                    },
+                    description: 'Suggested placements for data tables within the body content'
+                  },
+                  evidenceReferences: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Array of evidence references cited in content'
+                  }
+                },
+                required: ['subject', 'headline', 'body_paragraphs', 'cta'],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: 'function', function: { name: 'enhance_email_content' } }
+      }),
+    });
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error(`[${requestId}] AI API error:`, errorText);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `AI service error: ${aiResponse.status}`,
+          requestId
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const aiData = await aiResponse.json();
+    // Extract structured output from tool call
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall ||
+        toolCall.function.name !== 'enhance_email_content') {
+      console.error('No valid tool call in AI response:', aiData);
+      throw new Error('AI did not return expected structured output');
+    }
+    let parsedContent;
+    try {
+      parsedContent = JSON.parse(toolCall.function.arguments);
+      console.log(`[${requestId}] ✅ Successfully parsed AI response via tool calling`);
+      console.log(`[${requestId}] 📝 Body paragraphs count: ${parsedContent.body_paragraphs?.length || 0}`);
+      // Log if citations were embedded
+      const allBodyText = (parsedContent.body_paragraphs || []).join(' ');
+      const claimMarkerCount = (allBodyText.match(/\[CLAIM:/gi) || []).length;
+      console.log(`[${requestId}] 🔖 Citation markers found in AI output: ${claimMarkerCount}`);
+    } catch (e) {
+      console.error(`[${requestId}] Failed to parse tool call arguments:`, toolCall.function.arguments);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Failed to parse AI response: ${e instanceof Error ? e.message : 'Unknown error'}`,
+          requestId
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    // Generate visualizations - combine PI data with real visual assets from DB
+    const piVisualizations = await generateVisualizations(piData);
+    console.log(`[${requestId}] 📊 Generated ${piVisualizations.length} PI-based visualizations`);
+    // Generate real visual asset renderings from database
+    const realVisualAssets: any[] = [];
+    // Prioritize complete citation visuals (already selected by user), then fall back to dbVisualAssets
+    // Use completeCitationVisuals which has full data, not visualsFromCitation which may be incomplete
+    const visualsToRender = completeCitationVisuals.length > 0
+      ? completeCitationVisuals
+      : (visualsFromCitation.length > 0 ? visualsFromCitation : dbVisualAssets);
+    console.log(`[${requestId}] 📊 Processing ${visualsToRender.length} visuals for rendering`);
+    for (const asset of visualsToRender.slice(0, 5)) {
+      // Check for both visual_type (from DB) and type/visualType (from citation data) - handle property name mismatch
+      const assetType = asset.visual_type ||
+                        asset.visualType ||
+                        asset.type ||
+                        '';
+      const assetId = asset.id ||
+                      asset.visualId ||
+                      asset.visual_id ||
+                      'unknown';
+      const hasTableData = asset.visual_data && (asset.visual_data.headers ||
+                                                 asset.visual_data.rows ||
+                                                 asset.visual_data.columns);
+      console.log(`[${requestId}] Processing visual: id=${assetId.substring?.(0, 8) || 'unknown'}, type=${assetType}, hasTableData=${hasTableData}, hasStoragePath=${!!asset.storage_path}, storagePath=${!!asset.storagePath}`);
+      if (assetType === 'table' ||
+          hasTableData) {
+        realVisualAssets.push({
+          type: 'database-table',
+          position: 'mid-body',
+          html: renderVisualAssetTable(asset),
+          title: asset.title || 'Data Table'
+        });
+        console.log(`[${requestId}] ✅ Rendered table: ${asset.title || 'Untitled'}`);
+      } else if (asset.storage_path ||
+                 asset.storagePath) {
+        // Generate signed URL for image
+        const storagePath = asset.storage_path ||
+                            asset.storagePath;
+        try {
+          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from('visual-assets')
+            .createSignedUrl(storagePath, 3600);
+          if (signedUrlError) {
+            console.error(`[${requestId}] Error generating signed URL for ${assetId}:`, signedUrlError);
+          } else if (signedUrlData?.signedUrl) {
+            realVisualAssets.push({
+              type: 'database-image',
+              position: 'mid-body',
+              html: renderVisualAssetImage(asset, signedUrlData.signedUrl),
+              title: asset.title || 'Visual Asset'
+            });
+            console.log(`[${requestId}] ✅ Rendered image: ${asset.title || 'Untitled'}`);
+          }
+        } catch (urlError) {
+          console.error(`[${requestId}] Exception generating signed URL:`, urlError);
+        }
+      } else {
+        console.log(`[${requestId}] ⚠️ Skipping visual ${assetId.substring?.(0, 8) || 'unknown'}: no table data or storage path`);
+      }
+    }
+    console.log(`[${requestId}] 📊 Generated ${realVisualAssets.length} database visual asset renderings`);
+    // Combine all visualizations
+    const allVisualizations = [...piVisualizations, ...realVisualAssets];
+    // Process citations if provided
+    const citations: CitationData = citationData || {};
+    const referencesSection = formatReferencesSection(citations);
+    // Add citation superscripts to body text
+    const bodyWithCitations = addCitationSuperscripts(
+      (parsedContent.body_paragraphs || [textContent.body]).join('\n\n'),
+      citations
+    );
+    // Log citation processing result
+    const supCount = (bodyWithCitations.match(/<sup>/gi) || []).length;
+    console.log(`[${requestId}] 🔖 Superscripts added to body: ${supCount}`);
+    parsedContent.body_paragraphs = bodyWithCitations.split('\n\n');
+    // Assemble complete email with smart placement using EmailTemplateRenderer
+    // Pass table placements from AI if available
+    const emailHTML = assembleEmail(parsedContent, allVisualizations, textContent, selectedTemplate, referencesSection);
+    // Calculate quality metrics with intelligence tracking
+    const intelligenceReport = calculateQualityMetrics(parsedContent, piData, allVisualizations, citations);
+    intelligenceReport.intelligenceUsed = intelligenceUsed;
+    return new Response(
+      JSON.stringify({
+        success: true,
+        emailHTML,
+        intelligenceReport,
+        metadata: {
+          visualizationCount: allVisualizations.length,
+          databaseVisualsCount: realVisualAssets.length,
+          hasPI: !!piData,
+          hasCitations: ((citations.claimsUsed?.length || 0) + (citations.referencesUsed?.length || 0)) > 0,
+          citationMarkersInBody: supCount,
+          contentLength: emailHTML.length,
+          intelligenceLayersUsed: intelligenceUsed.length
+        }
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+  } catch (error) {
+    console.error('❌ Smart email composition error:', error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    );
   }
+});
+function buildSystemPrompt(context: any, profile: AudienceProfile): string {
+  let systemPrompt = `You are an expert pharmaceutical content writer creating content for ${context.targetAudience || 'physician-specialist'} audiences.`;
+  if (context.specialistType) {
+    systemPrompt += ` SPECIALIST CONTEXT: You are writing for ${context.specialistDisplayName || context.specialistType} in ${context.therapeuticArea || 'medicine'}.`;
+  }
+  if (context.indication) {
+    systemPrompt += ` INDICATION: ${context.indication}`;
+  }
+  systemPrompt += `\n\nCONTENT APPROACH:`;
+  systemPrompt += `\n- LEAD WITH: ${profile.leadWith.join(', ')}`;
+  systemPrompt += `\n- EMPHASIZE: ${profile.emphasize.join(', ')}`;
+  systemPrompt += `\n- AVOID: ${profile.avoid.join(', ')}`;
+  systemPrompt += `\n- STRUCTURE: ${profile.structure.join(' → ')}`;
+  systemPrompt += `\n- TONE: ${profile.tone}`;
+  systemPrompt += `\n- CLINICAL DEPTH: ${profile.depth}`;
+  systemPrompt += `\n- TERMINOLOGY: ${profile.terminology}`;
+  systemPrompt += `\n\nCITATION EMBEDDING RULES:
+- When you mention clinical data, efficacy outcomes, or study results, embed the appropriate citation marker immediately after the relevant statement.
+- Use the exact format [CLAIM:CML-XXXX] where CML-XXXX is the claim ID provided in the AVAILABLE CITATIONS section.
+- Place markers at the END of sentences that make clinical claims, before the period.
+- Only cite claims that are provided - do not invent citation IDs.
+- Each body paragraph should have 1-2 citation markers if clinical claims are being made.`;
+  systemPrompt += `\n\nREGULATORY COMPLIANCE: Maintain accurate, evidence-based claims. All clinical statements must be supportable with data. Include appropriate fair balance and safety information.`;
+  return systemPrompt;
+}
+// Helper to build evidence context section
+function buildEvidenceContext(evidenceContext: any): string {
+  if (!evidenceContext) return '';
+  let context = '\n\n### AVAILABLE EVIDENCE FROM LIBRARY\n';
+  if (evidenceContext.claims?.length) {
+    context += `\nClinical Claims: ${evidenceContext.claims.length} available`;
+  }
+  if (evidenceContext.references?.length) {
+    context += `\nReferences: ${evidenceContext.references.length} available`;
+  }
+  if (evidenceContext.segments?.length) {
+    context += `\nContent Segments: ${evidenceContext.segments.length} available`;
+  }
+  return context;
+}
+function buildEnhancementPrompt(textContent: any, piData: any, context: any, evidenceContext?: any, citationData?: CitationData): string {
+  let prompt = `Enhance this pharmaceutical email content for ${context.targetAudience || 'HCP'} audience.
+CURRENT CONTENT:
+Subject: ${textContent.subject}
+Preheader: ${textContent.preheader || 'N/A'}
+Headline: ${textContent.headline}
+Body: ${textContent.body}
+CTA: ${textContent.cta}
+Disclaimer: ${textContent.disclaimer || 'N/A'}
+CONTEXT:
+- Therapeutic Area: ${context.therapeuticArea || 'General'}
+- Indication: ${context.indication || 'General'}
+- Market: ${context.market || 'US'}
+- Regulatory Level: ${context.regulatoryLevel || 'standard'}
+`;
+  // Add AVAILABLE CITATIONS section for the AI to embed
+  if (citationData?.claimsUsed?.length) {
+    prompt += `\n\n### AVAILABLE CITATIONS (embed these in body text using [CLAIM:ID] format):\n`;
+    citationData.claimsUsed.forEach((claim, i) => {
+      const claimId = claim.claim_id_display ||
+                      (claim.id ? `CML-${claim.id.substring(0, 4)}` : `CML-${i + 1}`);
+      prompt += `\n${i + 1}. ${claimId}: "${claim.claim_text}"`;
+      if (claim.claim_type) prompt += ` [Type: ${claim.claim_type}]`;
+    });
+    prompt += `\n\nIMPORTANT: When writing body paragraphs, embed [CLAIM:${citationData.claimsUsed[0]?.claim_id_display || 'CML-XXXX'}] markers at the end of sentences that are supported by these claims.`;
+  }
+  if (citationData?.referencesUsed?.length) {
+    prompt += `\n\n### AVAILABLE REFERENCES:\n`;
+    citationData.referencesUsed.forEach((ref, i) => {
+      const refId = ref.reference_id_display ||
+                    (ref.id ? `REF-${ref.id.substring(0, 4)}` : `REF-${i + 1}`);
+      const citation = ref.formatted_citation ||
+                       ref.reference_text ||
+                       'Reference';
+      prompt += `\n${i + 1}. ${refId}: ${citation}`;
+    });
+  }
+  if (piData) {
+    prompt += `\n\nAVAILABLE CLINICAL DATA FROM PI:`;
+    if (piData.clinicalTrialResults?.length > 0) {
+      prompt += `\n\nClinical Trial Results:`;
+      piData.clinicalTrialResults.forEach((trial: any, i: number) => {
+        prompt += `\n${i + 1}. ${trial.study_name || 'Trial ' + (i+1)}: ${trial.description || ''}`;
+        if (trial.primary_endpoint) prompt += `\n Primary Endpoint: ${trial.primary_endpoint}`;
+        if (trial.results) prompt += `\n Results: ${trial.results}`;
+      });
+    }
+    if (piData.efficacyData?.length > 0) {
+      prompt += `\n\nEfficacy Data:`;
+      piData.efficacyData.forEach((eff: any, i: number) => {
+        prompt += `\n${i + 1}. ${eff.metric || 'Metric'}: ${eff.value || ''} ${eff.unit || ''}`;
+        if (eff.confidence_interval) prompt += ` (CI: ${eff.confidence_interval})`;
+        if (eff.p_value) prompt += ` (p=${eff.p_value})`;
+      });
+    }
+    if (piData.safetyData?.length > 0) {
+      prompt += `\n\nSafety Data:`;
+      piData.safetyData.forEach((safety: any, i: number) => {
+        prompt += `\n${i + 1}. ${safety.adverse_event || 'AE'}: ${safety.incidence || ''}`;
+      });
+    }
+    if (piData.competitorComparison?.length > 0) {
+      prompt += `\n\nCompetitor Comparison:`;
+      piData.competitorComparison.forEach((comp: any, i: number) => {
+        prompt += `\n${i + 1}. ${comp.competitor_name || 'Competitor'}: ${comp.comparison_metric || ''}`;
+      });
+    }
+    if (piData.marketInsights) {
+      prompt += `\n\nMarket Insights: ${JSON.stringify(piData.marketInsights, null, 2)}`;
+    }
+  }
+  prompt += `\n\nTASK:
+Enhance this content to be more compelling, evidence-based, and engaging.
+Integrate the clinical data naturally into the narrative where it adds value.
+Make the content professional, clear, and persuasive for the target audience.
+CRITICAL: Embed [CLAIM:CML-XXXX] markers in body paragraphs where clinical claims support statements. Place markers at the END of sentences making clinical claims.
+Also suggest table_placements if data tables would enhance understanding (specify after which paragraph index to place tables).`;
+  // Add evidence context if provided
+  if (evidenceContext) {
+    prompt += buildEvidenceContext(evidenceContext);
+  }
+  return prompt;
+}
+async function generateVisualizations(piData: any): Promise<any[]> {
+  const visualizations: any[] = [];
+  if (!piData) return visualizations;
+  // Generate clinical trial chart if data available
+  if (piData.clinicalTrialResults?.length > 0) {
+    visualizations.push({
+      type: 'clinical-trial-chart',
+      position: 'after-headline',
+      html: generateTrialChart(piData.clinicalTrialResults),
+      title: 'Clinical Trial Results'
+    });
+  }
+  // Generate efficacy chart if data available
+  if (piData.efficacyData?.length > 0) {
+    visualizations.push({
+      type: 'efficacy-chart',
+      position: 'mid-body',
+      html: generateEfficacyChart(piData.efficacyData),
+      title: 'Efficacy Outcomes'
+    });
+  }
+  // Generate safety table if data available
+  if (piData.safetyData?.length > 0) {
+    visualizations.push({
+      type: 'safety-table',
+      position: 'before-cta',
+      html: generateSafetyTable(piData.safetyData),
+      title: 'Safety Profile'
+    });
+  }
+  // Generate competitor comparison chart if data available
+  if (piData.competitorComparison?.length > 0) {
+    visualizations.push({
+      type: 'competitor-chart',
+      position: 'mid-body',
+      html: generateCompetitorChart(piData.competitorComparison),
+      title: 'Competitive Landscape'
+    });
+  }
+  // Generate market insights table if data available
+  if (piData.marketInsights && Object.keys(piData.marketInsights).length > 0) {
+    visualizations.push({
+      type: 'market-insights-table',
+      position: 'before-cta',
+      html: generateMarketInsightsTable(piData.marketInsights),
+      title: 'Market Insights'
+    });
+  }
+  return visualizations;
+}
+function generateTrialChart(trials: any[]): string {
+  const chartData = trials.slice(0, 3).map(trial => ({
+    name: trial.study_name ||
+          trial.trial_id ||
+          'Study',
+    value: trial.response_rate ||
+           trial.efficacy_rate ||
+           0
+  }));
+  return `
+  <div style="background: linear-gradient(135deg, #f8f9fa, #f0f4f8); padding: 24px; margin: 20px 0; border-radius: 10px; border: 1px solid #e5e7eb;">
+    <h3 style="color: #1a1a1a; font-size: 16px; margin: 0 0 18px 0; font-weight: 600;">Clinical Trial Results</h3>
+    <div style="display: flex; gap: 18px; align-items: flex-end; height: 180px;">
+      ${chartData.map(item => `
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+        <div style="background: linear-gradient(135deg, #0066cc, #004499); width: 100%; height: ${Math.max(item.value, 10)}%; border-radius: 6px 6px 0 0; min-height: 25px; box-shadow: 0 2px 8px rgba(0,102,204,0.3);"></div>
+        <div style="margin-top: 10px; font-size: 11px; color: #666; text-align: center; line-height: 1.3;">${item.name}</div>
+        <div style="margin-top: 4px; font-size: 16px; font-weight: 700; color: #0066cc;">${item.value}%</div>
+      </div>
+      `).join('')}
+    </div>
+  </div>
+  `;
+}
+function generateEfficacyChart(efficacyData: any[]): string {
+  return `
+  <div style="background: linear-gradient(135deg, #f0f7ff, #e8f4ff); padding: 24px; margin: 20px 0; border-radius: 10px; border-left: 4px solid #0066cc;">
+    <h3 style="color: #1a1a1a; font-size: 16px; margin: 0 0 18px 0; font-weight: 600;">Efficacy Outcomes</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+      ${efficacyData.slice(0, 4).map(eff => `
+      <div style="background: white; padding: 18px; border-radius: 8px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size: 28px; font-weight: 700; color: #0066cc;">${eff.value || 'N/A'}</div>
+        <div style="font-size: 12px; color: #666; margin-top: 6px; line-height: 1.3;">${eff.metric || 'Metric'}</div>
+        ${eff.p_value ? `<div style="font-size: 11px; color: #999; margin-top: 4px;">p=${eff.p_value}</div>` : ''}
+      </div>
+      `).join('')}
+    </div>
+  </div>
+  `;
+}
+function generateSafetyTable(safetyData: any[]): string {
+  return `
+  <div style="background: linear-gradient(135deg, #fff9f0, #fff5e6); padding: 24px; margin: 20px 0; border-radius: 10px; border-left: 4px solid #ff9900;">
+    <h3 style="color: #1a1a1a; font-size: 16px; margin: 0 0 18px 0; font-weight: 600;">Safety Profile</h3>
+    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+      <thead>
+        <tr style="background: #f8f9fa;">
+          <th style="padding: 12px 15px; text-align: left; font-size: 12px; color: #666; border-bottom: 2px solid #eee; font-weight: 600;">Adverse Event</th>
+          <th style="padding: 12px 15px; text-align: right; font-size: 12px; color: #666; border-bottom: 2px solid #eee; font-weight: 600;">Incidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${safetyData.slice(0, 5).map((safety, i) => `
+        <tr style="background: ${i % 2 === 0 ? 'white' : '#fafafa'};">
+          <td style="padding: 12px 15px; font-size: 13px; color: #333; border-bottom: 1px solid #f0f0f0;">${safety.adverse_event || 'N/A'}</td>
+          <td style="padding: 12px 15px; font-size: 13px; font-weight: 600; color: #333; text-align: right; border-bottom: 1px solid #f0f0f0;">${safety.incidence || 'N/A'}</td>
+        </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+  `;
+}
+function generateCompetitorChart(competitors: any[]): string {
+  return `
+  <div style="background: linear-gradient(135deg, #f5f0ff, #ede6ff); padding: 24px; margin: 20px 0; border-radius: 10px; border-left: 4px solid #6600cc;">
+    <h3 style="color: #1a1a1a; font-size: 16px; margin: 0 0 18px 0; font-weight: 600;">Competitive Landscape</h3>
+    <div style="display: flex; gap: 18px; align-items: flex-end; height: 160px;">
+      ${competitors.slice(0, 4).map(comp => {
+        const value = comp.efficacy_value ||
+                      comp.comparison_value ||
+                      50;
+        return `
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+          <div style="background: ${comp.is_our_product ? 'linear-gradient(135deg, #6600cc, #4400aa)' : '#d1d5db'}; width: 100%; height: ${value}%; border-radius: 6px 6px 0 0; min-height: 25px; box-shadow: ${comp.is_our_product ? '0 2px 8px rgba(102,0,204,0.3)' : 'none'};"></div>
+          <div style="margin-top: 10px; font-size: 11px; color: #666; text-align: center;">${comp.competitor_name || 'Product'}</div>
+          <div style="margin-top: 4px; font-size: 14px; font-weight: 700; color: ${comp.is_our_product ? '#6600cc' : '#666'};">${value}%</div>
+        </div>
+        `;
+      }).join('')}
+    </div>
+  </div>
+  `;
+}
+function generateMarketInsightsTable(insights: any): string {
+  const insightEntries = Object.entries(insights).slice(0, 5);
+  return `
+  <div style="background: linear-gradient(135deg, #f0fff4, #e6ffed); padding: 24px; margin: 20px 0; border-radius: 10px; border-left: 4px solid #00cc66;">
+    <h3 style="color: #1a1a1a; font-size: 16px; margin: 0 0 18px 0; font-weight: 600;">Market Insights</h3>
+    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+      <tbody>
+        ${insightEntries.map(([key, value], i) => `
+        <tr style="background: ${i % 2 === 0 ? 'white' : '#fafafa'};">
+          <td style="padding: 12px 15px; font-size: 12px; color: #666; border-bottom: 1px solid #f0f0f0; width: 40%; text-transform: uppercase; font-weight: 500;">${key.replace(/_/g, ' ')}</td>
+          <td style="padding: 12px 15px; font-size: 13px; font-weight: 500; color: #333; border-bottom: 1px solid #f0f0f0;">${value}</td>
+        </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+  `;
+}
+function assembleEmail(content: any, visualizations: any[], originalContent: any, templateId: string, referencesSection?: string): string {
+  // Map visualizations to EmailTemplateRenderer format
+  const images: any[] = [];
+  const visualizationComponents = visualizations
+    .filter(v => v.type !== 'safety-table' && v.type !== 'market-insights-table' && v.type !== 'database-table')
+    .map(viz => ({
+      id: viz.type,
+      type: viz.type,
+      title: viz.title || viz.type.replace(/-/g, ' ').replace(/database/i, '').trim(),
+      imageUrl: '',
+      altText: `${viz.type} visualization`,
+      captionHTML: viz.html
+    }));
+  // Extract table visualizations for the tables array with placement hints
+  const tableVisualizations = visualizations.filter(v =>
+    v.type === 'safety-table' ||
+    v.type === 'market-insights-table' ||
+    v.type === 'database-table'
+  );
+  // Use AI-suggested placements if available, otherwise use contextual placement
+  const tablePlacements = content.table_placements || [];
+  const tables = tableVisualizations.map((viz, index) => {
+    // Try to find AI placement suggestion for this table
+    const placement = tablePlacements.find((p: any) =>
+      viz.title?.toLowerCase().includes(p.table_keyword?.toLowerCase()) ||
+      
+      viz.type?.toLowerCase().includes(p.table_keyword?.toLowerCase())
+    );
+    return {
+      id: viz.type,
+      title: viz.title || viz.type.replace(/-/g, ' ').replace(/table/i, '').replace(/database/i, '').trim(),
+      tableHTML: viz.html,
+      caption: '',
+      footnotes: [],
+      placementHint: placement ? `after_paragraph_${placement.after_paragraph}` : undefined
+    };
+  });
+  const emailComponents: EmailComponents = {
+    text: {
+      subject: content.subject || originalContent.subject,
+      preheader: content.preheader || originalContent.preheader || '',
+      headline: content.headline || originalContent.headline,
+      body: (content.body_paragraphs || [originalContent.body]).join('\n\n'),
+      cta: content.cta || originalContent.cta,
+      disclaimer: content.disclaimer || originalContent.disclaimer || 'Please see full Prescribing Information.'
+    },
+    visualizations: visualizationComponents,
+    tables: tables,
+    images: images,
+    referencesSection: referencesSection || undefined
+  };
+  // Use the professional EmailTemplateRenderer with brand styling
+  return EmailTemplateRenderer.render(templateId, emailComponents, {
+    primaryColor: '#0066cc',
+    secondaryColor: '#1a1a1a',
+    fontFamily: "'Segoe UI', Arial, sans-serif"
+  });
+}
+function calculateQualityMetrics(content: any, piData: any, visualizations: any[], citations?: CitationData) {
+  const metrics: any = {
+    contentScore: 0,
+    evidenceScore: 0,
+    complianceScore: 0,
+    visualScore: 0,
+    overallScore: 0,
+    citationCount: 0
+  };
+  // Content quality score
+  const bodyLength = (content.body_paragraphs || []).join(' ').length;
+  metrics.contentScore = Math.min(100, Math.round((bodyLength / 800) * 100));
+  // Evidence score based on PI data and citations
+  let evidenceFactors = 0;
+  if (piData?.clinicalTrialResults?.length > 0) evidenceFactors += 25;
+  if (piData?.efficacyData?.length > 0) evidenceFactors += 25;
+  if (piData?.safetyData?.length > 0) evidenceFactors += 20;
+  if (citations?.claimsUsed?.length) {
+    evidenceFactors += 15;
+    metrics.citationCount += citations.claimsUsed.length;
+  }
+  if (citations?.referencesUsed?.length) {
+    evidenceFactors += 15;
+    metrics.citationCount += citations.referencesUsed.length;
+  }
+  metrics.evidenceScore = Math.min(100, evidenceFactors);
+  // Compliance score (presence of required elements)
+  let complianceFactors = 0;
+  if (content.disclaimer) complianceFactors += 40;
+  if (content.subject?.length <= 60) complianceFactors += 20;
+  if (content.headline) complianceFactors += 20;
+  if (content.cta) complianceFactors += 20;
+  metrics.complianceScore = complianceFactors;
+  // Visual score
+  metrics.visualScore = Math.min(100, visualizations.length * 25);
+  // Overall score
+  metrics.overallScore = Math.round(
+    (metrics.contentScore * 0.25) +
+    (metrics.evidenceScore * 0.35) +
+    (metrics.complianceScore * 0.25) +
+    (metrics.visualScore * 0.15)
+  );
+  return metrics;
 }
 
-// Mock translation functions for DeepL and Google (would be replaced with real API calls)
-// Type annotations removed
-async function simulateDeepLTranslation(sourceText, sourceLang, targetLang, glossary) {
-  // Simulate high-quality European language translation
-  if (targetLang === 'es') {
-    return sourceText
-      .replace(/treatment/gi, 'tratamiento')
-      .replace(/clinical/gi, 'clínico')
-      .replace(/efficacy/gi, 'eficacia');
-  }
-  return `[DeepL ${targetLang}] ${sourceText}`;
-}
 
-// Type annotations removed
-async function simulateGoogleTranslation(sourceText, sourceLang, targetLang, glossary) {
-  // Simulate basic translation
-  if (targetLang === 'ja') {
-    return sourceText
-      .replace(/treatment/gi, '治療')
-      .replace(/clinical/gi, '臨床')
-      .replace(/efficacy/gi, '有効性');
-  }
-  return `[Google ${targetLang}] ${sourceText}`;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

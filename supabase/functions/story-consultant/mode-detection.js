@@ -1,62 +1,10 @@
+
 // ============================================
 // Mode Detection Logic for Multi-Mode AI
 // Classifies user input into interaction modes
 // ============================================
 
-// --- Simulated Type Definitions for Context Preservation ---
-
-// 1. InteractionMode (Replaced TypeScript Enum)
-const InteractionMode = {
-  DISCOVERY: 'discovery',
-  SPECIFICATION: 'specification',
-  EXPLORATION: 'exploration',
-  DATA_FIRST: 'data_first',
-  COLLABORATIVE: 'collaborative',
-  REACTIVE: 'reactive'
-};
-
-// 2. MODE_DETECTION_PATTERNS (Replaced external import)
-// These patterns are used to score the likelihood of each interaction mode.
-const MODE_DETECTION_PATTERNS = {
-  [InteractionMode.DISCOVERY]: [
-    /i need a campaign/i,
-    /for the congress/i,
-    /i have an event/i,
-    /launch event/i,
-  ],
-  [InteractionMode.SPECIFICATION]: [
-    /theme:\s*.+/i,
-    /campaign:\s*.+/i,
-    /generate theme/i,
-    /create content for theme/i,
-  ],
-  [InteractionMode.EXPLORATION]: [
-    /opportunity/i,
-    /what should i do/i,
-    /new idea/i,
-    /what are my options/i,
-  ],
-  [InteractionMode.DATA_FIRST]: [
-    /show data/i,
-    /what are the metrics/i,
-    /brand status/i,
-    /performance/i,
-  ],
-  [InteractionMode.COLLABORATIVE]: [
-    /what do you think/i,
-    /help me brainstorm/i,
-    /let's refine/i,
-    /co-create/i,
-  ],
-  [InteractionMode.REACTIVE]: [
-    /urgent/i,
-    /asap/i,
-    /competitor launch/i,
-    /regulatory change/i,
-  ]
-};
-
-// --- Core Functions ---
+import { InteractionMode, ModeDetectionResult, MODE_DETECTION_PATTERNS, ThemeSpecification } from '../../../src/types/interactionModes.js';
 
 export function detectInteractionMode(userInput, context) {
   const lowerInput = userInput.toLowerCase().trim();
@@ -65,11 +13,9 @@ export function detectInteractionMode(userInput, context) {
 
   // Score each mode based on pattern matches
   Object.entries(MODE_DETECTION_PATTERNS).forEach(([mode, patterns]) => {
-    // Note: The original TypeScript code cast `mode` to InteractionMode.
-    // In JavaScript, we just use the string key.
     const matches = patterns.filter(pattern => pattern.test(userInput));
     if (matches.length > 0) {
-      detectionScores[mode] = (detectionScores[mode] || 0) + matches.length;
+      detectionScores[mode] = matches.length;
       indicators.push(`${mode}: ${matches.length} pattern match(es)`);
     }
   });
@@ -79,7 +25,6 @@ export function detectInteractionMode(userInput, context) {
     // First message - check for theme specification
     const themeMatch = userInput.match(/(?:theme|campaign)\s*:\s*["']?(.+?)["']?(?:\s|$)/i);
     if (themeMatch) {
-      // Boost score significantly for explicit, first-message specification
       detectionScores[InteractionMode.SPECIFICATION] = (detectionScores[InteractionMode.SPECIFICATION] || 0) + 5;
       indicators.push('Theme specification detected in format "theme: [name]"');
     }
@@ -91,30 +36,25 @@ export function detectInteractionMode(userInput, context) {
       mode: InteractionMode.DISCOVERY,
       confidence: 0.5,
       indicators: ['No specific patterns detected - defaulting to Discovery mode'],
-      suggestedApproach: getApproachForMode(InteractionMode.DISCOVERY)
+      suggestedApproach: 'Guide user through storytelling to understand their needs'
     };
   }
 
   // Find mode with highest score
-  const topModeEntry = Object.entries(detectionScores)
+  const topMode = Object.entries(detectionScores)
     .sort(([, a], [, b]) => b - a)[0];
-  
-  const topMode = topModeEntry[0];
-  const topScore = topModeEntry[1];
 
-  // Normalize confidence (Max score 3 is arbitrary in the original, using 5 for a smoother normalization)
-  const confidence = Math.min(topScore / 5, 1.0); 
+  const confidence = Math.min(topMode[1] / 3, 1.0); // Normalize confidence
 
   return {
-    mode: topMode,
+    mode: topMode[0],
     confidence,
     indicators,
-    suggestedApproach: getApproachForMode(topMode)
+    suggestedApproach: getApproachForMode(topMode[0])
   };
 }
 
 function getApproachForMode(mode) {
-  // Replaced TypeScript Record<InteractionMode, string> with a standard JavaScript object
   const approaches = {
     [InteractionMode.DISCOVERY]: 'Guide user through storytelling to understand occasion, audience, and goals',
     [InteractionMode.SPECIFICATION]: 'Accept theme name and enrich with supporting content',

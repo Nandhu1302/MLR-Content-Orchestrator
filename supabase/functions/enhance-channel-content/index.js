@@ -1,210 +1,179 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// TypeScript interface 'Database' removed.
+// Centralized channel and audience label constants
+const CHANNEL_LABELS = {
+  'website': 'Website',
+  'email': 'Email',
+  'social': 'Social',
+  'rep-enabled': 'Rep-Enabled'
+};
+const AUDIENCE_LABELS = {
+  'hcp': 'HCP',
+  'patient': 'Patient',
+  'caregiver': 'Caregiver'
+};
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
-
   try {
-    // Non-null assertion operator (!) removed.
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const request = await req.json();
+    console.log('Enhance channel content request:', {
+      channel: request.channel,
+      audience: request.audienceType,
+      segment: request.audienceSegment
+    });
 
-    // Added check for stability
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error("Supabase environment variables not configured.");
-    }
-    
-    // Generic type <Database> removed.
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    console.log('🔍 Starting content opportunity detection...');
-
-    // Get all active brands
-    const { data: brands, error: brandsError } = await supabase
-      .from('brand_profiles')
-      .select('id, brand_name');
-
-    if (brandsError) throw brandsError;
-
-    const results = [];
-
-    for (const brand of brands || []) {
-      console.log(`📊 Analyzing opportunities for ${brand.brand_name}...`);
-      
-      try {
-        // This would call the ContentOpportunityService logic
-        // For now, we'll do a simplified version directly
-        
-        // Detect sentiment shifts
-        const { data: sentimentData } = await supabase
-          .from('social_listening_data')
-          .select('topic, sentiment_score, volume, date_captured')
-          .eq('brand_id', brand.id)
-          .gte('date_captured', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-          .order('date_captured', { ascending: false });
-
-        if (sentimentData && sentimentData.length > 0) {
-          // Simplified sentiment analysis
-          const topics = new Map();
-          sentimentData.forEach(d => {
-            if (!topics.has(d.topic)) {
-              // Non-null assertion operator (!) removed
-              topics.set(d.topic, []);
-            }
-            // Non-null assertion operator (!) removed
-            topics.get(d.topic).push(d.sentiment_score || 0);
-          });
-
-          for (const [topic, scores] of topics.entries()) {
-            if (scores.length >= 5) {
-              const recent = scores.slice(0, Math.floor(scores.length / 2));
-              const older = scores.slice(Math.floor(scores.length / 2));
-              // Type annotation removed from reduce function
-              const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-              // Type annotation removed from reduce function
-              const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
-              const change = recentAvg - olderAvg;
-
-              if (Math.abs(change) > 0.15) {
-                const isPositive = change > 0;
-                await supabase.from('content_opportunities').insert({
-                  brand_id: brand.id,
-                  opportunity_type: 'sentiment_shift',
-                  title: `${isPositive ? '📈' : '📉'} ${topic} Sentiment ${isPositive ? 'Rising' : 'Declining'}`,
-                  description: `Social sentiment around "${topic}" has ${isPositive ? 'improved' : 'declined'} by ${Math.abs(change * 100).toFixed(1)}%.`,
-                  priority: Math.abs(change) > 0.3 ? 'high' : 'medium',
-                  urgency_score: Math.min(100, Math.abs(change) * 200),
-                  impact_score: 70,
-                  confidence_score: 0.85,
-                  trend_data: { topic, change, recentAvg, olderAvg },
-                  intelligence_sources: ['social_listening_data'],
-                  recommended_actions: [
-                    { action: 'Create responsive content', details: `Develop ${isPositive ? 'celebration' : 'educational'} content` }
-                  ],
-                  expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-                });
-              }
-            }
-          }
-        }
-
-        // Check market movements
-        const { data: marketData } = await supabase
-          .from('market_intelligence_analytics')
-          .select('*')
-          .eq('brand_id', brand.id)
-          .order('reporting_month', { ascending: false })
-          .limit(8);
-
-        if (marketData && marketData.length >= 4) {
-          const recent = marketData.slice(0, 4);
-          const older = marketData.slice(4);
-          
-          // Type annotation removed from reduce function
-          const recentShare = recent.reduce((sum, d) => sum + (d.market_share_percent || 0), 0) / recent.length;
-          // Type annotation removed from reduce function
-          const olderShare = older.reduce((sum, d) => sum + (d.market_share_percent || 0), 0) / older.length;
-          const shareChange = ((recentShare - olderShare) / olderShare) * 100;
-
-          if (Math.abs(shareChange) > 5) {
-            const isGrowth = shareChange > 0;
-            await supabase.from('content_opportunities').insert({
-              brand_id: brand.id,
-              opportunity_type: 'market_movement',
-              title: `${isGrowth ? '🚀' : '⚠️'} Market Share ${isGrowth ? 'Growing' : 'Declining'}`,
-              description: `Market share has ${isGrowth ? 'increased' : 'decreased'} by ${Math.abs(shareChange).toFixed(1)}%.`,
-              priority: Math.abs(shareChange) > 10 ? 'high' : 'medium',
-              urgency_score: Math.abs(shareChange) > 10 ? 85 : 60,
-              impact_score: Math.min(100, Math.abs(shareChange) * 5),
-              confidence_score: 0.9,
-              trend_data: { shareChange, recentShare, olderShare },
-              intelligence_sources: ['market_intelligence_analytics'],
-              recommended_actions: [
-                { action: isGrowth ? 'Amplify success' : 'Address gaps', details: 'Create relevant content' }
-              ]
-            });
-          }
-        }
-
-        // Check competitive triggers
-        const { data: compData } = await supabase
-          .from('competitive_intelligence_enriched')
-          .select('*')
-          .eq('brand_id', brand.id)
-          .gte('discovered_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
-          .in('threat_level', ['high', 'critical']);
-
-        if (compData && compData.length > 0) {
-          for (const comp of compData.slice(0, 2)) {
-            await supabase.from('content_opportunities').insert({
-              brand_id: brand.id,
-              opportunity_type: 'competitive_trigger',
-              title: `🎯 Competitor Activity: ${comp.competitor_name}`,
-              description: comp.impact_assessment || comp.content.substring(0, 200),
-              priority: comp.threat_level === 'critical' ? 'critical' : 'high',
-              urgency_score: comp.threat_level === 'critical' ? 95 : 75,
-              impact_score: 80,
-              confidence_score: 0.8,
-              trend_data: { competitor: comp.competitor_name, type: comp.intelligence_type },
-              intelligence_sources: ['competitive_intelligence_enriched'],
-              recommended_actions: [
-                { action: 'Differentiation campaign', details: 'Highlight unique value propositions' }
-              ],
-              expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-            });
-          }
-        }
-
-        results.push({
-          brand_id: brand.id,
-          brand_name: brand.brand_name,
-          status: 'success'
-        });
-
-      } catch (error) {
-        console.error(`Error processing brand ${brand.brand_name}:`, error);
-        results.push({
-          brand_id: brand.id,
-          brand_name: brand.brand_name,
-          status: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    console.log('✅ Opportunity detection complete');
+    // Build channel-specific data summary
+    const dataSummary = buildDataSummary(request.channel, request.channelData);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        processed: brands?.length || 0,
-        results
+    // Build AI prompt based on channel
+    const systemPrompt = `You are a pharmaceutical marketing content strategist specializing in ${request.brandContext.therapeuticArea}.
+Transform raw analytics data into compelling, audience-appropriate content suggestions that drive engagement.
+CRITICAL: Return ONLY valid JSON with no markdown, no code fences, no additional text. The response must be parseable JSON.`;
+
+    const userPrompt = `Channel: ${CHANNEL_LABELS[request.channel]}
+Audience: ${AUDIENCE_LABELS[request.audienceType.toLowerCase()] ?? request.audienceType}${request.audienceSegment ? ' - ' + request.audienceSegment : ''}
+Brand: ${request.brandContext.name} for ${request.brandContext.therapeuticArea}
+Intelligence Data:
+${dataSummary}
+Generate content suggestions:
+${getChannelSpecificInstructions(request.channel)}
+Return JSON with this exact structure:
+{
+  "enhancedKeyMessage": "Compelling message that synthesizes the intelligence (not just restating metrics)",
+  ${request.channel === 'email' ? '"subjectLine": "Attention-grabbing subject under 60 chars",' : ''}
+  ${request.channel === 'email' ? '"preheader": "Complementary preheader text",' : ''}
+  "cta": "Action-oriented, specific to channel and audience",
+  "contentTips": ["Tip 1", "Tip 2", "Tip 3"],
+  ${request.channel === 'rep-enabled' ? '"talkingPoints": ["Point 1", "Point 2", "Point 3"],' : ''}
+  ${request.channel === 'social' ? '"hashtags": ["#Hashtag1", "#Hashtag2", "#Hashtag3"],' : ''}
+  ${request.channel === 'website' ? '"seoHeadline": "SEO-optimized headline with keywords",' : ''}
+  "rationale": "Brief explanation of why these suggestions work"
+}`;
+
+    console.log('Calling AI with prompt length:', userPrompt.length);
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      }
-    );
+    });
 
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('AI API error:', aiResponse.status, errorText);
+      throw new Error(`AI API error: ${aiResponse.status}`);
+    }
+
+    const aiData = await aiResponse.json();
+    const content = aiData.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('No content in AI response');
+    }
+    console.log('Raw AI response:', content);
+
+    // Parse JSON response (handle potential markdown code fences)
+    let enhancedContent;
+    try {
+      // Remove markdown code fences if present
+      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      enhancedContent = JSON.parse(cleanContent);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', content);
+      throw new Error('Invalid JSON from AI');
+    }
+
+    // Add aiEnhanced flag
+    enhancedContent.aiEnhanced = true;
+    console.log('Successfully enhanced content for', request.channel);
+
+    return new Response(JSON.stringify(enhancedContent), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    console.error('❌ Error in detect-content-opportunities:', error);
+    console.error('Error in enhance-channel-content:', error);
     return new Response(
       JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        aiEnhanced: false
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
 });
+
+function buildDataSummary(channel, data) {
+  switch (channel) {
+    case 'website':
+      return `Top Pages: ${JSON.stringify(data.topPages?.slice(0, 3) ?? [])}
+Search Terms: ${JSON.stringify(data.searchTerms?.slice(0, 5) ?? [])}
+Downloads: ${JSON.stringify(data.downloads?.slice(0, 3) ?? [])}`;
+    case 'email':
+      return `Top Campaigns: ${JSON.stringify(data.campaigns?.slice(0, 3) ?? [])}
+Top Subject Lines: ${JSON.stringify(data.topSubjects?.slice(0, 5) ?? [])}
+Optimal Send Times: ${JSON.stringify(data.sendTimes?.slice(0, 3) ?? [])}`;
+    case 'social':
+      return `Trending Topics: ${JSON.stringify(data.trendingTopics?.slice(0, 5) ?? [])}
+Platform Sentiment: ${JSON.stringify(data.platformSentiment ?? [])}
+Top Mentions: ${JSON.stringify(data.topMentions?.slice(0, 3) ?? [])}`;
+    case 'rep-enabled':
+      return `Top Content: ${JSON.stringify(data.topContent?.slice(0, 3) ?? [])}
+Top NBAs: ${JSON.stringify(data.topNBAs?.slice(0, 3) ?? [])}
+Activity Heatmap: ${JSON.stringify(data.activityHeatmap?.slice(0, 5) ?? [])}`;
+    default:
+      return JSON.stringify(data);
+  }
+}
+
+function getChannelSpecificInstructions(channel) {
+  switch (channel) {
+    case 'website':
+      return `1. Key Message: Focus on content gaps revealed by search terms and page engagement
+2. SEO Headline: Optimize for search terms with high volume
+3. CTA: Direct users to high-value content or resources
+4. Content Tips: Prioritize based on scroll depth and time-on-page data`;
+    case 'email':
+      return `1. Key Message: Emphasize patterns from top-performing campaigns
+2. Subject Line: Under 60 chars, use proven patterns
+3. Preheader: Complement subject, add urgency or benefit
+4. CTA: Clear action tied to campaign goal
+5. Content Tips: Reference send timing and segment performance`;
+    case 'social':
+      return `1. Key Message: Address trending conversations with brand positioning
+2. Hashtags: Mix trending and branded hashtags (3-5 max)
+3. CTA: Platform-appropriate (e.g., "Join the conversation")
+4. Content Tips: Platform-specific recommendations (Twitter brevity, Instagram visuals, LinkedIn professional tone)`;
+    case 'rep-enabled':
+      return `1. Key Message: Highlight content proven effective in field
+2. Talking Points: 3 key points reps can use with HCPs
+3. CTA: Request meeting/sample/more info
+4. Content Tips: Reference engagement scores and NBA conversion data`;
+    default:
+      return 'Generate general content recommendations based on available data.';
+  }
+}
