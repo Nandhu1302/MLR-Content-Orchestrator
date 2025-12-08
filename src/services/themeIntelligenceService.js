@@ -1,6 +1,6 @@
 // Theme Intelligence Service - Intelligence aggregation and enrichment
 
-import { supabase } from "./integrations/supabase/client.js";
+import { supabase } from "../integrations/supabase/client.js";
 
 /**
  * @typedef {'brand' | 'competitive' | 'market' | 'regulatory' | 'public'} IntelligenceType

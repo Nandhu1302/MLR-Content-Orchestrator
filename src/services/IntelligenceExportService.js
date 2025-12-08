@@ -1,7 +1,7 @@
 // Intelligence Export Service
 // Handles generation, export, and sharing of intelligence reports.
 
-import { supabase } from './integrations/supabase/client';
+import { supabase } from "../integrations/supabase/client.js";
 
 export class IntelligenceExportService {
 

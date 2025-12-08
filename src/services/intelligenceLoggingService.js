@@ -1,4 +1,4 @@
-import { supabase } from './supabase/client'; // Adjust the import path as necessary
+import { supabase } from "../integrations/supabase/client.js";
 
 /**
  * Intelligence Logging Service

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -6,9 +5,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Layout, Star, TrendingUp, Check } from 'lucide-react';
+// TypeScript type imports removed
+// import type { DesignTemplate, TemplateRecommendation } from '@/types/designStudio';
+// import type { ContentAsset, ContentVariation } from '@/types/content';
 import { TemplateRecommendationService } from '@/services/templateRecommendationService';
 
-export const TemplateGallery = ({ brandId, asset, variation, onSelectTemplate, selectedTemplateId }) => {
+// Interface and type annotations removed
+export const TemplateGallery = ({
+  brandId,
+  asset,
+  variation,
+  onSelectTemplate,
+  selectedTemplateId
+}) => {
   const [allTemplates, setAllTemplates] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,23 +29,28 @@ export const TemplateGallery = ({ brandId, asset, variation, onSelectTemplate, s
 
   const loadTemplates = async () => {
     setLoading(true);
+    
     try {
       // Load all templates
       const { data: templates } = await supabase
-        .from('design_templates')
+        .from('design_templates') // Removed 'as any'
         .select('*')
         .eq('brand_id', brandId)
         .eq('is_active', true)
         .order('template_name');
 
       if (templates) {
-        setAllTemplates(templates);
+        setAllTemplates(templates); // Removed 'as any[]'
       }
 
       // Get recommendations if asset is provided
       if (asset) {
-        const factors = variation?.personalization_factors;
-        const recs = await TemplateRecommendationService.recommendTemplates(asset, variation, factors);
+        const factors = variation?.personalization_factors; // Removed 'as any'
+        const recs = await TemplateRecommendationService.recommendTemplates(
+          asset,
+          variation,
+          factors
+        );
         setRecommendations(recs);
       }
     } catch (error) {
@@ -47,31 +61,43 @@ export const TemplateGallery = ({ brandId, asset, variation, onSelectTemplate, s
   };
 
   if (loading) {
-    return <div>Loading templates...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading templates...</p>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <Tabs defaultValue="recommended" onValueChange={(v) => setActiveTab(v)}>
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v)}> // Removed 'as any'
         <TabsList>
-          <TabsTrigger value="recommended">Recommended ({recommendations.length})</TabsTrigger>
-          <TabsTrigger value="all">All Templates ({allTemplates.length})</TabsTrigger>
+          <TabsTrigger value="recommended">
+            <Star className="w-4 h-4 mr-2" />
+            Recommended ({recommendations.length})
+          </TabsTrigger>
+          <TabsTrigger value="all">
+            <Layout className="w-4 h-4 mr-2" />
+            All Templates ({allTemplates.length})
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="recommended" className="mt-4">
+        <TabsContent value="recommended" className="space-y-4">
           {recommendations.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              No recommended templates. Select content from Content Studio to see personalized recommendations.
-            </div>
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">
+                No recommended templates. Select content from Content Studio to see personalized recommendations.
+              </p>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recommendations.map((rec, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recommendations.map((rec) => (
                 <TemplateCard
-                  key={idx}
+                  key={rec.template.id}
                   template={rec.template}
                   score={rec.score}
                   reasoning={rec.reasoning}
-                  isSelected={selectedTemplateId === rec.template.id}
+                  isSelected={rec.template.id === selectedTemplateId}
                   onSelect={() => onSelectTemplate(rec.template)}
                 />
               ))}
@@ -79,21 +105,23 @@ export const TemplateGallery = ({ brandId, asset, variation, onSelectTemplate, s
           )}
         </TabsContent>
 
-        <TabsContent value="all" className="mt-4">
+        <TabsContent value="all" className="space-y-4">
           {allTemplates.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              No templates found. Initialize templates to get started.
-              <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="ml-2">
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground mb-4">
+                No templates found. Initialize templates to get started.
+              </p>
+              <Button onClick={() => window.location.reload()}>
                 Refresh Templates
               </Button>
-            </div>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {allTemplates.map((template) => (
                 <TemplateCard
                   key={template.id}
                   template={template}
-                  isSelected={selectedTemplateId === template.id}
+                  isSelected={template.id === selectedTemplateId}
                   onSelect={() => onSelectTemplate(template)}
                 />
               ))}
@@ -105,41 +133,80 @@ export const TemplateGallery = ({ brandId, asset, variation, onSelectTemplate, s
   );
 };
 
-const TemplateCard = ({ template, score, reasoning, isSelected, onSelect }) => {
+// Interface and type annotations removed
+const TemplateCard = ({
+  template,
+  score,
+  reasoning,
+  isSelected,
+  onSelect
+}) => {
   return (
-    <Card
-      className={`p-4 border rounded-lg cursor-pointer ${isSelected ? 'border-primary' : 'border-muted'}`}
+    <Card 
+      className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
+        isSelected ? 'ring-2 ring-primary' : ''
+      }`}
       onClick={onSelect}
     >
-      <h4 className="text-lg font-semibold mb-2">{template.template_name}</h4>
-      <p className="text-sm text-muted-foreground mb-2">{template.description}</p>
-      {isSelected && <Badge variant="success">Selected</Badge>}
-      <div className="text-xs text-muted-foreground mb-2">{template.template_category}</div>
-      {score && <div className="text-xs text-primary">{score}% match</div>}
-      {template.performance_history?.avgEngagement > 70 && (
-        <div className="text-xs text-green-600">{template.performance_history.avgEngagement}% engagement</div>
-      )}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <h3 className="font-semibold text-lg mb-1">{template.template_name}</h3>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {template.description}
+          </p>
+        </div>
+        {isSelected && (
+          <div className="ml-2 bg-primary text-primary-foreground rounded-full p-1">
+            <Check className="w-4 h-4" />
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-2 mb-3 flex-wrap">
+        <Badge variant="secondary">
+          <Layout className="w-3 h-3 mr-1" />
+          {template.template_category}
+        </Badge>
+        {score && (
+          <Badge variant="outline" className="bg-green-50">
+            <TrendingUp className="w-3 h-3 mr-1" />
+            {score}% match
+          </Badge>
+        )}
+        {template.performance_history?.avgEngagement > 70 && (
+          <Badge variant="outline">
+            {template.performance_history.avgEngagement}% engagement
+          </Badge>
+        )}
+      </div>
+
       {template.tags && template.tags.length > 0 && (
-        <div className="flex gap-1 mt-2">
-          {template.tags.slice(0, 3).map((tag, i) => (
-            <Badge key={i} variant="secondary" className="text-xs">
+        <div className="flex gap-1 mb-3 flex-wrap">
+          {template.tags.slice(0, 3).map(tag => (
+            <Badge key={tag} variant="outline" className="text-xs">
               {tag}
             </Badge>
           ))}
         </div>
       )}
+
       {reasoning && reasoning.length > 0 && (
-        <div className="mt-2 text-xs">
-          <p className="font-semibold">Why recommended:</p>
-          <ul className="list-disc pl-4">
+        <div className="mt-3 pt-3 border-t">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Why recommended:</p>
+          <ul className="space-y-1">
             {reasoning.slice(0, 2).map((reason, i) => (
-              <li key={i}>{reason}</li>
+              <li key={i} className="text-xs text-muted-foreground flex items-start">
+                <span className="text-primary mr-1">•</span>
+                <span>{reason}</span>
+              </li>
             ))}
           </ul>
         </div>
       )}
-      <div className="text-xs text-muted-foreground mt-2">
-        {template.base_layout.dimensions.width} × {template.base_layout.dimensions.height}px •{' '}
+
+      <div className="mt-3 text-xs text-muted-foreground">
+        {template.base_layout.dimensions.width} × {template.base_layout.dimensions.height}px
+        {' • '}
         {template.base_layout.zones.length} zones
       </div>
     </Card>

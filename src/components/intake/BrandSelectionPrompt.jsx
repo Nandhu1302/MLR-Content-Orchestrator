@@ -1,18 +1,15 @@
-
 import React, { useState } from 'react';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Building2, AlertCircle } from 'lucide-react';
 import BrandSelector from '@/components/brand/BrandSelector';
 
-const BrandSelectionPrompt = ({ open, onOpenChange, onProceedWithoutBrand }) => {
+// Interface and type annotations removed
+const BrandSelectionPrompt = ({
+  open,
+  onOpenChange,
+  onProceedWithoutBrand
+}) => {
   const [showBrandSelector, setShowBrandSelector] = useState(false);
 
   const handleSelectBrand = () => {
@@ -42,9 +39,9 @@ const BrandSelectionPrompt = ({ open, onOpenChange, onProceedWithoutBrand }) => 
               <Building2 className="h-4 w-4 mr-2" />
               Select Brand Configuration
             </Button>
-            <Button
-              variant="outline"
-              onClick={onProceedWithoutBrand}
+            <Button 
+              variant="outline" 
+              onClick={onProceedWithoutBrand} 
               className="w-full"
             >
               Continue Without Brand Setup
@@ -53,7 +50,7 @@ const BrandSelectionPrompt = ({ open, onOpenChange, onProceedWithoutBrand }) => 
         </AlertDialogContent>
       </AlertDialog>
 
-      <BrandSelector
+      <BrandSelector 
         open={showBrandSelector}
         onOpenChange={(open) => {
           setShowBrandSelector(open);

@@ -9,9 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// Type import removed
+// import { FilteredPIData } from '@/services/PIEvidenceSelector';
 import { CheckCircle2, FileText, AlertCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Interface and type annotations removed
 export const PIEvidencePreviewModal = ({
   open,
   onOpenChange,
@@ -26,6 +29,7 @@ export const PIEvidencePreviewModal = ({
     ? alignment.selectedSections 
     : [];
 
+  // Type annotation removed
   const getStrengthColor = (score) => {
     if (score >= 80) return 'text-emerald-600 dark:text-emerald-400';
     if (score >= 60) return 'text-blue-600 dark:text-blue-400';
@@ -33,7 +37,9 @@ export const PIEvidencePreviewModal = ({
     return 'text-orange-600 dark:text-orange-400';
   };
 
+  // Type annotation removed
   const getSectionContent = (sectionKey) => {
+    // Type assertion removed
     const sectionMap = {
       indications: piData.indications_and_usage || '',
       dosage: piData.dosage_and_administration || '',
@@ -50,7 +56,9 @@ export const PIEvidencePreviewModal = ({
     return sectionMap[sectionKey] || 'Content not available';
   };
 
+  // Type annotation removed
   const getSectionTitle = (sectionKey) => {
+    // Type assertion removed
     const titleMap = {
       indications: 'Indications and Usage',
       dosage: 'Dosage and Administration',

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AlertCircle, Clock, Zap, Target } from 'lucide-react';
 
+// Interface and type annotations removed
 export const BlankStartConfirmDialog = ({ 
   open, 
   onOpenChange, 

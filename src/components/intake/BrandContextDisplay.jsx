@@ -1,10 +1,15 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Building2, Activity, Target, MapPin } from 'lucide-react';
 
-export const BrandContextDisplay = ({ brand, availableIndications = [], className = "" }) => {
+// Interface and type annotations removed
+export const BrandContextDisplay = ({
+  brand,
+  availableIndications = [],
+  className = ""
+}) => {
+  // Type annotation removed
   const getTherapeuticAreaColor = (area) => {
     switch (area.toLowerCase()) {
       case 'oncology':
@@ -19,41 +24,61 @@ export const BrandContextDisplay = ({ brand, availableIndications = [], classNam
   };
 
   return (
-    <Card className={className}>
-      <CardContent className="space-y-4">
-        {/* Brand Header */}
-        <div className="space-y-2">
-          <h4 className="text-xl font-semibold">{brand.brand_name}</h4>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            <span>{brand.company}</span>
-          </div>
-          <div className={`inline-flex items-center px-2 py-1 rounded border ${getTherapeuticAreaColor(brand.therapeutic_area)}`}>
-            <Activity className="h-4 w-4 mr-1" />
-            {brand.therapeutic_area}
-          </div>
-        </div>
-
-        {/* Available Indications */}
-        {availableIndications.length > 0 && (
-          <div className="space-y-2">
-            <h5 className="text-sm font-medium">Available Indications ({availableIndications.length})</h5>
-            <div className="flex flex-wrap gap-2">
-              {availableIndications.slice(0, 4).map((indication, index) => (
-                <Badge key={index} variant="secondary">{indication}</Badge>
-              ))}
-              {availableIndications.length > 4 && (
-                <span className="text-xs text-muted-foreground">
-                  +{availableIndications.length - 4} more
-                </span>
-              )}
+    <Card className={`border-l-4 border-l-primary ${className}`}>
+      <CardContent className="p-4">
+        <div className="flex flex-col space-y-3">
+          {/* Brand Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              <div>
+                <h3 className="font-semibold text-lg">{brand.brand_name}</h3>
+                <p className="text-sm text-muted-foreground">{brand.company}</p>
+              </div>
             </div>
+            <Badge 
+              variant="outline" 
+              className={getTherapeuticAreaColor(brand.therapeutic_area)}
+            >
+              <Activity className="h-3 w-3 mr-1" />
+              {brand.therapeutic_area}
+            </Badge>
           </div>
-        )}
 
-        {/* Context Note */}
-        <div className="text-sm text-muted-foreground">
-          Content and messaging will be automatically aligned with <strong>{brand.brand_name}</strong>'s {brand.therapeutic_area.toLowerCase()} focus
+          {/* Available Indications */}
+          {availableIndications.length > 0 && (
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <Target className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Available Indications</span>
+                <Badge variant="secondary" className="text-xs">
+                  {availableIndications.length}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {availableIndications.slice(0, 4).map((indication, index) => (
+                  <Badge 
+                    key={index} 
+                    variant="outline" 
+                    className="text-xs bg-accent/50"
+                  >
+                    {indication}
+                  </Badge>
+                ))}
+                {availableIndications.length > 4 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{availableIndications.length - 4} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Context Note */}
+          <div className="text-xs text-muted-foreground bg-accent/20 p-2 rounded">
+            <MapPin className="h-3 w-3 inline mr-1" />
+            Content and messaging will be automatically aligned with {brand.brand_name}'s {brand.therapeutic_area.toLowerCase()} focus
+          </div>
         </div>
       </CardContent>
     </Card>

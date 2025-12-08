@@ -42,18 +42,21 @@ export const IntelligenceReadinessCheck = () => {
   const competitiveCount = (competitive.competitors?.length || 0) + (competitive.landscape?.length || 0);
   const audienceCount = audience.segments?.length || 0;
   
+  // Type annotation removed
   const getReadinessColor = (score) => {
     if (score >= 80) return 'text-green-600';
     if (score >= 50) return 'text-yellow-600';
     return 'text-red-600';
   };
 
+  // Type annotation removed
   const getReadinessIcon = (score) => {
     if (score >= 80) return <CheckCircle2 className="h-4 w-4 text-green-600" />;
     if (score >= 50) return <Info className="h-4 w-4 text-yellow-600" />;
     return <AlertCircle className="h-4 w-4 text-red-600" />;
   };
 
+  // Type annotation removed
   const getReadinessLabel = (score) => {
     if (score >= 80) return 'Excellent';
     if (score >= 50) return 'Good';
@@ -139,7 +142,9 @@ export const IntelligenceReadinessCheck = () => {
   );
 };
 
+// Interface and type annotations removed
 const ReadinessItem = ({ label, score, count, total, description }) => {
+  // Type annotation removed
   const getColor = (score) => {
     if (score >= 80) return 'bg-green-500';
     if (score >= 50) return 'bg-yellow-500';

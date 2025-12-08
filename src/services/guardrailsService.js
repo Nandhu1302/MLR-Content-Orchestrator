@@ -1,5 +1,5 @@
 // Guardrails Service
-import { supabase } from './integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 export class GuardrailsService {
 

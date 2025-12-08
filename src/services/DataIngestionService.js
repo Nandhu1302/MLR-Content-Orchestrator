@@ -1,5 +1,4 @@
-import { supabase } from './integrations/supabase/client';
-
+import { supabase } from "../integrations/supabase/client.js";
 /**
  * @typedef {Object} SFMCRecord
  * @property {string} brand_id

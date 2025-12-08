@@ -1,15 +1,16 @@
+// vite.config.js
+
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path' // 👈 1. Import 'path' module
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  
-  // 👈 2. Add the resolve block to map the path alias
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      // This maps the alias "@" to the "src" directory relative to the config file.
+      '@': path.resolve(__dirname, 'src'),
     },
   },
 })

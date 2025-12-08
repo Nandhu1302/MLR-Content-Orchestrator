@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+// Removed type import: import type { ContentAsset } from '@/types/content';
 import { ThemeContentInitializer } from '@/services/themeContentInitializer';
 import { ThemeService } from '@/services/themeService';
 import { getAudienceCategory, isCaregiverAudience } from '@/utils/audienceTypeHelpers';
@@ -13,6 +14,7 @@ import {
   ArrowLeft, 
   Save, 
   Check,
+  CheckCircle,
   FileText,
   Sparkles,
   Mail,
@@ -32,20 +34,26 @@ import {
 import { moduleBridge } from '@/services/moduleBridge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AssetTypeContentEditor } from './AssetTypeContentEditor';
-import { useContentManagement } from '@/hooks/useContentManagement';
+import { AssetTypeContentEditor } from './AssetTypeContentEditor'; // Removed type import SimpleContentStructure
 import { ContentStructureAdapter } from '@/utils/contentStructureAdapter';
 import { useRealTimeContentAnalysis } from '@/hooks/useRealTimeContentAnalysis';
 import { useGlobalContext } from '@/contexts/GlobalContext';
-import { PIEvidenceBadge } from './PIEvidenceBadge';
-import { ContentQualityCard } from './ContentQualityCard';
+import { ThemeIntelligenceContextPanel } from './ThemeIntelligenceContextPanel';
+import { ThemeAwareContentService } from '@/services/themeAwareContentService';
 import { ReadOnlyContentView } from './ReadOnlyContentView';
 import { PersonalizationTabContent } from './PersonalizationTabContent';
 import { MultiModalEmailComposer } from './MultiModalEmailComposer';
-import { EvidenceModulesPanel } from './EvidenceModulesPanel';
+import { EvidenceModulesPanel } from './EvidenceModulesPanel.jsx';
 import { VisualAssetsPanel } from './VisualAssetsPanel';
+import { ContentIntelligenceSidebar } from './ContentIntelligenceSidebar';
+import { PIEvidenceBadge } from './PIEvidenceBadge';
+import { ContentQualityCard } from './ContentQualityCard';
 
-const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
+// Removed type PersonalizationFactors
+// Removed interface IntakeContext
+// Removed interface ContentEditorProps
+
+const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => { // Removed : ContentEditorProps
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -53,7 +61,7 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
   
   // Check if asset was just created
   const justCreated = location.state?.justCreated;
-  
+  const assetDataFromNav = location.state?.assetData;
   const {
     currentAsset,
     loading,
@@ -66,6 +74,7 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
     loadAsset
   } = useContentManagement({ assetId, autoSave: true });
 
+  // Removed <SimpleContentStructure> type annotation
   const [content, setContent] = useState({
     subject: '',
     headline: '',
@@ -90,26 +99,34 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
     characterCount: 0,
     imageRecommendation: ''
   });
+  // Removed <IntakeContext> type annotation
   const [intakeContext, setIntakeContext] = useState({});
   const [isDirty, setIsDirty] = useState(false);
+  // Removed <any> type annotation
   const [themeData, setThemeData] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isContentReady, setIsContentReady] = useState(false);
+  // Removed type annotation
   const [activeTab, setActiveTab] = useState('content');
   const [isFinalized, setIsFinalized] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  // Removed <any> type annotation
   const [composedEmail, setComposedEmail] = useState(null);
+  // Removed type annotation
   const [citationData, setCitationData] = useState(undefined);
   const [visualsInserted, setVisualsInserted] = useState(0);
   const [modulesUsed, setModulesUsed] = useState(0);
   
   // ✅ Phase 2: State for theme performance data
+  // Removed <any> type annotation
   const [themePerformanceData, setThemePerformanceData] = useState(null);
   
   // Campaign Context State
+  // Removed type annotation
   const [campaignContext, setCampaignContext] = useState(null);
   
   // Track if theme data has been loaded for current asset to prevent infinite loops
+  // Removed <string | null> type annotation
   const themeDataLoadedRef = useRef(null);
 
   // Initialize real-time analysis
@@ -153,6 +170,7 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
       
       // Map assetPackage.structure to content state
       if (assetPackage.structure) {
+        // Removed : SimpleContentStructure type annotation
         const workshopContent = {
           subject: assetPackage.structure.subject || '',
           headline: assetPackage.structure.headline || '',
@@ -231,6 +249,7 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
   }, [assetId, initialData, isContentReady]);
 
   // Initialize content from theme data
+  // Removed : any type annotation
   const initializeContentFromTheme = async (themeData) => {
     if (!currentAsset) return;
 
@@ -276,8 +295,10 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
       
       // Store intelligenceUsed data if available
       if (initializedResult.intelligenceUsed && Array.isArray(initializedResult.intelligenceUsed)) {
+        // Removed : any type annotation
         console.log('📊 Intelligence used from theme generation:', {
           total: initializedResult.intelligenceUsed.length,
+          // Removed : any type annotation
           byType: initializedResult.intelligenceUsed.reduce((acc, item) => {
             acc[item.type] = (acc[item.type] || 0) + 1;
             return acc;
@@ -330,6 +351,7 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
                 visualsUsed
               }
             },
+            // Removed : any type assertion
             claims_used: claimsUsed.map((c) => ({
               claimId: c.claimId,
               claimDisplayId: c.claimDisplayId,
@@ -337,6 +359,7 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
               citationNumber: c.citationNumber,
               linkedReferences: c.linkedReferences || []
             })),
+            // Removed : any type assertion
             references_used: referencesUsed.map((r) => ({
               referenceId: r.referenceId,
               referenceDisplayId: r.referenceDisplayId,
@@ -380,7 +403,8 @@ const ContentEditor = ({ assetId, initialData, onBack, onPublishToDesign }) => {
   };
 
   // ✅ Phase 3: AI Suggestions Using Theme Context
-  const getAISuggestions = async (field, currentValue) => {
+  // Removed : string[] type annotation
+  const getAISuggestions = async (field, currentValue) => { // Removed : string, currentValue: string type annotation
     try {
       const { data: patterns } = await supabase
         .from('content_success_patterns')
@@ -441,9 +465,10 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
   const isCampaignMode = !!campaignContext;
 
   // Validate theme compatibility with brand therapeutic area
+  // Removed : Promise<boolean> type annotation
   const validateThemeBrandCompatibility = async (
-    theme,
-    brandId
+    theme, // Removed : any type annotation
+    brandId // Removed : string type annotation
   ) => {
     try {
       // Get brand therapeutic area
@@ -497,7 +522,8 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
   };
 
   // Generate brand-appropriate theme
-  const generateBrandAppropriateTheme = async (brandId, indication) => {
+  // Removed type annotation
+  const generateBrandAppropriateTheme = async (brandId, indication) => { // Removed : string, indication?: string type annotation
     try {
       // Get brand profile
       const { data: brandData } = await supabase
@@ -601,6 +627,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
         try {
           setIsInitializing(true);
           
+          // Removed : any type assertion
           const { data: contextResponse, error } = await supabase
             .from('cross_module_context')
             .select('context_data, therapeutic_area')
@@ -612,9 +639,11 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
 
           if (error) throw error;
 
+          // Removed : any type assertion
           const contextData = contextResponse;
           const selectedTheme = contextData?.context_data?.theme?.selectedTheme;
           const intakeData = contextData?.context_data?.intake?.data;
+          // Removed : any type annotation
           let validatedTheme = null;
           
           // Validate theme compatibility with brand if theme exists
@@ -681,6 +710,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
             setThemeData(validatedTheme);
             
             // ✅ Phase 1: Check if content exists in DB before initializing from theme
+            // Removed : any type assertion
             const hasContentInDatabase = currentAsset?.primary_content && 
               Object.keys(currentAsset.primary_content).length > 0 &&
               (currentAsset.primary_content.subject || 
@@ -698,7 +728,9 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
           // Extract and set intake context from cross-module data if available
           if (intakeData && !intakeContext) {
             // Check if audience is caregiver type
+            // Removed as any type assertion
             const isCaregiverContext = isCaregiverAudience(intakeData.targetAudience);
+            // Removed as any type assertion
             console.log('🎯 Audience context:', {
               audience: intakeData.targetAudience,
               category: getAudienceCategory(intakeData.targetAudience),
@@ -752,6 +784,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
                 setThemeData(transformedTheme);
                 
                 // ✅ Phase 1: Check if content exists in DB before initializing from theme
+                // Removed : any type assertion
                 const hasContentInDatabase = currentAsset?.primary_content && 
                   Object.keys(currentAsset.primary_content).length > 0 &&
                   (currentAsset.primary_content.subject || 
@@ -794,7 +827,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     loadThemeData();
   }, [currentAsset?.brand_id, currentAsset?.id, isContentReady]);
 
-  // ✅ Load citation data from asset metadata, claims_used, references_used columns or re-process content
+  // ✅ Load citation data from asset metadata, claims_used/references_used columns, or re-process content
   useEffect(() => {
     const loadCitationData = async () => {
       if (!currentAsset) return;
@@ -802,12 +835,17 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
       console.log('📚 Loading citation data for asset:', currentAsset.id);
       
       // Priority 1: Try loading from claims_used/references_used columns (most reliable)
+      // Removed : any[] type assertion
       const claimsUsedArray = currentAsset.claims_used;
+      // Removed : any[] type assertion
       const referencesUsedArray = currentAsset.references_used;
+      // Removed : any type assertion
       const metadataCitationData = currentAsset.metadata?.citation_data;
       
       // Check for visual assets from primary_content.visualsReferenced
+      // Removed : any type assertion
       const visualsReferenced = currentAsset.primary_content?.visualsReferenced;
+      // Removed : any type assertion
       let visualsUsed = metadataCitationData?.visualsUsed || 
                         currentAsset.metadata?.visualsUsed || // Direct path fallback
                         [];
@@ -822,6 +860,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
             .in('id', visualsUsed);
           
           if (fullVisuals && fullVisuals.length > 0) {
+            // Removed : any type annotation
             visualsUsed = fullVisuals.map(v => ({
               visualId: v.id,
               visualType: v.visual_type,
@@ -847,6 +886,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
           let query = supabase.from('visual_assets').select('*');
           
           // For each reference, add an OR condition
+          // Removed : string type annotation
           visualsReferenced.forEach((ref, idx) => {
             if (ref.length === 36) {
               // Full UUID
@@ -868,6 +908,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
           const { data: visuals, error } = await query;
           
           if (!error && visuals && visuals.length > 0) {
+            // Removed : any type annotation
             visualsUsed = visuals.map(v => ({
               visualId: v.id,
               visualType: v.visual_type,
@@ -905,18 +946,23 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
               .in('id', claimsUsed);
             
             if (fullClaims && fullClaims.length > 0) {
+              // Removed : any type annotation
               claimsUsed = fullClaims.map((claim, index) => ({
                 claimId: claim.id,
                 claimDisplayId: claim.claim_id_display || claim.id.substring(0, 8),
                 claimText: claim.claim_text,
                 citationNumber: index + 1,
+                // Removed : any type annotation
                 linkedReferences: claim.clinical_references?.map((ref) => ref.id) || []
               }));
               console.log('📚 Transformed claim IDs to full objects:', claimsUsed.length);
               
               // Also fetch references if needed
+              // Removed : any type assertion
               if (referencesUsed.length === 0 && fullClaims.some((c) => c.clinical_references?.length > 0)) {
+                // Removed : any type assertion
                 const allRefs = fullClaims.flatMap((c) => c.clinical_references || []);
+                // Removed : any type annotation
                 referencesUsed = allRefs.map((ref, index) => ({
                   referenceId: ref.id,
                   referenceDisplayId: ref.reference_id_display || ref.id.substring(0, 8),
@@ -959,6 +1005,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
       }
       
       // Priority 3: Re-process content for [CLAIM:XXX] markers and SAVE to database
+      // Removed : any type assertion
       const bodyContent = typeof currentAsset.primary_content === 'object' 
         ? currentAsset.primary_content?.body || ''
         : '';
@@ -984,8 +1031,11 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
             const { error: saveError } = await supabase
               .from('content_assets')
               .update({
+                // Removed : any type assertion
                 claims_used: processed.claimsUsed,
+                // Removed : any type assertion
                 references_used: processed.referencesUsed,
+                // Removed : any type assertion
                 metadata: {
                   ...currentAsset.metadata,
                   citation_data: {
@@ -1131,6 +1181,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
   }, [currentAsset?.id]);
 
   // Track current asset ID to prevent unnecessary reloads
+  // Removed <string | null> type annotation
   const currentAssetIdRef = useRef(null);
 
   // Initialize content when asset loads with structure adapter (only if already has content)
@@ -1141,6 +1192,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
       currentAssetIdRef.current = currentAsset.id;
       
       // Check if content exists in database
+      // Removed as any type assertion
       const primaryContent = currentAsset.primary_content;
       const hasContent = primaryContent && 
                         typeof primaryContent === 'object' && 
@@ -1161,6 +1213,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
           // Ensure body field is a string, not an object
           const cleanedContent = {
             ...adaptedContent,
+            // Removed : SimpleContentStructure type assertion
             body: typeof adaptedContent.body === 'object' 
               ? JSON.stringify(adaptedContent.body) 
               : adaptedContent.body || ''
@@ -1189,6 +1242,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     // DON'T reload if same asset ID (just a content update from save)
   }, [currentAsset?.id]); // Only watch the ID
 
+  // Removed : string, value: string type annotation
   const handleContentChange = (field, value) => {
     setContent(prev => ({
       ...prev,
@@ -1197,6 +1251,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     setIsDirty(true);
   };
 
+  // Removed : boolean type annotation
   const handleSave = async (createVersion = false) => {
     if (!currentAsset) return;
 
@@ -1210,7 +1265,9 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
         primary_content: databaseContent
       });
       
+      // Removed : string[] type annotation
       const lostFields = [];
+      // Removed : keyof SimpleContentStructure type assertion
       ['subject', 'headline', 'body', 'keyMessage', 'cta'].forEach(field => {
         const value = content[field];
         if (value && typeof value === 'string' && value.trim() && !roundTrip[field]) {
@@ -1255,9 +1312,9 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     if (!currentAsset) return;
 
     const factors = {
-      audience_type: 'physician-specialist',
+      audience_type: 'physician-specialist', // Removed as const type assertion
       hcp_specialty: 'cardiology',
-      experience_level: 'expert',
+      experience_level: 'expert', // Removed as const type assertion
       regional_context: 'us',
       channel_context: 'email'
     };
@@ -1278,7 +1335,8 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
   };
 
   // Transform Strategy & Insights theme data to ThemeContentInitializer format
-  const transformThemeData = (strategyTheme) => {
+  // Removed : any type annotation
+  const transformThemeData = (strategyTheme) => { // Removed : any type annotation
     if (!strategyTheme) return null;
     
     return {
@@ -1303,6 +1361,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     };
   };
 
+  // Removed type annotation
   const handleResetToTheme = async () => {
     if (!themeData || !currentAsset) return;
 
@@ -1332,6 +1391,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
       // Update the content with theme-based content - direct mapping from ThemeContentInitializer
       console.log('Theme reset - initializedContent:', initializedContent);
       
+      // Removed : SimpleContentStructure type annotation
       const resetContent = {
         subject: initializedContent.content.subject || initializedContent.content.headline || '',
         headline: initializedContent.content.headline || initializedContent.content.subject || '',
@@ -1377,6 +1437,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     }
   };
 
+  // Removed : string type annotation
   const onGenerateContent = async (field) => {
     try {
       // Placeholder for AI content generation for specific fields
@@ -1394,6 +1455,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     }
   };
 
+  // Removed : 'keyMessage' | 'cta' type annotation
   const onUseOriginalIntake = (field) => {
     if (!intakeContext) return;
     
@@ -1414,6 +1476,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     }
   };
 
+  // Removed : any type annotation
   const handleStrategyApply = (strategy) => {
     try {
       console.log('Applying strategy:', strategy);
@@ -1457,6 +1520,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     }
   };
 
+  // Removed : ContentAsset['status'] type annotation
   const handleStatusChange = async (newStatus) => {
     if (!currentAsset) return;
     
@@ -1581,6 +1645,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
     
     console.log('ContentEditor: Calculating progress for content', content);
     
+    // Removed : keyof SimpleContentStructure type assertion
     const filledRequired = requiredFields.filter(field => {
       const value = content[field];
       const filled = value && value.toString().trim().length > 0;
@@ -1588,6 +1653,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
       return filled;
     }).length;
 
+    // Removed : keyof SimpleContentStructure type assertion
     const filledOptional = optionalFields.filter(field => {
       const value = content[field];
       const filled = value && value.toString().trim().length > 0;
@@ -1703,9 +1769,9 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
                   
                   {/* PI Evidence Quality Indicator */}
               <PIEvidenceBadge 
-                intakeContext={currentAsset.intake_context}
+                intakeContext={currentAsset.intake_context} // Removed as any type assertion
                 metadata={{
-                  ...currentAsset.metadata,
+                  ...currentAsset.metadata, // Removed as any type assertion
                   intelligence_layers_used: currentAsset.metadata?.intelligence_layers_used,
                   intelligence_layer_count: currentAsset.metadata?.intelligence_layer_count
                 }}
@@ -1784,6 +1850,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
                     }
                     
                     // Extract content string from different content structures
+                    // Removed : SimpleContentStructure type annotation
                     const extractContentString = (c) => {
                       const parts = [];
                       if (c.subject) parts.push(`Subject: ${c.subject}`);
@@ -1864,6 +1931,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
 
       {/* Tabs - aligned with 9-column grid */}
       <Tabs value={activeTab} onValueChange={async (v) => {
+        // Removed type assertion
         const newTab = v;
         // Auto-save if dirty before switching tabs
         if (isDirty && activeTab !== newTab) {
@@ -1946,7 +2014,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-9">
                 <ContentQualityCard 
-                  intakeContext={currentAsset.intake_context}
+                  intakeContext={currentAsset.intake_context} // Removed as any type assertion
                   completeness={getProgressPercentage()}
                 />
               </div>
@@ -1997,6 +2065,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
               assetType={currentAsset.asset_type}
               targetAudience={intakeContext.intake_audience}
               citationData={citationData}
+              // Removed type annotation
               onInsertClaim={(claim) => {
                 const marker = `[CLAIM:${claim.claim_id_display || 'CML-' + claim.id.substring(0, 4)}]`;
                 setContent(prev => ({
@@ -2005,6 +2074,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
                 }));
                 setIsDirty(true);
               }}
+              // Removed type annotation
               onInsertModule={(module) => {
                 setContent(prev => ({
                   ...prev,
@@ -2013,6 +2083,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
                 setModulesUsed(prev => prev + 1);
                 setIsDirty(true);
               }}
+              // Removed type annotation
               onCitationDataRefresh={(data) => {
                 setCitationData(data);
                 toast({
@@ -2033,6 +2104,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
               targetAudience={intakeContext.intake_audience}
               linkedClaimIds={citationData?.claimsUsed?.map(c => c.claimId)}
               visualsUsed={citationData?.visualsUsed}
+              // Removed type annotation
               onInsertVisual={(visual) => {
                 setVisualsInserted(prev => prev + 1);
                 toast({
@@ -2063,6 +2135,7 @@ Provide 3 specific improvements based on proven campaign patterns from the data.
                 asset={currentAsset}
                 currentContent={content}
                 citationData={citationData}
+                // Removed type annotation
                 onComposed={(result) => {
                   setComposedEmail(result);
                   toast({

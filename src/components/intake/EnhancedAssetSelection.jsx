@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +7,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertCircle, CheckCircle, Info, TrendingUp } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useIntelligentAssetFiltering } from '@/hooks/useIntelligentAssetFiltering';
+// Type imports removed
+// import type { AssetType, AudienceType, IntakeData } from '@/types/intake';
 
+// Interface and type annotations removed
 export const EnhancedAssetSelection = ({
   primaryAudience,
   selectedAssetTypes,
@@ -23,11 +25,12 @@ export const EnhancedAssetSelection = ({
     audienceGuidance
   } = useIntelligentAssetFiltering(primaryAudience, intakeData);
 
+  // Type annotations removed
   const handleAssetToggle = (assetType, isChecked) => {
     if (isChecked) {
       onAssetSelectionChange([...selectedAssetTypes, assetType]);
     } else {
-      onAssetSelectionChange(selectedAssetTypes.filter((type) => type !== assetType));
+      onAssetSelectionChange(selectedAssetTypes.filter(type => type !== assetType));
     }
   };
 
@@ -37,34 +40,49 @@ export const EnhancedAssetSelection = ({
   };
 
   if (!primaryAudience) {
-    return <div>{audienceGuidance}</div>;
+    return (
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>{audienceGuidance}</AlertDescription>
+      </Alert>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Audience Guidance */}
-      <div>{audienceGuidance}</div>
+      <Alert>
+        <CheckCircle className="h-4 w-4" />
+        <AlertDescription>{audienceGuidance}</AlertDescription>
+      </Alert>
 
       {/* Smart Recommendations */}
       {smartRecommendations.recommended.length > 0 && (
-        <Card>
+        <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle>Smart Recommendations</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Smart Recommendations
+            </CardTitle>
             <CardDescription>
-              Based on your audience and campaign objectives, we recommend these asset types:
+              Based on your audience and campaign objectives, we recommend these asset types
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {smartRecommendations.recommended.map((assetType) => (
-                <div key={assetType} className="flex items-center justify-between">
-                  <span>{assetDescriptions[assetType]?.name || assetType}</span>
-                  <Badge variant="secondary">Recommended</Badge>
-                </div>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {smartRecommendations.recommended.map(assetType => (
+                <Badge key={assetType} variant="secondary" className="text-primary">
+                  {assetDescriptions[assetType]?.name || assetType}
+                </Badge>
               ))}
             </div>
-            {smartRecommendations.recommended.some((asset) => !selectedAssetTypes.includes(asset)) && (
-              <Button onClick={handleRecommendedSelection} className="mt-4">
+            
+            {smartRecommendations.recommended.some(asset => !selectedAssetTypes.includes(asset)) && (
+              <Button 
+                onClick={handleRecommendedSelection}
+                variant="outline"
+                className="w-full"
+              >
                 Select All Recommended Assets
               </Button>
             )}
@@ -77,7 +95,7 @@ export const EnhancedAssetSelection = ({
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <ul className="list-disc pl-4">
+            <ul className="list-disc list-inside space-y-1">
               {smartRecommendations.warnings.map((warning, index) => (
                 <li key={index}>{warning}</li>
               ))}
@@ -87,74 +105,111 @@ export const EnhancedAssetSelection = ({
       )}
 
       {/* Available Assets */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Asset Types</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {allowedAssets.map((assetType) => {
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Available Asset Types</h3>
+        
+        <div className="grid gap-4 md:grid-cols-2">
+          {allowedAssets.map(assetType => {
             const description = assetDescriptions[assetType];
             if (!description) return null;
+
             const isSelected = selectedAssetTypes.includes(assetType);
             const isRecommended = smartRecommendations.recommended.includes(assetType);
 
             return (
-              <div key={assetType} className="border rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={(checked) => handleAssetToggle(assetType, !!checked)}
-                  />
-                  <span className="font-medium">{description.name}</span>
-                  {isRecommended && <Badge variant="secondary">Recommended</Badge>}
-                </div>
-                <p className="text-sm text-muted-foreground">{description.description}</p>
-                {description.examples.length > 0 && (
-                  <p className="text-xs">
-                    <strong>Examples:</strong> {description.examples.slice(0, 2).join(', ')}
-                    {description.examples.length > 2 && '...'}
-                  </p>
-                )}
-                <p className="text-xs">
-                  <strong>Reasoning:</strong> {description.reasoning}
-                </p>
-                {description.complianceNotes.length > 0 && (
-                  <div className="text-xs">
-                    <strong>Compliance Notes:</strong>
-                    <ul className="list-disc pl-4">
-                      {description.complianceNotes.map((note, index) => (
-                        <li key={index}>{note}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+              <TooltipProvider key={assetType}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Card 
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        isSelected ? 'ring-2 ring-primary' : ''
+                      } ${isRecommended ? 'border-primary/40' : ''}`}
+                      onClick={() => handleAssetToggle(assetType, !isSelected)}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => handleAssetToggle(assetType, !!checked)}
+                            />
+                            <CardTitle className="text-base">{description.name}</CardTitle>
+                          </div>
+                          {isRecommended && (
+                            <Badge variant="default" className="text-xs">
+                              Recommended
+                            </Badge>
+                          )}
+                        </div>
+                        <CardDescription className="text-sm">
+                          {description.description}
+                        </CardDescription>
+                      </CardHeader>
+                      
+                      {description.examples.length > 0 && (
+                        <CardContent className="pt-0">
+                          <div className="text-xs text-muted-foreground">
+                            <strong>Examples:</strong> {description.examples.slice(0, 2).join(', ')}
+                            {description.examples.length > 2 && '...'}
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  </TooltipTrigger>
+                  
+                  <TooltipContent className="max-w-sm">
+                    <div className="space-y-2">
+                      <p><strong>Reasoning:</strong> {description.reasoning}</p>
+                      {description.complianceNotes.length > 0 && (
+                        <div>
+                          <strong>Compliance Notes:</strong>
+                          <ul className="list-disc list-inside text-xs mt-1">
+                            {description.complianceNotes.map((note, index) => (
+                              <li key={index}>{note}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             );
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Alternative Options */}
       {(filteredAssets.length > 0 || smartRecommendations.alternatives.length > 0) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Alternative Options (May require additional consideration)</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-muted-foreground">
+            Alternative Options
+            <span className="text-sm font-normal ml-2">(May require additional consideration)</span>
+          </h3>
+          
+          <div className="grid gap-3 md:grid-cols-2">
             {[...filteredAssets, ...smartRecommendations.alternatives]
-              .filter((item, index, arr) => arr.indexOf(item) === index)
-              .map((assetType) => {
+              .filter((item, index, arr) => arr.indexOf(item) === index) // Remove duplicates
+              .map(assetType => {
                 const description = assetDescriptions[assetType];
                 if (!description) return null;
+
                 return (
-                  <div key={assetType} className="space-y-1">
-                    <span className="font-medium">{description.name}</span>
-                    <p className="text-xs text-muted-foreground">{description.reasoning}</p>
-                  </div>
+                  <Card key={assetType} className="opacity-60 border-dashed">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-amber-500" />
+                        {description.name}
+                      </CardTitle>
+                      <CardDescription className="text-sm">
+                        {description.reasoning}
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
                 );
               })}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

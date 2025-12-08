@@ -1,4 +1,4 @@
-import { supabase } from './integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 // Assuming DataFilters is an imported type/interface from the React component
 // import { DataFilters } from '@/components/data/DataFilters';
 

@@ -9,6 +9,7 @@ import { ReferenceDetailsModal } from "./ReferenceDetailsModal";
 import { useBrand } from "@/contexts/BrandContext";
 import { supabase } from "@/integrations/supabase/client";
 import { handleCopyToClipboard, emitSmartInsert } from "./utils/mlrHelpers";
+// Removed type import: import type { Reference } from "./types/mlrTypes";
 import { 
   BookOpen, 
   Plus, 
@@ -19,19 +20,22 @@ import {
   Copy
 } from "lucide-react";
 
-) => void;
-}
+// Removed interface ReferenceValidationPanelProps
 
-const ReferenceValidationPanel = ({ 
+export const ReferenceValidationPanel = ({ 
   content, 
   onValidationUpdate 
-}) => {
+}) => { // Removed : ReferenceValidationPanelProps
+  // Removed <Reference[]> type annotation
   const [references, setReferences] = useState([]);
+  // Removed <Reference[]> type annotation
   const [suggestedReferences, setSuggestedReferences] = useState([]);
-  const [appliedReferenceIds, setAppliedReferenceIds] = useState>(new Set());
+  // Removed <Set<string>> type annotation
+  const [appliedReferenceIds, setAppliedReferenceIds] = useState(new Set());
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [newCitation, setNewCitation] = useState('');
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  // Removed <Reference | null> type annotation
   const [selectedReferenceForDetails, setSelectedReferenceForDetails] = useState(null);
   const { selectedBrand } = useBrand();
 
@@ -43,7 +47,7 @@ const ReferenceValidationPanel = ({
     if (!content.trim()) {
       setReferences([]);
       setSuggestedReferences([]);
-      onValidationUpdate({ valid, missing });
+      onValidationUpdate({ valid: 0, missing: 0 });
       return;
     }
 
@@ -51,7 +55,7 @@ const ReferenceValidationPanel = ({
 
     try {
       // Fetch real references from database
-      const { data, error } = await supabase
+      const { data: dbReferences, error: refError } = await supabase
         .from('clinical_references')
         .select('*')
         .eq('brand_id', selectedBrand?.id || '')
@@ -62,15 +66,16 @@ const ReferenceValidationPanel = ({
       }
 
       // Transform database references to panel format
+      // Removed : Reference[] and : any type annotations
       const brandReferences = (dbReferences || []).map((ref) => ({
-        id.id,
-        citation.formatted_citation || ref.reference_text,
-        pmid.pubmed_id,
-        doi.doi,
-        title.study_name,
-        authors.authors,
-        journal.journal,
-        year.publication_year?.toString(),
+        id: ref.id,
+        citation: ref.formatted_citation || ref.reference_text,
+        pmid: ref.pubmed_id,
+        doi: ref.doi,
+        title: ref.study_name,
+        authors: ref.authors,
+        journal: ref.journal,
+        year: ref.publication_year?.toString(),
         isComplete: !!(ref.pubmed_id || ref.doi),
         isVerified: !!ref.pubmed_id
       }));
@@ -79,14 +84,15 @@ const ReferenceValidationPanel = ({
       const { data, error } = await supabase.functions.invoke('analyze-references', {
         body: {
           content,
-          brandId?.id,
-          therapeuticArea?.therapeutic_area || 'General Medicine',
-          detectedClaims,
-          brandReferences.map(r => ({
-            id.id,
-            citation.citation,
-            pmid.pmid,
-            title.title
+          brandId: selectedBrand?.id,
+          therapeuticArea: selectedBrand?.therapeutic_area || 'General Medicine',
+          detectedClaims: [],
+          // Removed : any type annotation
+          brandReferences: brandReferences.map(r => ({
+            id: r.id,
+            citation: r.citation,
+            pmid: r.pmid,
+            title: r.title
           }))
         }
       });
@@ -94,6 +100,7 @@ const ReferenceValidationPanel = ({
       if (error) throw error;
 
       // Process detected citations from content
+      // Removed : Reference[] and : any type annotations
       const existingRefs = (data.existingCitations || []).map((cit, idx) => {
         // Try to match with database references
         const matchedRef = brandReferences.find(br => 
@@ -102,35 +109,37 @@ const ReferenceValidationPanel = ({
         );
         
         return {
-          id?.id || `ref_${idx}`,
-          citation.citationMarker,
-          pmid?.pmid,
-          doi?.doi,
-          title?.title,
-          authors?.authors,
-          journal?.journal,
-          year?.year,
-          isComplete.isComplete ?? !!matchedRef,
-          isVerified.isVerified ?? !!matchedRef?.pmid
+          id: matchedRef?.id || `ref_${idx}`,
+          citation: cit.citationMarker,
+          pmid: matchedRef?.pmid,
+          doi: matchedRef?.doi,
+          title: matchedRef?.title,
+          authors: matchedRef?.authors,
+          journal: matchedRef?.journal,
+          year: matchedRef?.year,
+          isComplete: cit.isComplete ?? !!matchedRef,
+          isVerified: cit.isVerified ?? !!matchedRef?.pmid
         };
       });
 
       // Find suggested references for uncited claims
+      // Removed : any type annotation
       const suggested = (data.statements || [])
         .filter((stmt) => stmt.citationStatus === 'missing')
         .slice(0, 5)
+        // Removed : any type annotation
         .map((stmt) => {
           const suggestedId = stmt.suggestedReferences?.[0];
           return brandReferences.find((ref) => ref.id === suggestedId);
         })
-        .filter(Boolean) as Reference[];
+        .filter(Boolean); // Removed as Reference[] type assertion
 
       setReferences(existingRefs);
       setSuggestedReferences(suggested);
 
       onValidationUpdate({ 
-        valid.filter(r => r.isVerified).length, 
-        missing.summary?.missingCitations || 0 
+        valid: existingRefs.filter(r => r.isVerified).length, 
+        missing: data.summary?.missingCitations || 0 
       });
     } catch (error) {
       console.error('Error analyzing references:', error);
@@ -139,12 +148,14 @@ const ReferenceValidationPanel = ({
     }
   };
 
+  // Removed : Reference type annotation
   const handleAddReference = (reference) => {
+    // Removed : Reference type annotation
     const newRef = {
       ...reference,
       id: `ref_added_${Date.now()}`,
-      isComplete,
-      isVerified
+      isComplete: true,
+      isVerified: true
     };
     
     setReferences(prev => [...prev, newRef]);
@@ -162,11 +173,12 @@ const ReferenceValidationPanel = ({
   const handleManualAdd = () => {
     if (!newCitation.trim()) return;
     
+    // Removed : Reference type annotation
     const manualRef = {
       id: `ref_manual_${Date.now()}`,
-      citation,
-      isComplete,
-      isVerified
+      citation: newCitation,
+      isComplete: true,
+      isVerified: false
     };
     
     setReferences(prev => [...prev, manualRef]);
@@ -174,6 +186,7 @@ const ReferenceValidationPanel = ({
     setTimeout(analyzeReferences, 100);
   };
 
+  // Removed : string type annotation
   const handleVerifyReference = async (refId) => {
     const ref = references.find(r => r.id === refId);
     if (!ref?.pmid) return;
@@ -181,7 +194,7 @@ const ReferenceValidationPanel = ({
     // In a real implementation, this would call PubMed API
     // For now, mark as verified
     setReferences(prev => prev.map(r => 
-      r.id === refId ? { ...r, isVerified } 
+      r.id === refId ? { ...r, isVerified: true } : r
     ));
     setTimeout(analyzeReferences, 100);
   };
@@ -192,7 +205,8 @@ const ReferenceValidationPanel = ({
     return Math.round((verifiedCount / references.length) * 100);
   };
 
-  const handleApplyReference = async (refId, action: 'apply' | 'decline', reason?) => {
+  // Removed type annotations
+  const handleApplyReference = async (refId, action, reason) => {
     if (action === 'apply') {
       const ref = references.find(r => r.id === refId) || suggestedReferences.find(r => r.id === refId);
       if (ref) {
@@ -203,6 +217,7 @@ const ReferenceValidationPanel = ({
     setSelectedReferenceForDetails(null);
   };
 
+  // Removed : Reference type annotation
   const handleShowDetails = (reference) => {
     setSelectedReferenceForDetails(reference);
     setDetailsModalOpen(true);
@@ -213,166 +228,191 @@ const ReferenceValidationPanel = ({
   const citationCoverage = getCitationCoverage();
 
   return (
-    
-      
-        
-          
-            
+    <div className="h-full flex flex-col">
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
             References & Citations
-          
-          {isAnalyzing && Analyzing...}
-        
-        Verify and manage content citations
+          </h3>
+          {isAnalyzing && <Badge variant="outline" className="text-xs">Analyzing...</Badge>}
+        </div>
+        <p className="text-xs text-muted-foreground mb-2">Verify and manage content citations</p>
         
         {references.length > 0 && (
-          
-            
-              {verifiedCount} Verified
-              {incompleteCount > 0 && {incompleteCount} Incomplete}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs">
+              <Badge variant="default" className="text-xs">{verifiedCount} Verified</Badge>
+              {incompleteCount > 0 && <Badge variant="destructive" className="text-xs">{incompleteCount} Incomplete</Badge>}
               {suggestedReferences.length > 0 && (
-                {suggestedReferences.length} Suggested
+                <Badge variant="secondary" className="text-xs">{suggestedReferences.length} Suggested</Badge>
               )}
-            
-            
-              
-                Citation Coverage
-                {citationCoverage}%
-              
-              
-            
-          
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Citation Coverage</span>
+                <span className="font-medium">{citationCoverage}%</span>
+              </div>
+              <Progress value={citationCoverage} className="h-1.5" />
+            </div>
+          </div>
         )}
+      </div>
       
-      
-      
-        
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
           {references.length === 0 && suggestedReferences.length === 0 ? (
-            
-              
-              No content to analyze yet
-            
+            <div className="text-center py-8 text-muted-foreground">
+              <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">No content to analyze yet</p>
+            </div>
           ) : (
             <>
               {/* Existing References */}
               {references.length > 0 && (
-                
-                  
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Detected Citations
-                  
+                  </h4>
                   {references.map((ref) => (
-                    
-                      
-                        
-                          {ref.citation}
+                    <Card key={ref.id} className="p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-mono">{ref.citation}</p>
                           {ref.title && (
-                            {ref.title}
+                            <p className="text-xs text-muted-foreground mt-1">{ref.title}</p>
                           )}
-                        
-                        
+                        </div>
+                        <div className="flex items-center gap-1">
                           {ref.isVerified ? (
-                            
+                            <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
                           ) : (
-                            
+                            <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />
                           )}
-                           handleCopyToClipboard(ref.citation, 'Citation')}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0"
+                            onClick={() => handleCopyToClipboard(ref.citation, 'Citation')}
                           >
-                            
-                          
-                        
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
                       
-                      
-                      
+                      <div className="flex items-center gap-2">
                         {!ref.isComplete && (
-                          Incomplete
+                          <Badge variant="destructive" className="text-xs">Incomplete</Badge>
                         )}
                         {ref.pmid && (
-                          PMID: {ref.pmid}
+                          <Badge variant="outline" className="text-xs">PMID: {ref.pmid}</Badge>
                         )}
                         {!ref.isVerified && (
-                           handleVerifyReference(ref.id)}
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-6 text-xs"
+                            onClick={() => handleVerifyReference(ref.id)}
                           >
                             Verify
-                          
+                          </Button>
                         )}
-                         handleShowDetails(ref)}
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-6 text-xs"
+                          onClick={() => handleShowDetails(ref)}
                         >
-                          
+                          <Eye className="h-3 w-3 mr-1" />
                           Details
-                        
-                      
-                    
+                        </Button>
+                      </div>
+                    </Card>
                   ))}
-                
+                </div>
               )}
 
               {/* Suggested References */}
               {suggestedReferences.length > 0 && (
-                
-                  
-                    
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Search className="h-3 w-3" />
                     Suggested References
-                  
+                  </h4>
                   {suggestedReferences.map((ref) => (
-                    
-                      
-                        
-                          {ref.title || ref.citation}
+                    <Card key={ref.id} className="border-dashed p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{ref.title || ref.citation}</p>
                           {ref.citation && ref.title && (
-                            {ref.citation}
+                            <p className="text-xs text-muted-foreground mt-1 font-mono">{ref.citation}</p>
                           )}
-                        
+                        </div>
+                      </div>
                       
-                      
-                       handleAddReference(ref)}
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 text-xs w-full"
+                        onClick={() => handleAddReference(ref)}
                         disabled={appliedReferenceIds.has(ref.id)}
                       >
                         {appliedReferenceIds.has(ref.id) ? (
                           <>
-                            
+                            <CheckCircle className="h-3 w-3 mr-1" />
                             Applied
-                          
+                          </>
                         ) : (
                           <>
-                            
+                            <Plus className="h-3 w-3 mr-1" />
                             Apply Reference
-                          
+                          </>
                         )}
-                      
-                    
+                      </Button>
+                    </Card>
                   ))}
-                
+                </div>
               )}
 
               {/* Manual Add Section */}
-              
-                
+              <div className="space-y-2 pt-2 border-t">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Add Manual Reference
-                
-                
-                   setNewCitation(e.target.value)}
+                </h4>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter citation..."
+                    value={newCitation}
+                    onChange={(e) => setNewCitation(e.target.value)}
                     className="text-xs h-8"
                   />
-                  
-                    
-                  
-                
-              
-            
+                  <Button 
+                    size="sm" 
+                    onClick={handleManualAdd}
+                    disabled={!newCitation.trim()}
+                    className="h-8 shrink-0"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
-        
-      
+        </div>
+      </ScrollArea>
       
       {selectedReferenceForDetails && (
-         {
+        <ReferenceDetailsModal
+          reference={selectedReferenceForDetails}
+          isOpen={detailsModalOpen}
+          currentContent={content}
+          onClose={() => {
             setDetailsModalOpen(false);
             setSelectedReferenceForDetails(null);
           }}
           onApply={handleApplyReference}
         />
       )}
-    
+    </div>
   );
 };
-
-
-export default ReferenceValidationPanel;

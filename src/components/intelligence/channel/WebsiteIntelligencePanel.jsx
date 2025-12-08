@@ -1,20 +1,38 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { Globe, FileDown, Video, Search, MousePointerClick, FileText, TrendingUp, Clock, Users, Sparkles } from 'lucide-react';
+import { 
+  Globe, 
+  FileDown, 
+  Video, 
+  Search, 
+  MousePointerClick,
+  FileText,
+  TrendingUp,
+  Clock,
+  Users,
+  Sparkles
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+// Removed: import { ChannelFilters } from '@/services/channelIntelligenceService';
 import { ChannelIntelligenceService } from '@/services/channelIntelligenceService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { transformChannelIntelligenceToOpportunity } from '@/utils/channelIntelligenceToOpportunity';
 import { ChannelContentEnhancerService } from '@/services/channelContentEnhancerService';
 import { EvidenceRecommendationService } from '@/services/evidenceRecommendationService';
 import { useBrand } from '@/contexts/BrandContext';
+import { useState } from 'react';
 
-export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }) => {
+// Removed interface WebsiteIntelligencePanelProps
+
+export const WebsiteIntelligencePanel = ({ // Removed : React.FC<WebsiteIntelligencePanelProps>
+  brandId,
+  filters,
+  onGenerateContent
+}) => {
   const { selectedBrand } = useBrand();
   const [isEnhancing, setIsEnhancing] = useState(false);
 
@@ -26,11 +44,18 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-6 w-1/3" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-      </div>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-72 mt-2" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -39,6 +64,7 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
     try {
       const enhanced = await ChannelContentEnhancerService.enhance({
         channel: 'website',
+        // Removed : any type assertion
         audienceType: filters.audienceType || 'HCP',
         audienceSegment: filters.audienceSegment,
         brandContext: {
@@ -52,16 +78,13 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
         }
       });
 
+      // Fetch recommended evidence based on channel + audience
+      // Removed : any type assertion
       const evidence = await EvidenceRecommendationService.getRecommendedEvidence(
         brandId,
         ['website-landing-page'],
         filters.audienceType || 'Physician-Specialist',
-        {
-          claimLimit: 5,
-          visualLimit: 5,
-          moduleLimit: 3,
-          includeNonMLRApproved: true
-        }
+        { claimLimit: 5, visualLimit: 5, moduleLimit: 3, includeNonMLRApproved: true }
       );
 
       const transformed = transformChannelIntelligenceToOpportunity(
@@ -75,8 +98,12 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
         filters,
         enhanced
       );
-
-      onGenerateContent?.({ ...transformed, recommendedEvidence: evidence });
+      
+      // Add evidence to transformed context
+      onGenerateContent?.({
+        ...transformed,
+        recommendedEvidence: evidence
+      });
     } finally {
       setIsEnhancing(false);
     }
@@ -87,6 +114,7 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
     try {
       const enhanced = await ChannelContentEnhancerService.enhance({
         channel: 'website',
+        // Removed : any type assertion
         audienceType: filters.audienceType || 'HCP',
         audienceSegment: filters.audienceSegment,
         brandContext: {
@@ -100,16 +128,13 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
         }
       });
 
+      // Fetch recommended evidence
+      // Removed : any type assertion
       const evidence = await EvidenceRecommendationService.getRecommendedEvidence(
         brandId,
         ['website-landing-page'],
         filters.audienceType || 'Physician-Specialist',
-        {
-          claimLimit: 5,
-          visualLimit: 5,
-          moduleLimit: 3,
-          includeNonMLRApproved: true
-        }
+        { claimLimit: 5, visualLimit: 5, moduleLimit: 3, includeNonMLRApproved: true }
       );
 
       const transformed = transformChannelIntelligenceToOpportunity(
@@ -123,8 +148,11 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
         filters,
         enhanced
       );
-
-      onGenerateContent?.({ ...transformed, recommendedEvidence: evidence });
+      
+      onGenerateContent?.({
+        ...transformed,
+        recommendedEvidence: evidence
+      });
     } finally {
       setIsEnhancing(false);
     }
@@ -133,38 +161,46 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Globe className="h-5 w-5 text-primary" />
-          Website Intelligence
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-blue-500" />
+            <CardTitle>Website Intelligence</CardTitle>
+          </div>
+          {filters.audienceType && (
+            <Badge variant="secondary">{filters.audienceType} View</Badge>
+          )}
+        </div>
         <CardDescription>
-          {filters.audienceType && `${filters.audienceType} View`} - Performance insights for{' '}
-          {filters.audienceSegment || filters.audienceType || 'all visitors'}
+          Performance insights for {filters.audienceSegment || filters.audienceType || 'all visitors'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {/* Engagement Summary */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="text-center">
-            <p className="text-xl font-bold">{intelligence?.engagementMetrics.avgSessionDuration || 0}s</p>
-            <p className="text-xs text-muted-foreground">Avg Session</p>
+          <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-800">
+            <Clock className="h-5 w-5 mx-auto mb-2 text-blue-600" />
+            <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{intelligence?.engagementMetrics.avgSessionDuration || 0}s</div>
+            <div className="text-sm text-blue-600/80">Avg Session</div>
           </div>
-          <div className="text-center">
-            <p className="text-xl font-bold">{intelligence?.engagementMetrics.avgPagesPerSession || 0}</p>
-            <p className="text-xs text-muted-foreground">Pages/Session</p>
+          <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-800">
+            <FileText className="h-5 w-5 mx-auto mb-2 text-green-600" />
+            <div className="text-2xl font-bold text-green-700 dark:text-green-400">{intelligence?.engagementMetrics.avgPagesPerSession || 0}</div>
+            <div className="text-sm text-green-600/80">Pages/Session</div>
           </div>
-          <div className="text-center">
-            <p className="text-xl font-bold">{intelligence?.engagementMetrics.returnVisitorRate || 0}%</p>
-            <p className="text-xs text-muted-foreground">Return Rate</p>
+          <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-800">
+            <Users className="h-5 w-5 mx-auto mb-2 text-purple-600" />
+            <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">{intelligence?.engagementMetrics.returnVisitorRate || 0}%</div>
+            <div className="text-sm text-purple-600/80">Return Rate</div>
           </div>
-          <div className="text-center">
-            <p className="text-xl font-bold">{intelligence?.topPages?.length || 0}</p>
-            <p className="text-xs text-muted-foreground">Active Pages</p>
+          <div className="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-4 text-center border border-orange-200 dark:border-orange-800">
+            <TrendingUp className="h-5 w-5 mx-auto mb-2 text-orange-600" />
+            <div className="text-2xl font-bold text-orange-700 dark:text-orange-400">{intelligence?.topPages?.length || 0}</div>
+            <div className="text-sm text-orange-600/80">Active Pages</div>
           </div>
         </div>
 
         <Tabs defaultValue="pages" className="w-full">
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="pages">Top Pages</TabsTrigger>
             <TabsTrigger value="downloads">Downloads</TabsTrigger>
             <TabsTrigger value="search">Search Terms</TabsTrigger>
@@ -172,36 +208,54 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
             <TabsTrigger value="journey">Journey</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="pages" className="space-y-4">
+          <TabsContent value="pages" className="mt-4 space-y-3">
             {intelligence?.topPages.slice(0, 5).map((page, idx) => (
-              <div key={idx} className="p-3 border rounded-lg">
-                <div className="font-medium">{page.page}</div>
-                <div className="text-xs text-muted-foreground">
-                  {page.visits} visits • {page.avgTimeOnPage}s avg • {page.avgScrollDepth}% scroll
+              <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{page.page}</div>
+                  <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
+                    <span>{page.visits} visits</span>
+                    <span>{page.avgTimeOnPage}s avg</span>
+                    <span>{page.avgScrollDepth}% scroll</span>
+                  </div>
                 </div>
+                <Progress value={page.avgScrollDepth} className="w-20" />
               </div>
             ))}
             {intelligence?.topPages && intelligence.topPages.length > 0 && (
-              <Button onClick={handleGenerateForTopPages} disabled={isEnhancing} className="mt-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-2"
+                onClick={handleGenerateForTopPages}
+                disabled={isEnhancing}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
                 {isEnhancing ? 'Enhancing with AI...' : 'Generate Website Content'}
               </Button>
             )}
           </TabsContent>
 
-          <TabsContent value="downloads" className="space-y-4">
+          <TabsContent value="downloads" className="mt-4 space-y-3">
             {intelligence?.topDownloads.map((dl, idx) => (
-              <div key={idx} className="p-3 border rounded-lg">
-                <div className="font-medium">{dl.resource}</div>
-                <div className="text-xs text-muted-foreground">{dl.downloads} downloads</div>
+              <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <FileDown className="h-4 w-4 text-green-500" />
+                  <span className="font-medium text-sm">{dl.resource}</span>
+                </div>
+                <Badge variant="secondary">{dl.downloads} downloads</Badge>
               </div>
             ))}
             {intelligence?.topVideos && intelligence.topVideos.length > 0 && (
               <>
-                <h4 className="font-semibold mt-4">Top Videos</h4>
+                <div className="text-sm font-medium text-muted-foreground mt-4 mb-2">Top Videos</div>
                 {intelligence.topVideos.map((video, idx) => (
-                  <div key={idx} className="p-3 border rounded-lg">
-                    <div className="font-medium">{video.video}</div>
-                    <div className="text-xs text-muted-foreground">
+                  <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Video className="h-4 w-4 text-red-500" />
+                      <span className="font-medium text-sm">{video.video}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
                       {video.views} views • {video.avgCompletion}% completion
                     </div>
                   </div>
@@ -210,56 +264,80 @@ export const WebsiteIntelligencePanel = ({ brandId, filters, onGenerateContent }
             )}
           </TabsContent>
 
-          <TabsContent value="search" className="space-y-4">
-            {intelligence?.topSearchTerms.map((term, idx) => (
-              <div key={idx} className="flex justify-between text-sm">
-                <span>"{term.term}"</span>
-                <span>{term.count} searches</span>
-              </div>
-            ))}
+          <TabsContent value="search" className="mt-4">
+            <div className="space-y-2">
+              {intelligence?.topSearchTerms.map((term, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">"{term.term}"</span>
+                  </div>
+                  <Badge variant="outline">{term.count} searches</Badge>
+                </div>
+              ))}
+            </div>
             {intelligence?.topSearchTerms && intelligence.topSearchTerms.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-semibold">Content Gap Opportunity</h4>
-                <p className="text-sm text-muted-foreground">
-                  These search terms reveal what {filters.audienceType || 'visitors'} are looking for. Create content to
-                  address these needs.
+              <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">Content Gap Opportunity</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  These search terms reveal what {filters.audienceType || 'visitors'} are looking for. Create content to address these needs.
                 </p>
-                <Button onClick={handleGenerateForSearchTerms} disabled={isEnhancing} className="mt-2">
+                <Button 
+                  size="sm"
+                  onClick={handleGenerateForSearchTerms}
+                  disabled={isEnhancing}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
                   {isEnhancing ? 'Enhancing with AI...' : 'Generate for Content Gaps'}
                 </Button>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="ctas" className="space-y-4">
+          <TabsContent value="ctas" className="mt-4 space-y-3">
             {intelligence?.topCTAs.map((cta, idx) => (
-              <div key={idx} className="p-3 border rounded-lg">
-                <div className="font-medium">{cta.cta}</div>
-                <div className="text-xs text-muted-foreground">{cta.clicks} clicks</div>
+              <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <MousePointerClick className="h-4 w-4 text-blue-500" />
+                  <span className="font-medium text-sm">{cta.cta}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">{cta.clicks}</span>
+                  <span className="text-muted-foreground"> clicks</span>
+                </div>
               </div>
             ))}
             {intelligence?.formSubmissions && intelligence.formSubmissions.length > 0 && (
               <>
-                <h4 className="font-semibold mt-4">Form Submissions</h4>
+                <div className="text-sm font-medium text-muted-foreground mt-4 mb-2">Form Submissions</div>
                 {intelligence.formSubmissions.map((form, idx) => (
-                  <div key={idx} className="p-3 border rounded-lg">
-                    <div className="font-medium">{form.formType.replace(/_/g, ' ')}</div>
-                    <div className="text-xs text-muted-foreground">{form.submissions}</div>
+                  <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                    <span className="font-medium text-sm capitalize">{form.formType.replace(/_/g, ' ')}</span>
+                    <Badge variant="secondary">{form.submissions}</Badge>
                   </div>
                 ))}
               </>
             )}
           </TabsContent>
 
-          <TabsContent value="journey" className="space-y-4">
-            {intelligence?.visitorJourneyStages.map((stage, idx) => (
-              <div key={idx} className="flex justify-between text-sm">
-                <span>{stage.stage.replace(/_/g, ' ')}</span>
-                <span>{stage.percentage}%</span>
-              </div>
-            ))}
+          <TabsContent value="journey" className="mt-4">
+            <div className="space-y-3">
+              {intelligence?.visitorJourneyStages.map((stage, idx) => (
+                <div key={idx} className="p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm capitalize">{stage.stage.replace(/_/g, ' ')}</span>
+                    <span className="text-sm text-muted-foreground">{stage.percentage}%</span>
+                  </div>
+                  <Progress value={stage.percentage} className="h-2" />
+                </div>
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   );
+}; // FIX: Added closing curly brace

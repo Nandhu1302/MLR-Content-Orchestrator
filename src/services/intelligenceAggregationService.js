@@ -1,7 +1,7 @@
 // Intelligence Aggregation Service
 // Unified service that pulls all intelligence sources together for AI generation
 
-import { supabase } from './integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 export class IntelligenceAggregationService {
   /**

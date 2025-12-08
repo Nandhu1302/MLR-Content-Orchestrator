@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -11,30 +12,38 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { CalendarIcon, Save, ArrowLeft, ArrowRight, CheckCircle, Info, Sparkles } from 'lucide-react';
+import { CalendarIcon, Save, ArrowLeft, ArrowRight, CheckCircle, Info, AlertCircle, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+// Type imports removed
+// import { IntakeData, AssetType, InitiativeType, Indication, AudienceType, Market } from '@/types/intake';
 import { assetConfigurations } from '@/data/assetConfigurations';
 import { userProfiles } from '@/data/simulation';
 import { useBrand } from '@/contexts/BrandContext';
 import { BrandConfigValidator } from '@/utils/brandConfigValidator';
 import { SmartKeyMessageSelector } from './SmartKeyMessageSelector';
 import { SmartCTASelector } from './SmartCTASelector';
+import BrandContextDisplay from './BrandContextDisplay';
 import { filterAssetsByAudience, getFilteredAssetsExplanation, getComplianceLevel } from '@/utils/assetAudienceFilter';
+import { generateAudienceSpecificContent } from '@/services/audienceSpecificContentGenerator';
 import { getAudienceObjectives } from '@/services/audienceAssetMappingService';
 import { useBrandDocuments } from '@/hooks/useBrandDocuments';
 import { supabase } from '@/integrations/supabase/client';
 import { getSpecialistFromIndication } from '@/config/indicationSpecialistMapping';
 import { getSuggestedObjective } from '@/services/audienceAssetMappingService';
 import { useIntakeForm } from '@/hooks/useIntakeForm';
-import { brandIndicationMap } from '@/config/brandMappings';
+import { SpecialistMapper } from '@/utils/specialistMapping';
+import { brandIndicationMap, defaultIndications, brandAudienceMap } from '@/config/brandMappings';
 import { getObjectiveLabel } from '@/utils/opportunityToIntakeMapper';
 import { CompactIntelligenceBadge } from '@/components/intelligence/CompactIntelligenceBadge';
 import { IntelligenceDetailModal } from '@/components/intelligence/IntelligenceDetailModal';
 import { IntelligenceGuidedRecommendations } from './IntelligenceGuidedRecommendations';
 import { useIntelligence } from '@/contexts/IntelligenceContext';
 
+// Interface removed
+
+// Type assertion removed
 const assetTypeLabels = {
   'mass-email': 'Mass Email',
   'rep-triggered-email': 'Rep Triggered Email',
@@ -45,6 +54,8 @@ const assetTypeLabels = {
   'digital-sales-aid': 'Digital Sales Aid'
 };
 
+
+// Interface and type annotations removed
 const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, onStepChange, sessionId, startAtStep }) => {
   const currentUser = userProfiles.user1; // Sheikh's profile
   const { selectedBrand, brandConfiguration, isLoading: brandLoading } = useBrand();
@@ -52,6 +63,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
   const { intelligence, isLoading: intelligenceLoading } = useIntelligence();
   
   // Extract opportunity context from initialData if available
+  // Type assertion removed
   const opportunityContext = {
     opportunityType: initialData?.opportunityType,
     suggestedChannels: initialData?.suggestedChannels,
@@ -96,16 +108,20 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
   }, [selectedBrand, brandLoading]);
 
   // Get brand-specific default indication
+  // Type annotation removed
   const getDefaultIndication = () => {
     if (selectedBrand && brandIndicationMap[selectedBrand.brand_name]) {
+      // Type assertion removed
       return brandIndicationMap[selectedBrand.brand_name][0].value;
     }
+    // Type assertion removed
     return selectedBrand?.therapeutic_area || null;
   };
 
   // Get available indications based on brand state
   const getAvailableIndications = () => {
     if (brandLoading) {
+      // Type assertion removed
       return [{ value: 'loading', label: 'Loading indications...' }];
     }
     
@@ -125,6 +141,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
     
     console.log('❌ No brand selected or no indication mapping found');
     // When no brand is selected, show message instead of fallback
+    // Type assertion removed
     return [{ value: 'IPF', label: 'Please select a brand first' }];
   };
   
@@ -193,6 +210,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
   ];
 
   const validateCurrentStep = () => {
+    // Type assertion removed
     const errors = [];
     
     switch(currentStep) {
@@ -249,6 +267,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
       // Ensure specialist context using utility
       const specialistContext = ensureSpecialistContext();
       
+      // Type assertion removed
       const completeData = {
         projectId: `proj_${Date.now()}`,
         projectName: formData.projectName || '',
@@ -277,6 +296,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
     }
   };
 
+  // Type annotation removed
   const updateFormData = (updates) => {
     updateWithSpecialistContext(updates);
     
@@ -286,11 +306,13 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
     }
   };
 
+  // Type annotation removed
   const getAssetNameSuggestion = (assetType) => {
     const type = assetType || formData.selectedAssetTypes?.[0];
     const brand = selectedBrand?.brand_name || 'Brand';
     const indication = formData.indication || 'Indication';
     
+    // Type assertion removed
     const typeNames = {
       'mass-email': 'Mass Email',
       'rep-triggered-email': 'Rep Email',
@@ -299,11 +321,14 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
       'digital-sales-aid': 'Sales Aid'
     };
     
+    // Type assertion removed
     return `${brand} ${indication} ${typeNames[type] || 'Asset'} 01`;
   };
 
+  // Type annotation removed
   const shouldAutoUpdateName = (currentName, newAssetType) => {
     // Check if the current name seems to be from a different asset type
+    // Type assertion removed
     const typeKeywords = {
       'mass-email': ['email', 'mail'],
       'rep-triggered-email': ['email', 'rep', 'mail'], 
@@ -328,7 +353,9 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
     return allOtherKeywords.some(keyword => nameWords.includes(keyword));
   };
 
+  // Type annotation removed
   const validateAssetNameType = (name, assetType) => {
+    // Type assertion removed
     const typeKeywords = {
       'mass-email': ['email', 'mail'],
       'rep-triggered-email': ['email', 'rep', 'mail'], 
@@ -389,6 +416,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
               
               <div className="space-y-2">
                 <Label htmlFor="initiativeType">Initiative Type *</Label>
+                {/* Type assertion removed */}
                 <Select 
                   value={formData.initiativeType} 
                   onValueChange={(value) => updateFormData({ initiativeType: value })}
@@ -426,6 +454,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
                       </Badge>
                     )}
                   </div>
+                   {/* Type assertion removed */}
                    <Select 
                      value={formData.indication} 
                      onValueChange={(value) => {
@@ -484,6 +513,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
 
               <div className="space-y-2">
                 <Label>Primary Audience *</Label>
+                {/* Type assertion removed */}
                 <Select 
                   value={formData.primaryAudience} 
                   onValueChange={(value) => {
@@ -538,7 +568,8 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
             <div className="space-y-2">
               <Label>Target Markets *</Label>
               <div className="flex flex-wrap gap-2">
-                {['US', 'EU', 'UK', 'Canada'].map((market) => (
+                {/* Type assertion removed */}
+                {(['US', 'EU', 'UK', 'Canada']).map((market) => (
                   <label key={market} className="flex items-center space-x-2">
                     <Checkbox
                       checked={formData.targetMarkets?.includes(market)}
@@ -563,12 +594,14 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
         return (
           <div className="space-y-6">
             {/* Opportunity Context Banner */}
+            {/* Type assertion removed */}
             {initialData?._fromOpportunity && (
               <Alert className="border-primary/50 bg-primary/5">
                 <Sparkles className="h-4 w-4 text-primary" />
                 <AlertTitle className="text-primary">Intelligence-Driven Content</AlertTitle>
                 <AlertDescription>
                   <p className="text-sm">
+                    {/* Type assertion removed */}
                     Based on: <strong>{initialData?._opportunityTitle}</strong>
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -592,15 +625,19 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
                   hasObjective: !!formData.primaryObjective,
                   hasKeyMessage: !!formData.keyMessage,
                   hasCTA: !!formData.callToAction,
+                  // Type assertion removed
                   fromOpportunity: !!initialData?._fromOpportunity,
                 },
               }}
+              // Type annotation removed
               onRecommendationSelect={(type, value) => {
                 if (type === 'assetType') {
                   const types = formData.selectedAssetTypes || [];
                   if (formData.initiativeType === 'single-asset') {
+                    // Type assertion removed
                     updateFormData({ selectedAssetTypes: [value] });
                   } else {
+                    // Type assertion removed
                     updateFormData({ selectedAssetTypes: [...types, value] });
                   }
                 }
@@ -665,8 +702,10 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
                             selectedAssetTypes: types.filter(t => t !== assetType) 
                           });
                         } else if (formData.initiativeType === 'single-asset') {
+                          // Type assertion removed
                           updateFormData({ selectedAssetTypes: [assetType] });
                         } else {
+                          // Type assertion removed
                           updateFormData({ 
                             selectedAssetTypes: [...types, assetType] 
                           });
@@ -709,7 +748,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
                           {audienceDesc?.examples && audienceDesc.examples.length > 0 && (
                             <div className="mt-2">
                               <p className="text-xs font-medium text-muted-foreground">Examples:</p>
-                              <ul className="text-xs text-muted-foreground list-disc list-inside">
+                              <ul className="text-xs font-medium text-muted-foreground list-disc list-inside">
                                 {audienceDesc.examples.slice(0, 2).map((example, idx) => (
                                   <li key={idx}>{example}</li>
                                 ))}
@@ -776,10 +815,12 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
                   hasAssetTypes: (formData.selectedAssetTypes?.length || 0) > 0,
                 },
               }}
+              // Type annotation removed
               onRecommendationSelect={(type, value) => {
                 if (type === 'objective') {
                   updateFormData({ primaryObjective: value });
                 } else if (type === 'audience') {
+                  // Type assertion removed
                   updateFormData({ primaryAudience: value });
                 }
               }}
@@ -924,6 +965,7 @@ const UniversalIntakeCard = ({ onComplete, onCancel, onSaveDraft, initialData, o
         onClose={() => setIntelligenceModalOpen(false)}
         intelligence={intelligence}
         currentFormData={formData}
+        // Type annotation removed
         onApplyIntelligence={(field, value) => {
           // Apply intelligence to form
           updateFormData({ [field]: value });

@@ -1,6 +1,6 @@
 // Theme Service - Database operations for Strategy & Insights Hub
-import { supabase } from './client'; // Assuming client is correctly exported from './client'
-import { sanitizeString, sanitizeObject } from './utils'; // Assuming utils is correctly exported from './utils'
+import { supabase } from '../integrations/supabase/client'; 
+import { sanitizeString, sanitizeObject } from './utils'; 
 
 // Type transformation helpers (Simplified for JS)
 const transformDatabaseTheme = (dbTheme, enrichedIntelligence) => ({

@@ -1,12 +1,10 @@
-import { IntakeData, AssetData, CampaignData, AssetType } from '@/types/intake';
-
 // Realistic Intake Scenarios for Testing
-export const intakeTemplates: Partial<IntakeData>[] = [
+export const intakeTemplates = [ // Removed : Partial<IntakeData>[]
   {
     projectName: "IPF Awareness Email Series Q1 2025",
     initiativeType: 'campaign',
     indication: 'IPF',
-    primaryAudience: 'HCP',
+    primaryAudience: 'Physician-Specialist',
     selectedAssetTypes: ['mass-email', 'website-landing-page', 'digital-sales-aid'],
     primaryObjective: 'awareness',
     keyMessage: 'Ofev slows IPF progression with proven clinical evidence from INPULSIS studies',
@@ -19,7 +17,7 @@ export const intakeTemplates: Partial<IntakeData>[] = [
     projectName: "SSc-ILD Launch Social Campaign",
     initiativeType: 'campaign', 
     indication: 'SSc-ILD',
-    primaryAudience: 'HCP',
+    primaryAudience: 'Physician-Specialist',
     selectedAssetTypes: ['social-media-post', 'rep-triggered-email'],
     primaryObjective: 'launch',
     keyMessage: 'Ofev now approved for SSc-ILD based on SENSCIS trial data',
@@ -32,7 +30,7 @@ export const intakeTemplates: Partial<IntakeData>[] = [
     projectName: "HCP Education Webinar Follow-up",
     initiativeType: 'single-asset',
     indication: 'IPF',
-    primaryAudience: 'HCP',
+    primaryAudience: 'Physician-Specialist',
     selectedAssetTypes: ['rep-triggered-email'],
     primaryObjective: 'education',
     keyMessage: 'Thank you for attending our Ofev mechanism of action webinar',
@@ -57,7 +55,7 @@ export const intakeTemplates: Partial<IntakeData>[] = [
 ];
 
 // Realistic Asset Data Examples
-export const mockAssets: AssetData[] = [
+export const mockAssets = [ // Removed : AssetData[]
   {
     assetId: 'asset_001',
     projectId: 'proj_001',
@@ -66,7 +64,7 @@ export const mockAssets: AssetData[] = [
     initiativeType: 'single-asset',
     brand: 'Ofev',
     indication: 'IPF',
-    primaryAudience: 'HCP',
+    primaryAudience: 'Physician-Specialist',
     audienceSegment: ['Pulmonologists'],
     targetMarkets: ['US'],
     primaryObjective: 'education',
@@ -114,7 +112,7 @@ IMPORTANT SAFETY INFORMATION: [Fair balance content would be included here]`,
     initiativeType: 'single-asset',
     brand: 'Ofev',
     indication: 'SSc-ILD',
-    primaryAudience: 'HCP',
+    primaryAudience: 'Physician-Specialist',
     audienceSegment: ['Rheumatologists'],
     targetMarkets: ['US'],
     primaryObjective: 'awareness',
@@ -148,7 +146,7 @@ Important Safety Information: [Abbreviated safety info for social media complian
 ];
 
 // Realistic Campaign Data
-export const mockCampaigns: CampaignData[] = [
+export const mockCampaigns = [ // Removed : CampaignData[]
   {
     campaignId: 'camp_001',
     projectId: 'proj_003',
@@ -156,7 +154,7 @@ export const mockCampaigns: CampaignData[] = [
     initiativeType: 'campaign',
     brand: 'Ofev',
     indication: 'IPF',
-    primaryAudience: 'HCP',
+    primaryAudience: 'Physician-Specialist',
     audienceSegment: ['Pulmonologists', 'Primary Care'],
     targetMarkets: ['US', 'EU'],
     selectedAssetTypes: ['mass-email', 'website-landing-page', 'digital-sales-aid'],
@@ -206,7 +204,7 @@ export const mockCampaigns: CampaignData[] = [
         initiativeType: 'campaign',
         brand: 'Ofev',
         indication: 'IPF',
-        primaryAudience: 'HCP',
+        primaryAudience: 'Physician-Specialist',
         audienceSegment: ['Pulmonologists', 'Primary Care'],
         targetMarkets: ['US', 'EU'],
         primaryObjective: 'awareness',
@@ -234,7 +232,7 @@ export const mockCampaigns: CampaignData[] = [
         initiativeType: 'campaign',
         brand: 'Ofev',
         indication: 'IPF',
-        primaryAudience: 'HCP',
+        primaryAudience: 'Physician-Specialist',
         audienceSegment: ['Pulmonologists'],
         targetMarkets: ['US'],
         primaryObjective: 'awareness',

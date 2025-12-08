@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,15 +7,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Plus, X, Save, AlertTriangle } from "lucide-react";
+// Type imports removed
 import { SmartRuleEngine } from "@/services/smartRuleEngine";
 import { useBrand } from "@/contexts/BrandContext";
 import { toast } from "sonner";
 
-export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
+// Interface and type annotations removed
+export const SmartRuleBuilder = ({
+  rule,
+  onSave,
+  onCancel
+}) => {
   const { selectedBrand } = useBrand();
   const [isLoading, setIsLoading] = useState(false);
-
+  
   // Rule basic properties
+  // Type assertions removed
   const [ruleName, setRuleName] = useState(rule?.rule_name || '');
   const [ruleType, setRuleType] = useState(rule?.rule_type || 'conditional');
   const [ruleCategory, setRuleCategory] = useState(rule?.rule_category || 'messaging');
@@ -24,14 +30,27 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
   const [appliesTo, setAppliesTo] = useState(rule?.applies_to || ['brand']);
 
   // Context filters
-  const [audienceFilters, setAudienceFilters] = useState(rule?.context_filters?.audience || []);
-  const [marketFilters, setMarketFilters] = useState(rule?.context_filters?.market || []);
-  const [channelFilters, setChannelFilters] = useState(rule?.context_filters?.channel || []);
+  // Type assertions removed
+  const [audienceFilters, setAudienceFilters] = useState(
+    rule?.context_filters?.audience || []
+  );
+  const [marketFilters, setMarketFilters] = useState(
+    rule?.context_filters?.market || []
+  );
+  const [channelFilters, setChannelFilters] = useState(
+    rule?.context_filters?.channel || []
+  );
 
   // Rule conditions and actions
-  const [conditions, setConditions] = useState(rule?.conditions.if || { operator: 'AND', conditions: [] });
-  const [thenActions, setThenActions] = useState(rule?.conditions.then || []);
-  const [elseActions, setElseActions] = useState(rule?.conditions.else || []);
+  const [conditions, setConditions] = useState(
+    rule?.conditions.if || { operator: 'AND', conditions: [] }
+  );
+  const [thenActions, setThenActions] = useState(
+    rule?.conditions.then || []
+  );
+  const [elseActions, setElseActions] = useState(
+    rule?.conditions.else || []
+  );
 
   const ruleTypeOptions = [
     { value: 'conditional', label: 'Conditional Logic' },
@@ -89,17 +108,21 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
       toast.error('Please provide a rule name');
       return;
     }
+
     if (conditions.conditions.length === 0) {
       toast.error('Please add at least one condition');
       return;
     }
+
     if (thenActions.length === 0) {
       toast.error('Please add at least one action for the "then" clause');
       return;
     }
 
     setIsLoading(true);
+
     try {
+      // Type assertions removed
       const ruleData = {
         brand_id: selectedBrand.id,
         rule_name: ruleName,
@@ -129,6 +152,7 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
         savedRule = await SmartRuleEngine.createRule(ruleData);
         toast.success('Rule created successfully');
       }
+
       onSave?.(savedRule);
     } catch (error) {
       console.error('Failed to save rule:', error);
@@ -139,22 +163,46 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
   };
 
   const addCondition = () => {
-    const newCondition = { field: 'content', operator: 'contains', value: '' };
-    setConditions({ ...conditions, conditions: [...conditions.conditions, newCondition] });
+    // Type annotation removed
+    const newCondition = {
+      field: 'content',
+      operator: 'contains',
+      value: ''
+    };
+    setConditions({
+      ...conditions,
+      conditions: [...conditions.conditions, newCondition]
+    });
   };
 
+  // Type annotations removed
   const updateCondition = (index, updates) => {
     const newConditions = [...conditions.conditions];
+    // Type assertion removed
     newConditions[index] = { ...newConditions[index], ...updates };
-    setConditions({ ...conditions, conditions: newConditions });
+    setConditions({
+      ...conditions,
+      conditions: newConditions
+    });
   };
 
+  // Type annotation removed
   const removeCondition = (index) => {
-    setConditions({ ...conditions, conditions: conditions.conditions.filter((_, i) => i !== index) });
+    setConditions({
+      ...conditions,
+      conditions: conditions.conditions.filter((_, i) => i !== index)
+    });
   };
 
+  // Type annotation removed
   const addAction = (type) => {
-    const newAction = { type: 'warn', message: '', severity: 'medium' };
+    // Type annotation removed
+    const newAction = {
+      type: 'warn',
+      message: '',
+      severity: 'medium'
+    };
+
     if (type === 'then') {
       setThenActions([...thenActions, newAction]);
     } else {
@@ -162,6 +210,7 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
     }
   };
 
+  // Type annotations removed
   const updateAction = (type, index, updates) => {
     if (type === 'then') {
       const newActions = [...thenActions];
@@ -174,6 +223,7 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
     }
   };
 
+  // Type annotations removed
   const removeAction = (type, index) => {
     if (type === 'then') {
       setThenActions(thenActions.filter((_, i) => i !== index));
@@ -182,21 +232,30 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
     }
   };
 
+  // Type annotations removed
   const addFilter = (type, value) => {
     if (!value.trim()) return;
+
     switch (type) {
       case 'audience':
-        if (!audienceFilters.includes(value)) setAudienceFilters([...audienceFilters, value]);
+        if (!audienceFilters.includes(value)) {
+          setAudienceFilters([...audienceFilters, value]);
+        }
         break;
       case 'market':
-        if (!marketFilters.includes(value)) setMarketFilters([...marketFilters, value]);
+        if (!marketFilters.includes(value)) {
+          setMarketFilters([...marketFilters, value]);
+        }
         break;
       case 'channel':
-        if (!channelFilters.includes(value)) setChannelFilters([...channelFilters, value]);
+        if (!channelFilters.includes(value)) {
+          setChannelFilters([...channelFilters, value]);
+        }
         break;
     }
   };
 
+  // Type annotations removed
   const removeFilter = (type, value) => {
     switch (type) {
       case 'audience':
@@ -222,10 +281,206 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Basic Rule Properties */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="rule-name">Rule Name</Label>
+              <Input
+                id="rule-name"
+                value={ruleName}
+                onChange={(e) => setRuleName(e.target.value)}
+                placeholder="e.g., HCP Content Medical Claims Validation"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Rule Type</Label>
+              {/* Type assertion removed */}
+              <Select value={ruleType} onValueChange={(value) => setRuleType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ruleTypeOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Rule Category</Label>
+              {/* Type assertion removed */}
+              <Select value={ruleCategory} onValueChange={(value) => setRuleCategory(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ruleCategoryOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority (Higher = More Important)</Label>
+              <Input
+                id="priority"
+                type="number"
+                value={priority}
+                onChange={(e) => setPriority(Number(e.target.value))}
+                min="1"
+                max="1000"
+              />
+            </div>
+          </div>
+
           {/* Context Filters */}
-          {/* Conditions */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Context Filters</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <FilterSection
+                title="Audience"
+                filters={audienceFilters}
+                onAdd={(value) => addFilter('audience', value)}
+                onRemove={(value) => removeFilter('audience', value)}
+                placeholder="e.g., HCP, Patient, Caregiver"
+              />
+              <FilterSection
+                title="Market"
+                filters={marketFilters}
+                onAdd={(value) => addFilter('market', value)}
+                onRemove={(value) => removeFilter('market', value)}
+                placeholder="e.g., US, EU, APAC"
+              />
+              <FilterSection
+                title="Channel"
+                filters={channelFilters}
+                onAdd={(value) => addFilter('channel', value)}
+                onRemove={(value) => removeFilter('channel', value)}
+                placeholder="e.g., Email, Print, Digital"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Rule Conditions */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Conditions (IF)</h3>
+              <div className="flex items-center gap-2">
+                <Label>Logic:</Label>
+                {/* Type assertion removed */}
+                <Select 
+                  value={conditions.operator} 
+                  onValueChange={(value) => setConditions({...conditions, operator: value})}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AND">AND</SelectItem>
+                    <SelectItem value="OR">OR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {conditions.conditions.map((condition, index) => (
+                <ConditionBuilder
+                  key={index}
+                  condition={condition}
+                  fields={conditionFields}
+                  operators={conditionOperators}
+                  onChange={(updates) => updateCondition(index, updates)}
+                  onRemove={() => removeCondition(index)}
+                />
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addCondition}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Condition
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* THEN Actions */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Actions (THEN)</h3>
+            <div className="space-y-3">
+              {thenActions.map((action, index) => (
+                <ActionBuilder
+                  key={index}
+                  action={action}
+                  actionTypes={actionTypes}
+                  severities={actionSeverities}
+                  onChange={(updates) => updateAction('then', index, updates)}
+                  onRemove={() => removeAction('then', index)}
+                />
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addAction('then')}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add THEN Action
+              </Button>
+            </div>
+          </div>
+
+          {/* ELSE Actions (Optional) */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Actions (ELSE) - Optional</h3>
+            <div className="space-y-3">
+              {elseActions.map((action, index) => (
+                <ActionBuilder
+                  key={index}
+                  action={action}
+                  actionTypes={actionTypes}
+                  severities={actionSeverities}
+                  onChange={(updates) => updateAction('else', index, updates)}
+                  onRemove={() => removeAction('else', index)}
+                />
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addAction('else')}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add ELSE Action
+              </Button>
+            </div>
+          </div>
+
           {/* Actions */}
-          {/* Save and Cancel Buttons */}
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isLoading}>
+              <Save className="w-4 h-4 mr-2" />
+              {isLoading ? 'Saving...' : 'Save Rule'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -233,12 +488,21 @@ export const SmartRuleBuilder = ({ rule, onSave, onCancel }) => {
 };
 
 // Helper Components
-const FilterSection = ({ title, filters, onAdd, onRemove, placeholder }) => {
+// Interface and type annotations removed
+const FilterSection = ({
+  title,
+  filters,
+  onAdd,
+  onRemove,
+  placeholder
+}) => {
   const [inputValue, setInputValue] = useState('');
+
   const handleAdd = () => {
     onAdd(inputValue);
     setInputValue('');
   };
+
   return (
     <div className="space-y-2">
       <Label>{title}</Label>
@@ -271,21 +535,112 @@ const FilterSection = ({ title, filters, onAdd, onRemove, placeholder }) => {
   );
 };
 
-const ConditionBuilder = ({ condition, fields, operators, onChange, onRemove }) => (
-  <div className="flex items-center gap-2 p-3 border rounded-lg">
-    {/* Field Select */}
-    {/* Operator Select */}
-    {/* Value Input */}
-    {/* Remove Button */}
-  </div>
-);
+// Interface and type annotations removed
+const ConditionBuilder = ({
+  condition,
+  fields,
+  operators,
+  onChange,
+  onRemove
+}) => {
+  return (
+    <div className="flex items-center gap-2 p-3 border rounded-lg">
+      <Select value={condition.field} onValueChange={(value) => onChange({ field: value })}>
+        <SelectTrigger className="w-40">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {fields.map(field => (
+            <SelectItem key={field.value} value={field.value}>
+              {field.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-const ActionBuilder = ({ action, actionTypes, severities, onChange, onRemove }) => (
-  <div className="flex items-center gap-2 p-3 border rounded-lg">
-    {/* Action Type Select */}
-    {/* Severity Select */}
-    {/* Message Input */}
-    {/* Suggested Fix Input */}
-    {/* Remove Button */}
-  </div>
-);
+      {/* Type assertion removed */}
+      <Select value={condition.operator} onValueChange={(value) => onChange({ operator: value })}>
+        <SelectTrigger className="w-36">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {operators.map(op => (
+            <SelectItem key={op.value} value={op.value}>
+              {op.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Input
+        value={condition.value}
+        onChange={(e) => onChange({ value: e.target.value })}
+        placeholder="Value"
+        className="flex-1"
+      />
+
+      <Button type="button" size="sm" variant="outline" onClick={onRemove}>
+        <X className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+};
+
+// Interface and type annotations removed
+const ActionBuilder = ({
+  action,
+  actionTypes,
+  severities,
+  onChange,
+  onRemove
+}) => {
+  return (
+    <div className="flex items-center gap-2 p-3 border rounded-lg">
+      {/* Type assertion removed */}
+      <Select value={action.type} onValueChange={(value) => onChange({ type: value })}>
+        <SelectTrigger className="w-32">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {actionTypes.map(type => (
+            <SelectItem key={type.value} value={type.value}>
+              {type.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Type assertion removed */}
+      <Select value={action.severity} onValueChange={(value) => onChange({ severity: value })}>
+        <SelectTrigger className="w-24">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {severities.map(severity => (
+            <SelectItem key={severity.value} value={severity.value}>
+              {severity.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Input
+        value={action.message}
+        onChange={(e) => onChange({ message: e.target.value })}
+        placeholder="Message"
+        className="flex-1"
+      />
+
+      <Input
+        value={action.suggested_fix || ''}
+        onChange={(e) => onChange({ suggested_fix: e.target.value })}
+        placeholder="Suggested fix (optional)"
+        className="flex-1"
+      />
+
+      <Button type="button" size="sm" variant="outline" onClick={onRemove}>
+        <X className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+};

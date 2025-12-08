@@ -18,10 +18,14 @@ import {
   FileText,
   Clock,
   Link2,
+  Tag,
 } from "lucide-react";
+// Type import removed
+// import { SafetyStatement } from "@/hooks/useEvidenceLibrary";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+// Interface and type annotations removed
 export const SafetyStatementDetailsModal = ({
   statement,
   isOpen,
@@ -31,6 +35,7 @@ export const SafetyStatementDetailsModal = ({
 
   if (!statement) return null;
 
+  // Type annotation removed
   const getSeverityIcon = (severity) => {
     switch (severity) {
       case 'critical':
@@ -46,6 +51,7 @@ export const SafetyStatementDetailsModal = ({
     }
   };
 
+  // Type annotation removed
   const getSeverityColor = (severity) => {
     switch (severity) {
       case 'critical':
