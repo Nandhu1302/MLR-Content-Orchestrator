@@ -35,8 +35,9 @@ import { getSuggestedObjective } from '@/services/audienceAssetMappingService';
 import { useIntakeForm } from '@/hooks/useIntakeForm';
 import { SpecialistMapper } from '@/utils/specialistMapping';
 import { brandIndicationMap, defaultIndications, brandAudienceMap } from '@/config/brandMappings';
-import { getObjectiveLabel } from '@/utils/opportunityToIntakeMapper';
-import { CompactIntelligenceBadge } from '@/components/intelligence/CompactIntelligenceBadge';
+import { getObjectiveLabel } from '@/utils/opportunityToIntakeMapper';// In UniversalIntakeCard.jsx:
+import CompactIntelligenceBadge from '/src/components/Intelligence/CompactIntelligenceBadge.jsx';
+// NOTE: No curly braces
 import { IntelligenceDetailModal } from '@/components/intelligence/IntelligenceDetailModal';
 import { IntelligenceGuidedRecommendations } from './IntelligenceGuidedRecommendations';
 import { useIntelligence } from '@/contexts/IntelligenceContext';
