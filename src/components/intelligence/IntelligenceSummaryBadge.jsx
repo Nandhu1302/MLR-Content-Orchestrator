@@ -7,16 +7,15 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+// Removed interface CategoryBreakdown
+// Removed interface IntelligenceSummaryBadgeProps
 
-
-
-
-const CATEGORY_ICONS, { icon; color; label }> = {
-  evidence: { icon, color: 'text-blue-600', label: 'Claims' },
-  audience: { icon, color: 'text-orange-600', label: 'Audience' },
-  brand: { icon, color: 'text-pink-600', label: 'Brand' },
-  performance: { icon, color: 'text-green-600', label: 'Performance' },
-  competitive: { icon, color: 'text-purple-600', label: 'Competitive' },
+const CATEGORY_ICONS = {
+  evidence: { icon: Shield, color: 'text-blue-600', label: 'Claims' },
+  audience: { icon: Users, color: 'text-orange-600', label: 'Audience' },
+  brand: { icon: Database, color: 'text-pink-600', label: 'Brand' },
+  performance: { icon: TrendingUp, color: 'text-green-600', label: 'Performance' },
+  competitive: { icon: Target, color: 'text-purple-600', label: 'Competitive' },
 };
 
 export const IntelligenceSummaryBadge = ({ 
@@ -24,7 +23,7 @@ export const IntelligenceSummaryBadge = ({
   activeLayersCount,
   qualityScore,
   categoryBreakdown
-}) => {
+}) => { // Removed : IntelligenceSummaryBadgeProps
   if (totalReferences === 0) return null;
 
   // Build breakdown text for tooltip
@@ -36,54 +35,53 @@ export const IntelligenceSummaryBadge = ({
           count,
           ...CATEGORY_ICONS[type]
         }))
-    ;
+    : [];
 
   return (
-    
-      
-        
-          
-            
-            {totalReferences}
-            data points
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge variant="secondary" className="gap-1.5 cursor-help">
+            <Brain className="w-3 h-3" />
+            <span className="font-semibold">{totalReferences}</span>
+            <span className="text-muted-foreground">data points</span>
             {qualityScore && (
               <>
-                •
-                
-                {qualityScore}%
-              
+                <span className="text-muted-foreground">•</span>
+                <Zap className="w-3 h-3 text-yellow-500" />
+                <span className="font-semibold">{qualityScore}%</span>
+              </>
             )}
-          
-        
-        
-          
-            Intelligence-Backed Content
-            
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs">
+          <div className="text-xs space-y-2">
+            <p className="font-semibold">Intelligence-Backed Content</p>
+            <p className="text-muted-foreground">
               Your content is backed by {totalReferences} verified data points
-            
+            </p>
             
             {breakdownItems.length > 0 && (
-              
+              <div className="pt-2 border-t border-border/50 space-y-1">
                 {breakdownItems.map(item => {
+                  // Renaming Icon component for correct JSX rendering (using PascalCase for components)
                   const Icon = item.icon;
                   return (
-                    
-                      
-                      {item.count} {item.label}
-                    
+                    <div key={item.type} className="flex items-center gap-2">
+                      <Icon className={`w-3 h-3 ${item.color}`} />
+                      <span>{item.count} {item.label}</span>
+                    </div>
                   );
                 })}
-              
+              </div>
             )}
             
             {qualityScore && (
-              Quality Score: {qualityScore}%
+              <p className="pt-1">Quality Score: {qualityScore}%</p>
             )}
-          
-        
-      
-    
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
-
-export default IntelligenceSummaryBadge;

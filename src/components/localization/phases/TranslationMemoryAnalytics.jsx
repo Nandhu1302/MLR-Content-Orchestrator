@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,10 +23,10 @@ export const TranslationMemoryAnalytics = ({
   const leveragePercentage = totalSource > 0 ? (matchedWords / totalSource) * 100 : 0;
 
   // Group segments by match quality
-  const exactMatches   = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 95);
-  const fuzzyMatches   = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 75 && (m.matchPercentage ?? 0) < 95);
+  const exactMatches     = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 95);
+  const fuzzyMatches     = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 75 && (m.matchPercentage ?? 0) < 95);
   const contextMatches = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 50 && (m.matchPercentage ?? 0) < 75);
-  const noMatches      = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) < 50);
+  const noMatches        = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) < 50);
 
   const exactWords       = exactMatches.reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
   const fuzzyWords       = fuzzyMatches.reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
@@ -137,7 +136,8 @@ export const TranslationMemoryAnalytics = ({
             {/* New Content */}
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
-                <Badge variant="outline">0-49%</</Badge>
+                {/* FIX APPLIED HERE: Changed </</Badge> to </Badge> */}
+                <Badge variant="outline">0-49%</Badge>
                 <div>
                   <div className="font-medium text-sm">New Content</div>
                   <div className="text-xs text-muted-foreground">Fresh translation required</div>
@@ -162,6 +162,7 @@ export const TranslationMemoryAnalytics = ({
                 <div className="text-xs text-muted-foreground">Time Saved</div>
               </div>
             </div>
+            
             <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg">
               <TrendingUp className="h-8 w-8 text-primary" />
               <div>
