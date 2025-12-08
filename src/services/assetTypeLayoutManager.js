@@ -1,11 +1,15 @@
 import { assetConfigurations } from '@/data/assetConfigurations';
 
-
+// Placeholder values for properties that were missing actual assignments in the original JS:
+const required = true;
+const maxLength = 250;
+const aiEnabled = true;
+const estimatedTime = 4; // Hours
 
 
 export class AssetTypeLayoutManager {
   // Asset type normalization mapping
-  static assetTypeMapping<string, string> = {
+  static assetTypeMapping = { // Removed type annotation <string, string>
     'mass-email': 'mass-email',
     'rep-triggered-email': 'rep-triggered-email',
     'patient-email': 'email',
@@ -22,7 +26,7 @@ export class AssetTypeLayoutManager {
     'dsa': 'dsa'
   };
 
-  static layouts<string, AssetLayout> = {
+  static layouts = { // Removed type annotation <string, AssetLayout>
     'email': {
       sections: [
         {
@@ -34,20 +38,20 @@ export class AssetTypeLayoutManager {
               id: 'subject',
               name: 'Subject Line',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Enter compelling subject line...',
-              maxLength,
-              aiEnabled,
+              maxLength: maxLength, // Added value
+              aiEnabled: aiEnabled, // Added value
               description: 'Appears in inbox, keep under 50 characters'
             },
             {
               id: 'preheader',
               name: 'Preheader Text',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Supporting text that appears after subject...',
-              maxLength,
-              aiEnabled,
+              maxLength: maxLength, // Added value
+              aiEnabled: aiEnabled, // Added value
               description: 'Preview text shown in email clients'
             }
           ]
@@ -61,26 +65,26 @@ export class AssetTypeLayoutManager {
               id: 'headline',
               name: 'Email Headline',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Main headline within email...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'body',
               name: 'Email Body',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Craft your professional email content...',
-              aiEnabled,
+              aiEnabled: aiEnabled, // Added value
               description: 'Main email content with clinical messaging'
             },
             {
               id: 'keyMessage',
               name: 'Key Clinical Message',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Core clinical or product message...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -93,29 +97,29 @@ export class AssetTypeLayoutManager {
               id: 'cta',
               name: 'Primary CTA',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Learn More | Download | Contact Rep',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'unsubscribe',
               name: 'Unsubscribe Text',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Unsubscribe link text...'
             },
             {
               id: 'disclaimer',
               name: 'Legal Footer',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Regulatory disclaimers and legal text...'
             }
           ]
         }
       ],
       previewType: 'email',
-      estimatedTime,
+      estimatedTime: estimatedTime, // Added value
       channels: ['Email Marketing Platform', 'Veeva CRM']
     },
 
@@ -130,20 +134,20 @@ export class AssetTypeLayoutManager {
               id: 'subject',
               name: 'Subject Line',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Enter compelling subject line for mass email...',
-              maxLength,
-              aiEnabled,
+              maxLength: maxLength, // Added value
+              aiEnabled: aiEnabled, // Added value
               description: 'Appears in inbox, keep under 50 characters'
             },
             {
               id: 'preheader',
               name: 'Preheader Text',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Supporting text that appears after subject...',
-              maxLength,
-              aiEnabled,
+              maxLength: maxLength, // Added value
+              aiEnabled: aiEnabled, // Added value
               description: 'Preview text shown in email clients'
             }
           ]
@@ -157,26 +161,26 @@ export class AssetTypeLayoutManager {
               id: 'headline',
               name: 'Email Headline',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Main headline for mass email...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'body',
               name: 'Email Body',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Craft your mass email content for HCPs...',
-              aiEnabled,
+              aiEnabled: aiEnabled, // Added value
               description: 'Main email content with clinical messaging'
             },
             {
               id: 'keyMessage',
               name: 'Key Clinical Message',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Core clinical or product message...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -189,29 +193,29 @@ export class AssetTypeLayoutManager {
               id: 'cta',
               name: 'Primary CTA',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Learn More | Download Resources | Contact Us',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'unsubscribe',
               name: 'Unsubscribe Text',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Unsubscribe preferences...'
             },
             {
               id: 'disclaimer',
               name: 'Legal Footer',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Regulatory disclaimers and legal text...'
             }
           ]
         }
       ],
       previewType: 'email',
-      estimatedTime,
+      estimatedTime: estimatedTime, // Added value
       channels: ['Email Marketing Platform', 'SFMC', 'Mailchimp']
     },
 
@@ -226,17 +230,17 @@ export class AssetTypeLayoutManager {
               id: 'subject',
               name: 'Subject Line',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Following up on our discussion about...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'personalGreeting',
               name: 'Personal Greeting',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Dear Dr. [LASTNAME], Thank you for...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -249,25 +253,25 @@ export class AssetTypeLayoutManager {
               id: 'body',
               name: 'Email Body',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Personalized follow-up content...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'resources',
               name: 'Additional Resources',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Attached clinical data or resources...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'nextSteps',
               name: 'Next Steps',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Proposed next actions or follow-up...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -279,29 +283,29 @@ export class AssetTypeLayoutManager {
               id: 'cta',
               name: 'Call-to-Action',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Schedule Meeting | Call Me | Reply',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'repSignature',
               name: 'Rep Signature',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Best regards,\n[REP_NAME]\n[TITLE]\n[COMPANY]'
             },
             {
               id: 'disclaimer',
               name: 'Legal Footer',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Regulatory disclaimers and legal text...'
             }
           ]
         }
       ],
       previewType: 'email',
-      estimatedTime,
+      estimatedTime: estimatedTime, // Added value
       channels: ['Veeva CRM', 'Salesforce', 'Rep Portal']
     },
 
@@ -316,17 +320,17 @@ export class AssetTypeLayoutManager {
               id: 'subject',
               name: 'Subject Line',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Following up on our discussion about...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'personalGreeting',
               name: 'Personal Greeting',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Dear Dr. [LASTNAME], Thank you for...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -339,25 +343,25 @@ export class AssetTypeLayoutManager {
               id: 'meetingRecap',
               name: 'Meeting Recap',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'During our meeting, we discussed...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'resources',
               name: 'Additional Resources',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'I\'ve attached the clinical data we mentioned...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'nextSteps',
               name: 'Next Steps',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'I\'ll follow up in two weeks to...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -369,21 +373,21 @@ export class AssetTypeLayoutManager {
               id: 'repSignature',
               name: 'Rep Signature',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Best regards,\n[REP_NAME]\n[TITLE]\n[COMPANY]'
             },
             {
               id: 'contactInfo',
               name: 'Contact Information',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Phone: [PHONE]\nEmail: [EMAIL]'
             }
           ]
         }
       ],
-      previewType: 'email',
-      estimatedTime,
+      previewType: 'email', // Note: Using 'email' preview type for a 'print' asset type
+      estimatedTime: estimatedTime, // Added value
       channels: ['Veeva CRM', 'Sales Enablement']
     },
 
@@ -398,26 +402,26 @@ export class AssetTypeLayoutManager {
               id: 'headline',
               name: 'Post Headline',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Engaging headline for social media...',
-              maxLength,
-              aiEnabled
+              maxLength: maxLength, // Added value
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'bodyText',
               name: 'Post Content',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Educational content about condition or treatment...',
-              maxLength,
-              aiEnabled,
+              maxLength: maxLength, // Added value
+              aiEnabled: aiEnabled, // Added value
               description: 'Keep educational and compliant'
             },
             {
               id: 'hashtags',
               name: 'Hashtags',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: '#IPF #LungHealth #OfevInfo',
               description: 'Include brand and condition hashtags'
             }
@@ -431,7 +435,7 @@ export class AssetTypeLayoutManager {
               id: 'platform',
               name: 'Target Platform',
               type: 'select',
-              required,
+              required: required, // Added value
               options: ['LinkedIn', 'Twitter', 'Facebook', 'Instagram'],
               description: 'Primary social platform for this content'
             },
@@ -439,21 +443,21 @@ export class AssetTypeLayoutManager {
               id: 'imageSpecs',
               name: 'Image Requirements',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Image dimensions, style guidelines...'
             },
             {
               id: 'disclaimer',
               name: 'Social Disclaimer',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Educational content. Consult your healthcare provider...'
             }
           ]
         }
       ],
       previewType: 'social',
-      estimatedTime,
+      estimatedTime: estimatedTime, // Added value
       channels: ['LinkedIn', 'Twitter', 'Facebook']
     },
 
@@ -468,25 +472,25 @@ export class AssetTypeLayoutManager {
               id: 'heroHeadline',
               name: 'Hero Headline',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Powerful headline for landing page...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'heroSubheadline',
               name: 'Hero Subheadline',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Supporting headline with key value proposition...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'heroCta',
               name: 'Hero CTA',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Get Started | Learn More | Contact Us',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -499,25 +503,25 @@ export class AssetTypeLayoutManager {
               id: 'diseaseOverview',
               name: 'Disease Overview',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Educational content about the condition...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'treatmentApproach',
               name: 'Treatment Approach',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Information about treatment options...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'clinicalEvidence',
               name: 'Clinical Evidence',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Clinical trial data and efficacy information...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -529,14 +533,14 @@ export class AssetTypeLayoutManager {
               id: 'safetyInformation',
               name: 'Safety Information',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Important safety information and warnings...'
             },
             {
               id: 'disclaimer',
               name: 'Legal Footer',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Copyright, terms of use, privacy policy links...'
             }
           ]
@@ -550,27 +554,27 @@ export class AssetTypeLayoutManager {
               id: 'pageTitle',
               name: 'Page Title',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Understanding IPF Treatment Options | Brand Name',
-              maxLength,
-              aiEnabled,
+              maxLength: maxLength, // Added value
+              aiEnabled: aiEnabled, // Added value
               description: 'Shows in search results and browser tab'
             },
             {
               id: 'metaDescription',
               name: 'Meta Description',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Learn about treatment options for IPF...',
-              maxLength,
-              aiEnabled,
+              maxLength: 160, // Set specific value for meta description
+              aiEnabled: aiEnabled, // Added value
               description: 'Appears in search engine results'
             }
           ]
         }
       ],
       previewType: 'web',
-      estimatedTime,
+      estimatedTime: estimatedTime, // Added value
       channels: ['Corporate Website', 'Campaign Microsites']
     },
 
@@ -585,17 +589,17 @@ export class AssetTypeLayoutManager {
               id: 'titleSlide',
               name: 'Title Slide',
               type: 'input',
-              required,
+              required: required, // Added value
               placeholder: 'Presentation title and key theme...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'agenda',
               name: 'Agenda',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Key topics to be covered in presentation...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -608,25 +612,25 @@ export class AssetTypeLayoutManager {
               id: 'clinicalData',
               name: 'Clinical Data Slides',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Clinical trial results, efficacy data...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'efficacySlides',
               name: 'Efficacy Highlights',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Key efficacy messages and data points...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'patientCases',
               name: 'Patient Case Studies',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Representative patient scenarios...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             }
           ]
         },
@@ -639,14 +643,14 @@ export class AssetTypeLayoutManager {
               id: 'safetyProfile',
               name: 'Safety Overview',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Comprehensive safety profile information...'
             },
             {
               id: 'adverseEvents',
               name: 'Adverse Events',
               type: 'richtext',
-              required,
+              required: required, // Added value
               placeholder: 'Common and serious adverse events...'
             }
           ]
@@ -660,22 +664,22 @@ export class AssetTypeLayoutManager {
               id: 'discussionGuides',
               name: 'Discussion Guides',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Questions to facilitate HCP discussion...',
-              aiEnabled
+              aiEnabled: aiEnabled // Added value
             },
             {
               id: 'interactiveElements',
               name: 'Interactive Features',
               type: 'textarea',
-              required,
+              required: required, // Added value
               placeholder: 'Tap-to-reveal, animations, videos...'
             }
           ]
         }
       ],
       previewType: 'slide',
-      estimatedTime,
+      estimatedTime: estimatedTime, // Added value
       channels: ['Veeva CLM', 'iPad App', 'Sales Portal']
     }
   };
@@ -683,14 +687,14 @@ export class AssetTypeLayoutManager {
   /**
    * Normalize asset type from intake flow to editor layout type
    */
-  static normalizeAssetType(assetType): string {
+  static normalizeAssetType(assetType) { // Removed type annotation : string
     return this.assetTypeMapping[assetType] || assetType;
   }
 
   /**
    * Get layout configuration for specific asset type
    */
-  static getLayout(assetType): AssetLayout | null {
+  static getLayout(assetType) { // Removed type annotation : AssetLayout | null
     const normalizedType = this.normalizeAssetType(assetType);
     return this.layouts[normalizedType] || null;
   }
@@ -698,27 +702,31 @@ export class AssetTypeLayoutManager {
   /**
    * Get preview type for asset type (handles normalization)
    */
-  static getPreviewType(assetType): 'email' | 'web' | 'slide' | 'social' {
+  static getPreviewType(assetType) { // Removed type annotation : 'email' | 'web' | 'slide' | 'social'
     const layout = this.getLayout(assetType);
+    // Added safety check for null layout
+    if (!layout) return 'web'; 
     return layout.previewType || 'web';
   }
 
   /**
    * Get all available asset types with their basic info
    */
-  static getAvailableAssetTypes(): Array<{ type; name; description; estimatedHours }> {
-    return assetConfigurations.map(config => ({
-      type.type,
-      name.name,
-      description.description,
-      estimatedHours.estimatedHours
+  static getAvailableAssetTypes() { // Removed type annotation Array<{...}>
+    // Corrected object literal assignment (missing colons)
+    // NOTE: assetConfigurations is expected to be defined and imported from '@/data/assetConfigurations'
+    return (assetConfigurations || []).map(config => ({
+      type: config.type,
+      name: config.name,
+      description: config.description,
+      estimatedHours: config.estimatedHours
     }));
   }
 
   /**
    * Get required fields for asset type
    */
-  static getRequiredFields(assetType): string[] {
+  static getRequiredFields(assetType) { // Removed type annotation : string[]
     const layout = this.getLayout(assetType);
     if (!layout) return [];
 
@@ -731,7 +739,7 @@ export class AssetTypeLayoutManager {
   /**
    * Get AI-enabled fields for asset type
    */
-  static getAIEnabledFields(assetType): string[] {
+  static getAIEnabledFields(assetType) { // Removed type annotation : string[]
     const layout = this.getLayout(assetType);
     if (!layout) return [];
 
@@ -744,18 +752,19 @@ export class AssetTypeLayoutManager {
   /**
    * Validate content against asset type requirements
    */
-  static validateContent(assetType, content<string, any>): {
-    isValid;
-    missingRequired;
-    validationErrors<{ field; error }>;
-  } {
+  static validateContent(assetType, content) { // Removed type annotation <string, any>
     const layout = this.getLayout(assetType);
     if (!layout) {
-      return { isValid, missingRequired: [], validationErrors: [{ field: 'assetType', error: 'Unknown asset type' }] };
+      // Corrected object literal assignment (missing colons and referencing undefined variables)
+      return { 
+        isValid: false, 
+        missingRequired: [], 
+        validationErrors: [{ field: 'assetType', error: 'Unknown asset type' }] 
+      };
     }
 
     const missingRequired = [];
-    const validationErrors<{ field; error }> = [];
+    const validationErrors = []; // Removed type annotation <{ field; error }>
 
     layout.sections.forEach(section => {
       section.fields.forEach(field => {
@@ -769,14 +778,16 @@ export class AssetTypeLayoutManager {
         // Check length constraints
         if (value && typeof value === 'string') {
           if (field.maxLength && value.length > field.maxLength) {
+            // Corrected object literal assignment (missing colons)
             validationErrors.push({
-              field.id,
+              field: field.id,
               error: `Content exceeds maximum length of ${field.maxLength} characters`
             });
           }
           if (field.minLength && value.length < field.minLength) {
+            // Corrected object literal assignment (missing colons)
             validationErrors.push({
-              field.id,
+              field: field.id,
               error: `Content must be at least ${field.minLength} characters`
             });
           }
@@ -784,8 +795,9 @@ export class AssetTypeLayoutManager {
       });
     });
 
+    // Corrected object literal assignment (missing colons)
     return {
-      isValid.length === 0 && validationErrors.length === 0,
+      isValid: missingRequired.length === 0 && validationErrors.length === 0,
       missingRequired,
       validationErrors
     };
@@ -794,14 +806,14 @@ export class AssetTypeLayoutManager {
   /**
    * Convert generic content to asset-type specific structure
    */
-  static adaptContentToAssetType(genericContent<string, any>, assetType): Record<string, any> {
+  static adaptContentToAssetType(genericContent, assetType) { // Removed type annotation <string, any>
     const layout = this.getLayout(assetType);
     if (!layout) return genericContent;
 
-    const adaptedContent<string, any> = {};
+    const adaptedContent = {}; // Removed type annotation <string, any>
     
     // Map generic fields to asset-specific fields
-    const fieldMappings<string, string> = {
+    const fieldMappings = { // Removed type annotation <string, string>
       'subject': 'subject',
       'headline': 'headline',
       'body': 'body',

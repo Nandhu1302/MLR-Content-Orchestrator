@@ -1,116 +1,8 @@
-/**
- * NOTE: The following dependencies are assumed to be available in the execution environment.
- * import { supabase } from '@/integrations/supabase/client';
- * import { unifiedDataService } from './unifiedDataService';
- * import { BrandConsistencyResult, BrandIssue } from './brandConsistencyService';
- */
-
-// Placeholder for external imports - replace with actual imports if running
-const supabase = {
-  from: () => ({
-    select: () => ({
-      eq: () => ({
-        single: async () => ({ data: { /* mock data */ }, error: null })
-      })
-    })
-  })
-};
-
-const unifiedDataService = {
-  getContentWithContext: async (assetId, type) => ({ content: {
-    primary_content: {
-      headline: "New Drug for Chronic Pain",
-      body: "This is a clinically proven, innovative treatment option that can help reduce symptoms by 40%. Contact your doctor for more information.",
-      cta_text: "Learn More Now",
-      disclaimer: "Must see full prescribing information. Side effects may include nausea and dizziness.",
-    }
-  }, context: {} }),
-};
-
-// --- JSDoc Type Definitions ---
-
-/**
- * @typedef {Object} ContentSection
- * @property {string} id
- * @property {'headline' | 'body' | 'cta' | 'disclaimer' | 'tagline'} type
- * @property {string} content
- * @property {number} startIndex
- * @property {number} endIndex
- */
-
-/**
- * @typedef {Object} BrandIssue
- * @property {string} category
- * @property {'critical' | 'high' | 'medium' | 'low'} severity
- * @property {string} description
- * @property {string} suggestion
- * @property {string} location
- */
-
-/**
- * @typedef {BrandIssue & Object} ContentAnalysisIssue
- * @property {ContentSection} contentSection
- * @property {string} specificText
- * @property {string} suggestedReplacement
- * @property {number} confidenceScore
- * @property {'none' | 'low' | 'medium' | 'high' | 'critical'} regulatoryRisk
- */
-
-/**
- * @typedef {Object} BrandConsistencyResult
- * @property {number} overallScore
- * @property {number} messagingScore
- * @property {number} toneScore
- * @property {number} visualScore
- * @property {number} regulatoryScore
- * @property {BrandIssue[]} issues
- * @property {string[]} strengths
- * @property {string[]} recommendations
- * @property {'compliant' | 'needs_review' | 'non_compliant'} status
- */
-
-/**
- * @typedef {BrandConsistencyResult & Object} EnhancedBrandConsistencyResult
- * @property {ContentSection[]} contentSections
- * @property {ContentAnalysisIssue[]} contentIssues
- * @property {Object} strategicContext
- * @property {string[]} [strategicContext.campaignObjectives]
- * @property {Object} [strategicContext.themeAlignment]
- * @property {string} strategicContext.themeAlignment.themeName
- * @property {number} strategicContext.themeAlignment.alignmentScore
- * @property {string[]} strategicContext.themeAlignment.misalignedElements
- * @property {any} [strategicContext.audienceInsights]
- * @property {any[]} [strategicContext.previousContent]
- * @property {Object[]} marketSpecificFlags
- * @property {string} marketSpecificFlags.market
- * @property {string[]} marketSpecificFlags.culturalRisks
- * @property {string[]} marketSpecificFlags.regulatoryFlags
- * @property {string[]} marketSpecificFlags.terminologyIssues
- * @property {Object[]} actionableRecommendations
- * @property {'critical' | 'high' | 'medium' | 'low'} actionableRecommendations.priority
- * @property {string} actionableRecommendations.category
- * @property {string} actionableRecommendations.description
- * @property {string} actionableRecommendations.action
- * @property {'low' | 'medium' | 'high'} actionableRecommendations.effort
- * @property {'low' | 'medium' | 'high'} actionableRecommendations.impact
- * @property {string} actionableRecommendations.beforeExample
- * @property {string} actionableRecommendations.afterExample
- */
+import React from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { unifiedDataService } from './unifiedDataService';
 
 export class EnhancedBrandConsistencyService {
-  /**
-   * Validates content against brand guidelines, strategic context, and market regulations.
-   * @static
-   * @param {string} assetId
-   * @param {string} brandId
-   * @param {string[]} [targetMarkets=[]]
-   * @param {Object} [strategicContext]
-   * @param {any} [strategicContext.campaignContext]
-   * @param {any} [strategicContext.themeContext]
-   * @param {any} [strategicContext.assetContext]
-   * @param {any} [strategicContext.globalContext]
-   * @returns {Promise<EnhancedBrandConsistencyResult>}
-   */
   static async validateBrandConsistencyWithContext(
     assetId,
     brandId,
@@ -124,7 +16,7 @@ export class EnhancedBrandConsistencyService {
 
       if (!asset) throw new Error('Asset not found');
 
-      // Get brand guidelines and strategic context (Mocked Supabase calls)
+      // Get brand guidelines and strategic context
       const [guidelines, vision, strategicData] = await Promise.all([
         this.getBrandGuidelines(brandId),
         this.getBrandVision(brandId),
@@ -167,12 +59,6 @@ export class EnhancedBrandConsistencyService {
     }
   }
 
-  /**
-   * @private
-   * @static
-   * @param {any} asset
-   * @returns {ContentSection[]}
-   */
   static parseContentSections(asset) {
     const sections = [];
     const content = asset.primary_content || {};
@@ -228,22 +114,12 @@ export class EnhancedBrandConsistencyService {
     return sections;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection[]} sections
-   * @param {any} guidelines
-   * @param {any} vision
-   * @param {string[]} targetMarkets
-   * @returns {Promise<ContentAnalysisIssue[]>}
-   */
   static async analyzeContentSections(
     sections,
     guidelines,
     vision,
     targetMarkets
   ) {
-    /** @type {ContentAnalysisIssue[]} */
     const issues = [];
 
     for (const section of sections) {
@@ -267,30 +143,20 @@ export class EnhancedBrandConsistencyService {
     return issues;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection} section
-   * @param {any} guidelines
-   * @param {any} vision
-   * @returns {Promise<ContentAnalysisIssue[]>}
-   */
   static async analyzeMessagingInSection(
     section,
     guidelines,
     vision
   ) {
-    /** @type {ContentAnalysisIssue[]} */
     const issues = [];
-    // Mock guidelines structure
-    const keyMessages = guidelines?.messaging_framework?.key_messages || ['innovative treatment', 'designed to help manage'];
-    const prohibitedTerms = guidelines?.messaging_framework?.prohibited_terms || ['cure', 'miracle', 'guarantee'];
+    const keyMessages = (guidelines && guidelines.messaging_framework && guidelines.messaging_framework.key_messages) || [];
+    const prohibitedTerms = (guidelines && guidelines.messaging_framework && guidelines.messaging_framework.prohibited_terms) || [];
 
     // Check for prohibited terms
     for (const term of prohibitedTerms) {
       const regex = new RegExp(`\\b${term}\\b`, 'gi');
       const matches = section.content.matchAll(regex);
-
+      
       for (const match of matches) {
         if (match.index !== undefined) {
           issues.push({
@@ -311,7 +177,7 @@ export class EnhancedBrandConsistencyService {
 
     // Check for missing key messages in critical sections
     if (section.type === 'headline' || section.type === 'body') {
-      const hasKeyMessage = keyMessages.some((/** @type {string} */ msg) =>
+      const hasKeyMessage = keyMessages.some((msg) => 
         section.content.toLowerCase().includes(msg.toLowerCase())
       );
 
@@ -334,24 +200,16 @@ export class EnhancedBrandConsistencyService {
     return issues;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection} section
-   * @param {string[]} targetMarkets
-   * @returns {Promise<ContentAnalysisIssue[]>}
-   */
   static async analyzeRegulatoryInSection(
     section,
     targetMarkets
   ) {
-    /** @type {ContentAnalysisIssue[]} */
     const issues = [];
     const content = section.content.toLowerCase();
 
     // Check for unsubstantiated claims
     const claimWords = ['proven', 'guaranteed', 'best', 'most effective', 'clinically proven', '#1'];
-
+    
     for (const claim of claimWords) {
       if (content.includes(claim.toLowerCase())) {
         issues.push({
@@ -371,9 +229,9 @@ export class EnhancedBrandConsistencyService {
 
     // Check for missing safety information in critical sections
     if (section.type === 'disclaimer' || section.type === 'body') {
-      const hasSafetyInfo = content.includes('important safety information') ||
-        content.includes('contraindications') ||
-        content.includes('side effects');
+      const hasSafetyInfo = content.includes('important safety information') || 
+                           content.includes('contraindications') ||
+                           content.includes('side effects');
 
       if (!hasSafetyInfo && (section.type === 'disclaimer' || section.content.length > 200)) {
         issues.push({
@@ -394,26 +252,18 @@ export class EnhancedBrandConsistencyService {
     return issues;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection} section
-   * @param {any} guidelines
-   * @returns {Promise<ContentAnalysisIssue[]>}
-   */
   static async analyzeToneInSection(
     section,
     guidelines
   ) {
-    /** @type {ContentAnalysisIssue[]} */
     const issues = [];
-    const expectedTone = guidelines?.tone_of_voice?.primary_tone || 'professional';
-
+    const expectedTone = (guidelines && guidelines.tone_of_voice && guidelines.tone_of_voice.primary_tone) || 'professional';
+    
     // Simple tone analysis
     const content = section.content.toLowerCase();
     const casualWords = ['hey', 'wow', 'awesome', 'cool', 'amazing'];
     const informalWords = ['gonna', 'wanna', 'kinda', 'sorta'];
-
+    
     if (expectedTone === 'professional') {
       for (const word of [...casualWords, ...informalWords]) {
         if (content.includes(word)) {
@@ -436,16 +286,9 @@ export class EnhancedBrandConsistencyService {
     return issues;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection} section
-   * @returns {Promise<ContentAnalysisIssue[]>}
-   */
   static async analyzeClaimsInSection(section) {
-    /** @type {ContentAnalysisIssue[]} */
     const issues = [];
-
+    
     // Check for specific medical claims that need substantiation
     const medicalClaimPatterns = [
       /reduces? (\w+) by (\d+)%/gi,
@@ -456,7 +299,7 @@ export class EnhancedBrandConsistencyService {
 
     for (const pattern of medicalClaimPatterns) {
       const matches = section.content.matchAll(pattern);
-
+      
       for (const match of matches) {
         if (match.index !== undefined) {
           issues.push({
@@ -478,13 +321,6 @@ export class EnhancedBrandConsistencyService {
     return issues;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection[]} sections
-   * @param {string[]} targetMarkets
-   * @returns {Promise<any[]>}
-   */
   static async analyzeMarketSpecificFlags(
     sections,
     targetMarkets
@@ -507,13 +343,6 @@ export class EnhancedBrandConsistencyService {
     return marketFlags;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection[]} sections
-   * @param {string} market
-   * @returns {string[]}
-   */
   static identifyCulturalRisks(sections, market) {
     const risks = [];
     const combinedContent = sections.map(s => s.content).join(' ').toLowerCase();
@@ -527,7 +356,7 @@ export class EnhancedBrandConsistencyService {
     };
 
     const flagsForMarket = culturalFlags[market] || [];
-
+    
     for (const flag of flagsForMarket) {
       if (combinedContent.includes(flag)) {
         risks.push(`"${flag}" may require cultural adaptation for ${market}`);
@@ -537,13 +366,6 @@ export class EnhancedBrandConsistencyService {
     return risks;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection[]} sections
-   * @param {string} market
-   * @returns {string[]}
-   */
   static identifyRegulatoryFlags(sections, market) {
     const flags = [];
     const combinedContent = sections.map(s => s.content).join(' ').toLowerCase();
@@ -560,15 +382,9 @@ export class EnhancedBrandConsistencyService {
     return flags;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection[]} sections
-   * @param {string} market
-   * @returns {string[]}
-   */
   static identifyTerminologyIssues(sections, market) {
     const issues = [];
+    
     // This would be expanded with actual terminology databases
     const terminologyMap = {
       'US': { 'medicine': 'medication', 'tablets': 'pills' },
@@ -579,13 +395,6 @@ export class EnhancedBrandConsistencyService {
     return issues;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection[]} sections
-   * @param {any} themeContext
-   * @returns {Promise<Object>}
-   */
   static async analyzeThemeAlignment(sections, themeContext) {
     if (!themeContext) {
       return {
@@ -596,8 +405,8 @@ export class EnhancedBrandConsistencyService {
     }
 
     const combinedContent = sections.map(s => s.content).join(' ').toLowerCase();
-    const themeKeywords = themeContext.keyMessage?.toLowerCase().split(' ') || [];
-
+    const themeKeywords = (themeContext.keyMessage && themeContext.keyMessage.toLowerCase().split(' ')) || [];
+    
     let alignmentScore = 0;
     const misalignedElements = [];
 
@@ -617,14 +426,6 @@ export class EnhancedBrandConsistencyService {
     };
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentSection[]} sections
-   * @param {any} guidelines
-   * @param {string[]} targetMarkets
-   * @returns {Promise<any[]>}
-   */
   static async generateActionableRecommendations(
     sections,
     guidelines,
@@ -647,14 +448,6 @@ export class EnhancedBrandConsistencyService {
     return recommendations;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentAnalysisIssue[]} contentIssues
-   * @param {any[]} marketFlags
-   * @param {any} themeAlignment
-   * @returns {BrandConsistencyResult}
-   */
   static calculateEnhancedScores(
     contentIssues,
     marketFlags,
@@ -662,11 +455,11 @@ export class EnhancedBrandConsistencyService {
   ) {
     const criticalIssues = contentIssues.filter(i => i.severity === 'critical');
     const highIssues = contentIssues.filter(i => i.severity === 'high');
-
+    
     let overallScore = 100;
     overallScore -= criticalIssues.length * 20;
     overallScore -= highIssues.length * 10;
-
+    
     const messagingScore = Math.max(0, 100 - contentIssues.filter(i => i.category === 'messaging').length * 15);
     const regulatoryScore = Math.max(0, 100 - contentIssues.filter(i => i.category === 'regulatory').length * 25);
     const toneScore = Math.max(0, 100 - contentIssues.filter(i => i.category === 'tone').length * 10);
@@ -685,115 +478,68 @@ export class EnhancedBrandConsistencyService {
     };
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentAnalysisIssue[]} contentIssues
-   * @param {any} themeAlignment
-   * @returns {string[]}
-   */
   static identifyStrengths(contentIssues, themeAlignment) {
     const strengths = [];
-
+    
     if (contentIssues.filter(i => i.category === 'regulatory' && i.severity === 'critical').length === 0) {
       strengths.push('No critical regulatory issues detected');
     }
-
-    if (themeAlignment.alignmentScore > 70) {
+    
+    if (themeAlignment && themeAlignment.alignmentScore > 70) {
       strengths.push('Strong alignment with strategic theme');
     }
-
+    
     return strengths;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {ContentAnalysisIssue[]} contentIssues
-   * @returns {string[]}
-   */
   static generateBasicRecommendations(contentIssues) {
     const recommendations = [];
-
+    
     if (contentIssues.filter(i => i.severity === 'critical').length > 0) {
       recommendations.push('Address critical issues before proceeding');
     }
-
+    
     return recommendations;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {number} overallScore
-   * @param {number} criticalIssuesCount
-   * @returns {'compliant' | 'needs_review' | 'non_compliant'}
-   */
   static determineStatus(overallScore, criticalIssuesCount) {
     if (criticalIssuesCount > 0) return 'non_compliant';
     if (overallScore < 70) return 'needs_review';
     return 'compliant';
   }
 
-  // --- Helper methods for data fetching and suggestions (Mocked Supabase calls) ---
-
-  /**
-   * @private
-   * @static
-   * @param {string} brandId
-   * @returns {Promise<any>}
-   */
+  // Helper methods
   static async getBrandGuidelines(brandId) {
-    // Mocked data for structure
-    return {
-      brand_id: brandId,
-      messaging_framework: {
-        key_messages: ['innovative treatment', 'designed to help manage'],
-        prohibited_terms: ['cure', 'miracle', 'guarantee']
-      },
-      tone_of_voice: {
-        primary_tone: 'professional'
-      }
-    };
+    const { data, error } = await supabase
+      .from('brand_guidelines')
+      .select('*')
+      .eq('brand_id', brandId)
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {string} brandId
-   * @returns {Promise<any>}
-   */
   static async getBrandVision(brandId) {
-    // Mocked data for structure
-    return {
-      brand_id: brandId,
-      vision: 'To be the leading innovator in personalized medicine.'
-    };
+    const { data, error } = await supabase
+      .from('brand_vision')
+      .select('*')
+      .eq('brand_id', brandId)
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
-  /**
-   * @private
-   * @static
-   * @param {string} brandId
-   * @param {any} context
-   * @returns {Promise<Object>}
-   */
   static async getStrategicContext(brandId, context) {
     // Get campaign objectives and audience insights from context
     return {
-      campaignObjectives: context?.campaignContext?.objectives || ['increase HCP awareness', 'drive patient sign-ups'],
-      audienceInsights: context?.campaignContext?.audienceInsights || { primary: 'HCPs', secondary: 'Patients' },
+      campaignObjectives: context && context.campaignContext && context.campaignContext.objectives || [],
+      audienceInsights: context && context.campaignContext && context.campaignContext.audienceInsights || {},
       previousContent: []
     };
   }
 
-  /**
-   * @private
-   * @static
-   * @param {string} term
-   * @param {string[]} keyMessages
-   * @returns {string}
-   */
   static getSuggestedReplacement(term, keyMessages) {
     // Simple replacement logic - would be enhanced with terminology database
     const replacements = {
@@ -802,34 +548,21 @@ export class EnhancedBrandConsistencyService {
       'best': 'effective',
       'proven': 'studied'
     };
-
-    return replacements[term.toLowerCase()] || keyMessages[0] || 'approved alternative';
+    
+    return replacements[term.toLowerCase()] || (keyMessages && keyMessages[0]) || 'approved alternative';
   }
 
-  /**
-   * @private
-   * @static
-   * @param {string} claim
-   * @returns {string}
-   */
   static getSofterClaimAlternative(claim) {
     const alternatives = {
       'proven': 'studied in clinical trials',
       'guaranteed': 'designed to help',
       'best': 'an effective option',
-      'most effective': 'a proven treatment option',
-      'clinically proven': 'backed by clinical data'
+      'most effective': 'a proven treatment option'
     };
-
+    
     return alternatives[claim.toLowerCase()] || 'clinically studied';
   }
 
-  /**
-   * @private
-   * @static
-   * @param {string} word
-   * @returns {string}
-   */
   static getProfessionalAlternative(word) {
     const alternatives = {
       'hey': 'hello',
@@ -837,11 +570,9 @@ export class EnhancedBrandConsistencyService {
       'awesome': 'excellent',
       'cool': 'beneficial',
       'gonna': 'going to',
-      'wanna': 'want to',
-      'kinda': 'somewhat',
-      'sorta': 'rather'
+      'wanna': 'want to'
     };
-
+    
     return alternatives[word.toLowerCase()] || word;
   }
 }

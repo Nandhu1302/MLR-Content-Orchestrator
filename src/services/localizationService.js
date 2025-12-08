@@ -1,140 +1,8 @@
-import { supabase } from './supabase/client'; // Adjust the import path as necessary
-
-/**
- * @typedef {Object} MarketData
- * @property {string} market
- * @property {string} market_name
- * @property {string} priority
- * @property {string[]} regulatory_requirements
- * @property {string[]} [cultural_considerations]
- */
-
-/**
- * @typedef {Object} CreateLocalizationProjectData
- * @property {string} project_name
- * @property {string} description
- * @property {string} source_content_type
- * @property {string} source_content_id
- * @property {MarketData[]} target_markets
- * @property {string[]} target_languages
- * @property {string} priority_level
- * @property {number} total_budget
- * @property {string} desired_timeline
- */
-
-/**
- * @typedef {Object} LocalizationProject
- * @property {string} id
- * @property {string} brand_id
- * @property {string} project_name
- * @property {string} [status]
- * @property {string} [created_at]
- * // ... other fields from the database schema
- */
-
-/**
- * @typedef {Object} LocalizationWorkflow
- * @property {string} id
- * @property {string} localization_project_id
- * @property {string} workflow_status
- * @property {string} [started_at]
- * @property {string} [completed_at]
- * @property {number} [estimated_cost]
- * @property {number} [actual_cost]
- * @property {Array<any>} [quality_gates]
- * // ... other workflow fields
- */
-
-/**
- * @typedef {Object} ContentReadinessAssessment
- * @property {number} overall_score
- * @property {number} regulatory_complexity_score
- * @property {number} cultural_sensitivity_score
- * @property {number} translation_complexity_score
- * @property {Record<string, number>} market_readiness_scores
- * @property {string[]} recommendations
- * @property {string[]} risk_factors
- * @property {Record<string, number>} estimated_effort
- */
-
-/**
- * @typedef {Object} LocalizationAgency
- * @property {string} id
- * @property {string} brand_id
- * @property {boolean} is_active
- * @property {string[]} specializations
- * @property {number} performance_score
- * @property {number} quality_rating
- * @property {number} on_time_delivery_rate
- * @property {number} capacity_rating
- * @property {Array<Object>} language_pairs
- * // ... other agency fields
- */
-
-/**
- * @typedef {Object} AgencyMatchCriteria
- * @property {string[]} required_languages
- * @property {string} therapeutic_area
- * @property {'low' | 'medium' | 'high'} timeline_urgency
- */
-
-/**
- * @typedef {Object} AgencyMatchResult
- * @property {LocalizationAgency} agency
- * @property {number} match_score
- * @property {string[]} match_reasons
- * @property {number} estimated_cost
- * @property {number} estimated_timeline
- * @property {'available' | 'limited' | 'unavailable'} availability_status
- * @property {'recommended' | 'suitable' | 'backup'} recommendation_level
- */
-
-/**
- * @typedef {Object} TranslationMemory
- * @property {string} id
- * @property {string} brand_id
- * @property {string} source_language
- * @property {string} target_language
- * @property {string} source_text
- * @property {string} target_text
- * @property {number} quality_score
- * // ... other TM fields
- */
-
-/**
- * @typedef {Object} TranslationMemoryMatch
- * @property {TranslationMemory} translation_memory
- * @property {number} match_percentage
- * @property {number} leverage_potential
- * @property {number} cost_savings
- */
-
-/**
- * @typedef {Object} LocalizationDashboardData
- * @property {number} active_projects
- * @property {number} completed_projects
- * @property {number} projects_this_month
- * @property {number} total_cost_savings
- * @property {number} avg_time_reduction
- * @property {number} avg_quality_score
- * @property {number} on_time_delivery_rate
- * @property {number} cost_efficiency_score
- * @property {number} translation_memory_leverage
- * @property {number} avg_translation_memory_leverage
- * @property {LocalizationWorkflow[]} active_workflows
- * @property {LocalizationProject[]} recent_completions
- * @property {Record<string, number>} performance_metrics
- * @property {Record<string, any>} market_performance
- */
+// ...existing code...
+import { supabase } from "@/integrations/supabase/client";
 
 export class LocalizationService {
   // Localization Projects Management
-  /**
-   * @param {CreateLocalizationProjectData} projectData
-   * @param {string} brandId
-   * @param {string} userId
-   * @returns {Promise<LocalizationProject>}
-   */
   async createLocalizationProject(projectData, brandId, userId) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authentication required');
@@ -174,10 +42,6 @@ export class LocalizationService {
     return data;
   }
 
-  /**
-   * @param {string} brandId
-   * @returns {Promise<LocalizationProject[]>}
-   */
   async getLocalizationProjects(brandId) {
     const { data, error } = await supabase
       .from('localization_projects')
@@ -186,13 +50,9 @@ export class LocalizationService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data) || [];
   }
 
-  /**
-   * @param {string} projectId
-   * @returns {Promise<LocalizationProject | null>}
-   */
   async getLocalizationProject(projectId) {
     const { data, error } = await supabase
       .from('localization_projects')
@@ -204,12 +64,6 @@ export class LocalizationService {
     return data;
   }
 
-  /**
-   * @param {string} projectId
-   * @param {Partial<LocalizationProject>} updates
-   * @param {string} userId
-   * @returns {Promise<LocalizationProject>}
-   */
   async updateLocalizationProject(projectId, updates, userId) {
     const { data, error } = await supabase
       .from('localization_projects')
@@ -223,10 +77,6 @@ export class LocalizationService {
   }
 
   // Content Readiness Assessment (AI-driven)
-  /**
-   * @param {CreateLocalizationProjectData} projectData
-   * @returns {Promise<ContentReadinessAssessment>}
-   */
   async assessContentReadiness(projectData) {
     // This would integrate with AI service for actual assessment
     // For now, returning mock assessment based on project complexity
@@ -256,13 +106,6 @@ export class LocalizationService {
   }
 
   // Translation Memory Management
-  /**
-   * @param {string} sourceText
-   * @param {string} sourceLanguage
-   * @param {string} targetLanguage
-   * @param {string} brandId
-   * @returns {Promise<TranslationMemoryMatch[]>}
-   */
   async searchTranslationMemory(
     sourceText, 
     sourceLanguage, 
@@ -288,11 +131,6 @@ export class LocalizationService {
     }));
   }
 
-  /**
-   * @param {Omit<TranslationMemory, 'id' | 'created_at' | 'updated_at'>} memoryData
-   * @param {string} userId
-   * @returns {Promise<TranslationMemory>}
-   */
   async addTranslationMemory(memoryData, userId) {
     const { data, error } = await supabase
       .from('translation_memory')
@@ -305,11 +143,6 @@ export class LocalizationService {
   }
 
   // Agency Management
-  /**
-   * @param {AgencyMatchCriteria} criteria
-   * @param {string} brandId
-   * @returns {Promise<AgencyMatchResult[]>}
-   */
   async findOptimalAgencies(criteria, brandId) {
     const { data: agencies, error } = await supabase
       .from('localization_agencies')
@@ -330,10 +163,6 @@ export class LocalizationService {
     })).sort((a, b) => b.match_score - a.match_score);
   }
 
-  /**
-   * @param {string} brandId
-   * @returns {Promise<LocalizationAgency[]>}
-   */
   async getLocalizationAgencies(brandId) {
     const { data, error } = await supabase
       .from('localization_agencies')
@@ -342,14 +171,9 @@ export class LocalizationService {
       .order('performance_score', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data) || [];
   }
 
-  /**
-   * @param {Omit<LocalizationAgency, 'id' | 'created_at' | 'updated_at'>} agencyData
-   * @param {string} userId
-   * @returns {Promise<LocalizationAgency>}
-   */
   async addLocalizationAgency(agencyData, userId) {
     const { data, error } = await supabase
       .from('localization_agencies')
@@ -362,10 +186,6 @@ export class LocalizationService {
   }
 
   // Workflow Management
-  /**
-   * @param {string} projectId
-   * @returns {Promise<LocalizationWorkflow[]>}
-   */
   async getLocalizationWorkflows(projectId) {
     const { data, error } = await supabase
       .from('localization_workflows')
@@ -374,15 +194,9 @@ export class LocalizationService {
       .order('priority', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data) || [];
   }
 
-  /**
-   * @param {string} workflowId
-   * @param {string} status
-   * @param {string} userId
-   * @returns {Promise<LocalizationWorkflow>}
-   */
   async updateWorkflowStatus(workflowId, status, userId) {
     const updates = { 
       workflow_status: status, 
@@ -409,10 +223,6 @@ export class LocalizationService {
   }
 
   // Dashboard Analytics
-  /**
-   * @param {string} brandId
-   * @returns {Promise<LocalizationDashboardData>}
-   */
   async getDashboardData(brandId) {
     const [projects, workflows, analytics] = await Promise.all([
       this.getLocalizationProjects(brandId),
@@ -428,13 +238,15 @@ export class LocalizationService {
       .filter(a => a.metric_type === 'cost_savings')
       .reduce((sum, a) => sum + a.metric_value, 0);
 
-    const timeline_performance_metrics = analytics.filter(a => a.metric_type === 'timeline_performance');
-    const timeline_reduction = timeline_performance_metrics.reduce((sum, a) => sum + a.metric_value, 0) / 
-      Math.max(1, timeline_performance_metrics.length);
+    const timeline_reduction = analytics
+      .filter(a => a.metric_type === 'timeline_performance')
+      .reduce((sum, a) => sum + a.metric_value, 0) / 
+      Math.max(1, analytics.filter(a => a.metric_type === 'timeline_performance').length);
 
-    const memory_leverage_metrics = analytics.filter(a => a.metric_type === 'translation_memory_leverage');
-    const memory_leverage = memory_leverage_metrics.reduce((sum, a) => sum + a.metric_value, 0) /
-      Math.max(1, memory_leverage_metrics.length);
+    const memory_leverage = analytics
+      .filter(a => a.metric_type === 'translation_memory_leverage')
+      .reduce((sum, a) => sum + a.metric_value, 0) /
+      Math.max(1, analytics.filter(a => a.metric_type === 'translation_memory_leverage').length);
 
     return {
       active_projects,
@@ -446,7 +258,6 @@ export class LocalizationService {
       }).length,
       total_cost_savings: cost_savings,
       avg_time_reduction: timeline_reduction || 0,
-      // Mock calculation based on number of quality gates
       avg_quality_score: workflows.reduce((acc, w) => acc + (w.quality_gates?.length || 0), 0) / Math.max(workflows.length, 1) * 20,
       on_time_delivery_rate: workflows.filter(w => w.workflow_status === 'completed').length / Math.max(workflows.length, 1) * 100,
       cost_efficiency_score: cost_savings > 0 ? 85 : 0,
@@ -463,15 +274,7 @@ export class LocalizationService {
     };
   }
 
-  // Private helper methods
-  /**
-   * @private
-   * @param {string} projectId
-   * @param {MarketData[]} markets
-   * @param {string[]} languages
-   * @param {string} userId
-   * @returns {Promise<void>}
-   */
+  // Helper methods
   async createInitialWorkflows(
     projectId, 
     markets, 
@@ -512,11 +315,6 @@ export class LocalizationService {
     }
   }
 
-  /**
-   * @private
-   * @param {MarketData[]} markets
-   * @returns {'low' | 'standard' | 'high' | 'critical'}
-   */
   determineRegulatoryComplexity(markets) {
     const totalRequirements = markets.reduce((sum, market) => 
       sum + (market.regulatory_requirements?.length || 0), 0);
@@ -527,11 +325,6 @@ export class LocalizationService {
     return 'low';
   }
 
-  /**
-   * @private
-   * @param {MarketData[]} markets
-   * @returns {'low' | 'medium' | 'high'}
-   */
   determineCulturalSensitivity(markets) {
     const culturalConsiderations = markets.reduce((sum, market) => 
       sum + (market.cultural_considerations?.length || 0), 0);
@@ -541,11 +334,6 @@ export class LocalizationService {
     return 'low';
   }
 
-  /**
-   * @private
-   * @param {CreateLocalizationProjectData} projectData
-   * @returns {string[]}
-   */
   generateReadinessRecommendations(projectData) {
     const recommendations = [];
     
@@ -560,11 +348,6 @@ export class LocalizationService {
     return recommendations;
   }
 
-  /**
-   * @private
-   * @param {CreateLocalizationProjectData} projectData
-   * @returns {string[]}
-   */
   identifyRiskFactors(projectData) {
     const risks = [];
     
@@ -578,11 +361,6 @@ export class LocalizationService {
     return risks;
   }
 
-  /**
-   * @private
-   * @param {CreateLocalizationProjectData} projectData
-   * @returns {Record<string, number>}
-   */
   calculateEstimatedEffort(projectData) {
     return {
       translation_hours: projectData.target_languages.length * 40,
@@ -591,12 +369,6 @@ export class LocalizationService {
     };
   }
 
-  /**
-   * @private
-   * @param {string} text1
-   * @param {string} text2
-   * @returns {number}
-   */
   calculateMatchPercentage(text1, text2) {
     // Simple Levenshtein distance-based matching
     const longer = text1.length > text2.length ? text1 : text2;
@@ -608,12 +380,6 @@ export class LocalizationService {
     return Math.round(((longer.length - distance) / longer.length) * 100);
   }
 
-  /**
-   * @private
-   * @param {string} str1
-   * @param {string} str2
-   * @returns {number}
-   */
   levenshteinDistance(str1, str2) {
     const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
     
@@ -634,21 +400,10 @@ export class LocalizationService {
     return matrix[str2.length][str1.length];
   }
 
-  /**
-   * @private
-   * @param {number} qualityScore
-   * @returns {number}
-   */
   calculateCostSavings(qualityScore) {
     return qualityScore * 0.8; // 80% of quality score as cost saving percentage
   }
 
-  /**
-   * @private
-   * @param {LocalizationAgency} agency
-   * @param {AgencyMatchCriteria} criteria
-   * @returns {number}
-   */
   calculateAgencyMatch(agency, criteria) {
     let score = 0;
     
@@ -668,12 +423,6 @@ export class LocalizationService {
     return Math.min(100, score);
   }
 
-  /**
-   * @private
-   * @param {LocalizationAgency} agency
-   * @param {AgencyMatchCriteria} criteria
-   * @returns {string[]}
-   */
   getMatchReasons(agency, criteria) {
     const reasons = [];
     
@@ -688,27 +437,15 @@ export class LocalizationService {
     return reasons;
   }
 
-  /**
-   * @private
-   * @param {LocalizationAgency} agency
-   * @param {AgencyMatchCriteria} criteria
-   * @returns {number}
-   */
   estimateAgencyCost(agency, criteria) {
     const baseCost = 1000;
     const qualityMultiplier = agency.quality_rating / 100;
     const urgencyMultiplier = criteria.timeline_urgency === 'high' ? 1.5 : 
-                               criteria.timeline_urgency === 'medium' ? 1.2 : 1.0;
+                             criteria.timeline_urgency === 'medium' ? 1.2 : 1.0;
     
     return Math.round(baseCost * qualityMultiplier * urgencyMultiplier);
   }
 
-  /**
-   * @private
-   * @param {LocalizationAgency} agency
-   * @param {AgencyMatchCriteria} criteria
-   * @returns {number}
-   */
   estimateAgencyTimeline(agency, criteria) {
     const baseTimeline = 14; // 2 weeks
     const capacityAdjustment = (100 - agency.capacity_rating) * 0.01;
@@ -716,23 +453,12 @@ export class LocalizationService {
     return Math.round(baseTimeline * (1 + capacityAdjustment));
   }
 
-  /**
-   * @private
-   * @param {LocalizationAgency} agency
-   * @returns {'available' | 'limited' | 'unavailable'}
-   */
   checkAgencyAvailability(agency) {
     if (agency.capacity_rating > 70) return 'available';
     if (agency.capacity_rating > 30) return 'limited';
     return 'unavailable';
   }
 
-  /**
-   * @private
-   * @param {LocalizationAgency} agency
-   * @param {AgencyMatchCriteria} criteria
-   * @returns {'recommended' | 'suitable' | 'backup'}
-   */
   getRecommendationLevel(agency, criteria) {
     const matchScore = this.calculateAgencyMatch(agency, criteria);
     
@@ -741,11 +467,6 @@ export class LocalizationService {
     return 'backup';
   }
 
-  /**
-   * @private
-   * @param {string} brandId
-   * @returns {Promise<LocalizationWorkflow[]>}
-   */
   async getAllWorkflowsForBrand(brandId) {
     const { data, error } = await supabase
       .from('localization_workflows')
@@ -756,14 +477,9 @@ export class LocalizationService {
       .eq('localization_projects.brand_id', brandId);
 
     if (error) throw error;
-    return data || [];
+    return (data) || [];
   }
 
-  /**
-   * @private
-   * @param {string} brandId
-   * @returns {Promise<LocalizationAnalytics[]>}
-   */
   async getLocalizationAnalytics(brandId) {
     const { data, error } = await supabase
       .from('localization_analytics')
@@ -774,44 +490,28 @@ export class LocalizationService {
       .eq('localization_projects.brand_id', brandId);
 
     if (error) throw error;
-    return data || [];
+    return (data) || [];
   }
 
-  /**
-   * @private
-   * @param {LocalizationWorkflow[]} workflows
-   * @returns {Record<string, number>}
-   */
   calculateQualityScores(workflows) {
     const completedWorkflows = workflows.filter(w => w.workflow_status === 'completed');
     
-    // Mock calculation - in a real app, this data would come from QA/QC logs
     return {
-      translation: 85, 
+      translation: 85, // Would calculate from actual quality gate results
       review: 92,
       cultural_adaptation: 88,
       regulatory: 95
     };
   }
 
-  /**
-   * @private
-   * @param {LocalizationWorkflow[]} workflows
-   * @returns {number}
-   */
   calculateOnTimeDelivery(workflows) {
     const completedWorkflows = workflows.filter(w => w.workflow_status === 'completed');
     if (completedWorkflows.length === 0) return 0;
     
-    // Mock calculation
+    // Mock calculation - in reality would compare actual vs estimated completion dates
     return 87.5;
   }
 
-  /**
-   * @private
-   * @param {LocalizationWorkflow[]} workflows
-   * @returns {number}
-   */
   calculateCostEfficiency(workflows) {
     const completedWorkflows = workflows.filter(w => 
       w.workflow_status === 'completed' && w.estimated_cost && w.actual_cost
@@ -827,12 +527,6 @@ export class LocalizationService {
     return efficiency / completedWorkflows.length;
   }
 
-  /**
-   * @private
-   * @param {LocalizationProject[]} projects
-   * @param {LocalizationWorkflow[]} workflows
-   * @returns {Record<string, any>}
-   */
   calculateMarketPerformance(projects, workflows) {
     const marketData = {};
     
@@ -848,9 +542,6 @@ export class LocalizationService {
         marketData[market.market].projects += 1;
       });
     });
-    
-    // Logic to calculate success_rate and average_timeline per market would be added here
-    // based on workflows for those markets.
     
     return marketData;
   }

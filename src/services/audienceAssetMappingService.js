@@ -1,28 +1,7 @@
-import type { AssetType, AudienceType, Market } from '@/types/intake';
+// ...existing code...
 import { isHCPAudience, isCaregiverAudience } from '@/utils/audienceTypeHelpers';
 
-export interface AudienceAssetRule {
-  assetType: AssetType;
-  allowedAudiences: AudienceType[];
-  primaryAudience: AudienceType;
-  complianceLevel: 'high' | 'medium' | 'low';
-  regulatoryRestrictions: string[];
-  recommendedMarkets: Market[];
-  reasoning: string;
-}
-
-export interface AssetAudienceDescription {
-  assetType: AssetType;
-  audience: AudienceType;
-  name: string;
-  description: string;
-  examples: string[];
-  complianceNotes: string[];
-  channelRecommendations: string[];
-}
-
-// Comprehensive audience-asset compatibility matrix
-export const AUDIENCE_ASSET_RULES: AudienceAssetRule[] = [
+export const AUDIENCE_ASSET_RULES = [
   // Mass Email Rules
   {
     assetType: 'mass-email',
@@ -95,8 +74,7 @@ export const AUDIENCE_ASSET_RULES: AudienceAssetRule[] = [
   }
 ];
 
-// Audience-specific asset descriptions
-export const ASSET_AUDIENCE_DESCRIPTIONS: AssetAudienceDescription[] = [
+export const ASSET_AUDIENCE_DESCRIPTIONS = [
   // HCP - Mass Email
   {
     assetType: 'mass-email',
@@ -209,36 +187,24 @@ export const ASSET_AUDIENCE_DESCRIPTIONS: AssetAudienceDescription[] = [
   }
 ];
 
-/**
- * Get allowed asset types for a specific audience
- */
-export const getAllowedAssetTypes = (audience: AudienceType): AssetType[] => {
+export const getAllowedAssetTypes = (audience) => {
   return AUDIENCE_ASSET_RULES
     .filter(rule => rule.allowedAudiences.includes(audience))
     .map(rule => rule.assetType);
 };
 
-/**
- * Check if an asset type is allowed for a specific audience
- */
-export const isAssetTypeAllowedForAudience = (assetType: AssetType, audience: AudienceType): boolean => {
+export const isAssetTypeAllowedForAudience = (assetType, audience) => {
   const rule = AUDIENCE_ASSET_RULES.find(r => r.assetType === assetType);
   return rule ? rule.allowedAudiences.includes(audience) : false;
 };
 
-/**
- * Get audience-specific description for an asset type
- */
-export const getAssetAudienceDescription = (assetType: AssetType, audience: AudienceType): AssetAudienceDescription | null => {
+export const getAssetAudienceDescription = (assetType, audience) => {
   return ASSET_AUDIENCE_DESCRIPTIONS.find(
     desc => desc.assetType === assetType && desc.audience === audience
   ) || null;
 };
 
-/**
- * Get compliance requirements for an asset-audience combination
- */
-export const getComplianceRequirements = (assetType: AssetType, audience: AudienceType): string[] => {
+export const getComplianceRequirements = (assetType, audience) => {
   const rule = AUDIENCE_ASSET_RULES.find(r => r.assetType === assetType);
   const description = getAssetAudienceDescription(assetType, audience);
   
@@ -248,10 +214,7 @@ export const getComplianceRequirements = (assetType: AssetType, audience: Audien
   ];
 };
 
-/**
- * Get reasoning for why an asset type is/isn't available for an audience
- */
-export const getAssetAudienceReasoning = (assetType: AssetType, audience: AudienceType): string => {
+export const getAssetAudienceReasoning = (assetType, audience) => {
   const rule = AUDIENCE_ASSET_RULES.find(r => r.assetType === assetType);
   
   if (!rule) return 'Asset type not found in compliance matrix';
@@ -263,15 +226,7 @@ export const getAssetAudienceReasoning = (assetType: AssetType, audience: Audien
   }
 };
 
-// Audience-specific objective definitions
-export interface AudienceObjective {
-  value: string;
-  label: string;
-  description: string;
-  applicableAssets: AssetType[];
-}
-
-export const AUDIENCE_OBJECTIVES: Record<AudienceType, AudienceObjective[]> = {
+export const AUDIENCE_OBJECTIVES = {
   'Physician-Specialist': [
     {
       value: 'clinical-education',
@@ -466,35 +421,23 @@ export const AUDIENCE_OBJECTIVES: Record<AudienceType, AudienceObjective[]> = {
   ]
 };
 
-/**
- * Get audience-specific objectives
- */
-export const getAudienceObjectives = (audience: AudienceType, assetTypes?: AssetType[]): AudienceObjective[] => {
+export const getAudienceObjectives = (audience, assetTypes) => {
   const objectives = AUDIENCE_OBJECTIVES[audience] || [];
   
   if (!assetTypes || assetTypes.length === 0) {
     return objectives;
   }
   
-  // Filter objectives that are applicable to the selected asset types
   return objectives.filter(objective =>
     assetTypes.some(assetType => objective.applicableAssets.includes(assetType))
   );
 };
 
-/**
- * Get smart objective suggestion based on audience, asset type, and context
- */
-export const getSuggestedObjective = (
-  audience: AudienceType, 
-  assetTypes: AssetType[], 
-  indication?: string
-): AudienceObjective | null => {
+export const getSuggestedObjective = (audience, assetTypes, indication) => {
   const availableObjectives = getAudienceObjectives(audience, assetTypes);
   
   if (availableObjectives.length === 0) return null;
   
-  // Smart suggestions based on audience and asset type combinations
   if (isHCPAudience(audience)) {
     if (assetTypes.includes('digital-sales-aid') || assetTypes.includes('rep-triggered-email')) {
       return availableObjectives.find(obj => obj.value === 'clinical-education') || availableObjectives[0];

@@ -1,10 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
 
-
-
-
-
 export class AITranslationEngine {
   
   /**
@@ -13,14 +9,14 @@ export class AITranslationEngine {
   static async translateSegment(request) {
     try {
       console.log('AI Translation Engine translation', {
-        sourceLanguage.sourceLanguage,
-        targetLanguage.targetLanguage,
-        contentType.contentType,
-        textLength.sourceText.length
+        sourceLanguage: request.sourceLanguage,
+        targetLanguage: request.targetLanguage,
+        contentType: request.contentType,
+        textLength: request.sourceText.length
       });
 
       const { data, error } = await supabase.functions.invoke('ai-translation-engine', {
-        body
+        body: request // Assuming 'request' is the correct payload structure for the function invocation
       });
 
       if (error) {
@@ -28,23 +24,24 @@ export class AITranslationEngine {
         throw new Error(`Translation failed: ${error.message}`);
       }
 
-      const result = data as AITranslationResult;
+      const result = data; // Removed 'as AITranslationResult'
       
       // Determine status based on overall quality score
       result.status = this.determineTranslationStatus(result.overallQualityScore);
 
       console.log('AI Translation completed:', {
-        engine.engine,
-        overallScore.overallQualityScore,
-        status.status,
-        processingTime.processingTimeMs
+        engine: result.engine,
+        overallScore: result.overallQualityScore,
+        status: result.status,
+        processingTime: result.processingTimeMs
       });
 
       return result;
 
     } catch (error) {
       console.error('AI Translation Engine service error:', error);
-      throw new Error('Failed to translate content with AI engine');
+      // Ensure the error thrown is an Error object
+      throw new Error(error.message || 'Failed to translate content with AI engine');
     }
   }
 
@@ -53,7 +50,7 @@ export class AITranslationEngine {
    */
   static async translateBatch(request) {
     const batchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const results{ segmentId; translation }> = [];
+    const results = []; // Removed type annotation
     
     let totalProcessingTime = 0;
     let successfulTranslations = 0;
@@ -70,16 +67,16 @@ export class AITranslationEngine {
       const batchPromises = batch.map(async (segment) => {
         try {
           const translationRequest = {
-            sourceText.text,
-            sourceLanguage.sourceLanguage,
-            targetLanguage.targetLanguage,
-            contentType.type || 'general',
-            brandId.brandId,
-            therapeuticArea.therapeuticArea,
-            projectId.projectId,
-            assetId.assetId,
+            sourceText: segment.text,
+            sourceLanguage: request.sourceLanguage,
+            targetLanguage: request.targetLanguage,
+            contentType: segment.type || 'general',
+            brandId: request.brandId,
+            therapeuticArea: request.therapeuticArea,
+            projectId: request.projectId,
+            assetId: request.assetId,
             preferredEngine: 'auto',
-            includeConfidenceScoring
+            includeConfidenceScoring: request.includeConfidenceScoring // Added 'request.' prefix
           };
 
           const translation = await this.translateSegment(translationRequest);
@@ -96,7 +93,7 @@ export class AITranslationEngine {
           }
 
           return {
-            segmentId.id,
+            segmentId: segment.id,
             translation
           };
 
@@ -104,23 +101,23 @@ export class AITranslationEngine {
           console.error(`Failed to translate segment ${segment.id}:`, error);
           reviewSegments.push(segment.id);
           
-          // Return a failed translation result
+          // Return a failed translation result with default/safe values
           return {
-            segmentId.id,
+            segmentId: segment.id,
             translation: {
               id: '',
-              translatedText.text, // Fallback to original text
+              translatedText: segment.text, // Fallback to original text
               engine: 'failed',
-              confidenceScore,
-              medicalAccuracyScore,
-              brandConsistencyScore,
-              culturalAdaptationScore,
-              regulatoryComplianceScore,
-              overallQualityScore,
-              processingTimeMs,
-              glossaryMatches,
-              suggestions'Manual translation required'],
-              status: 'poor' as const
+              confidenceScore: 0,
+              medicalAccuracyScore: 0,
+              brandConsistencyScore: 0,
+              culturalAdaptationScore: 0,
+              regulatoryComplianceScore: 0,
+              overallQualityScore: 0,
+              processingTimeMs: 0,
+              glossaryMatches: 0,
+              suggestions: ['Manual translation required'],
+              status: 'poor' // Removed 'as const'
             }
           };
         }
@@ -136,11 +133,11 @@ export class AITranslationEngine {
     }
 
     const summary = {
-      totalSegments.segments.length,
+      totalSegments: request.segments.length,
       successfulTranslations,
-      averageQualityScore > 0 ? Math.round(totalQualityScore / request.segments.length) ,
-      totalProcessingTime,
-      recommendedReviewSegments
+      averageQualityScore: totalQualityScore > 0 ? Math.round(totalQualityScore / request.segments.length) : 0,
+      totalProcessingTime: totalProcessingTime,
+      recommendedReviewSegments: reviewSegments
     };
 
     console.log('Batch translation completed:', summary);
@@ -159,37 +156,37 @@ export class AITranslationEngine {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const { data } = await supabase
+    const { data: results } = await supabase // Added data alias
       .from('ai_translation_results')
       .select('*')
       .eq('brand_id', brandId)
       .gte('created_at', startDate.toISOString())
-      .order('created_at', { ascending });
+      .order('created_at', { ascending: true }); // Added ascending property
 
     if (!results || results.length === 0) {
       return {
-        totalTranslations,
-        averageQualityScore,
+        totalTranslations: 0,
+        averageQualityScore: 0,
         enginePerformance: {},
         languagePairPerformance: {},
         contentTypePerformance: {},
-        timeToMarketSavings,
-        costSavings
+        timeToMarketSavings: 0,
+        costSavings: 0
       };
     }
 
     // Calculate analytics
     const totalTranslations = results.length;
-    const averageQualityScore = results.reduce((sum, r) => sum + r.overall_quality_score, 0) / totalTranslations;
+    const averageQualityScoreRaw = results.reduce((sum, r) => sum + r.overall_quality_score, 0) / totalTranslations;
     
     // Engine performance breakdown
     const enginePerformance = results.reduce((acc, r) => {
       if (!acc[r.translation_engine]) {
-        acc[r.translation_engine] = { count, avgScore, totalScore };
+        acc[r.translation_engine] = { count: 0, avgScore: 0, totalScore: 0 };
       }
       acc[r.translation_engine].count++;
       acc[r.translation_engine].totalScore += r.overall_quality_score;
-      acc[r.translation_engine].avgScore = acc[r.translation_engine].totalScore / acc[r.translation_engine].count;
+      acc[r.translation_engine].avgScore = Math.round(acc[r.translation_engine].totalScore / acc[r.translation_engine].count);
       return acc;
     }, {});
 
@@ -197,30 +194,30 @@ export class AITranslationEngine {
     const languagePairPerformance = results.reduce((acc, r) => {
       const pair = `${r.source_language}-${r.target_language}`;
       if (!acc[pair]) {
-        acc[pair] = { count, avgScore, totalScore };
+        acc[pair] = { count: 0, avgScore: 0, totalScore: 0 };
       }
       acc[pair].count++;
       acc[pair].totalScore += r.overall_quality_score;
-      acc[pair].avgScore = acc[pair].totalScore / acc[pair].count;
+      acc[pair].avgScore = Math.round(acc[pair].totalScore / acc[pair].count);
       return acc;
     }, {});
 
     // Content type performance
     const contentTypePerformance = results.reduce((acc, r) => {
       if (!acc[r.segment_type]) {
-        acc[r.segment_type] = { count, avgScore, totalScore };
+        acc[r.segment_type] = { count: 0, avgScore: 0, totalScore: 0 };
       }
       acc[r.segment_type].count++;
       acc[r.segment_type].totalScore += r.overall_quality_score;
-      acc[r.segment_type].avgScore = acc[r.segment_type].totalScore / acc[r.segment_type].count;
+      acc[r.segment_type].avgScore = Math.round(acc[r.segment_type].totalScore / acc[r.segment_type].count);
       return acc;
     }, {});
 
     // Estimated time and cost savings (based on industry benchmarks)
     const avgWordsPerTranslation = 50; // Estimated
     const totalWords = totalTranslations * avgWordsPerTranslation;
-    const humanTranslationTimePerWord = 0.5; // 30 seconds per word
-    const aiTranslationTimePerWord = 0.05; // 3 seconds per word
+    const humanTranslationTimePerWord = 0.5; // 30 seconds per word (in minutes)
+    const aiTranslationTimePerWord = 0.05; // 3 seconds per word (in minutes)
     const timeToMarketSavings = (humanTranslationTimePerWord - aiTranslationTimePerWord) * totalWords; // in minutes
 
     const humanCostPerWord = 0.25; // $0.25 per word
@@ -229,12 +226,12 @@ export class AITranslationEngine {
 
     return {
       totalTranslations,
-      averageQualityScore.round(averageQualityScore * 100) / 100,
+      averageQualityScore: Math.round(averageQualityScoreRaw * 100) / 100,
       enginePerformance,
       languagePairPerformance,
       contentTypePerformance,
-      timeToMarketSavings.round(timeToMarketSavings), // minutes saved
-      costSavings.round(costSavings * 100) / 100 // dollars saved
+      timeToMarketSavings: Math.round(timeToMarketSavings), // minutes saved
+      costSavings: Math.round(costSavings * 100) / 100 // dollars saved
     };
   }
 
@@ -247,7 +244,7 @@ export class AITranslationEngine {
     targetLanguage,
     therapeuticArea
   ) {
-    const { data } = await supabase
+    const { data: glossary } = await supabase // Added data alias
       .from('pharmaceutical_glossary')
       .select('*')
       .eq('brand_id', brandId)
@@ -255,7 +252,7 @@ export class AITranslationEngine {
       .eq('target_language', targetLanguage)
       .eq('therapeutic_area', therapeuticArea)
       .eq('validation_status', 'validated')
-      .order('confidence_score', { ascending });
+      .order('confidence_score', { ascending: true }); // Added ascending property
 
     return glossary || [];
   }
@@ -276,14 +273,14 @@ export class AITranslationEngine {
     const { data, error } = await supabase
       .from('pharmaceutical_glossary')
       .insert({
-        brand_id,
-        term_source,
-        term_target,
-        source_language,
-        target_language,
-        therapeutic_area,
-        medical_category,
-        confidence_score,
+        brand_id: brandId,
+        term_source: sourceTerm,
+        term_target: targetTerm,
+        source_language: sourceLanguage,
+        target_language: targetLanguage,
+        therapeutic_area: therapeuticArea,
+        medical_category: medicalCategory,
+        confidence_score: confidenceScore,
         validation_status: 'validated'
       })
       .select()
@@ -303,17 +300,17 @@ export class AITranslationEngine {
   static async createAgencyWorkflow(
     localizationProjectId,
     aiTranslationData,
-    agencyName?
+    agencyName
   ) {
     const { data, error } = await supabase
       .from('agency_collaboration_workflows')
       .insert({
-        localization_project_id,
-        agency_name,
+        localization_project_id: localizationProjectId,
+        agency_name: agencyName,
         workflow_status: 'ai_translation_complete',
-        ai_pre_translation_data,
+        ai_pre_translation_data: aiTranslationData,
         handoff_format: 'xliff',
-        ai_completion_date Date().toISOString()
+        ai_completion_date: new Date().toISOString()
       })
       .select()
       .single();
@@ -329,7 +326,7 @@ export class AITranslationEngine {
   /**
    * Determine translation status based on quality score
    */
-  private static determineTranslationStatus(qualityScore): 'excellent' | 'good' | 'needs_review' | 'poor' {
+  static determineTranslationStatus(qualityScore) { // Removed private keyword
     if (qualityScore >= 90) return 'excellent';
     if (qualityScore >= 75) return 'good';
     if (qualityScore >= 50) return 'needs_review';
@@ -341,9 +338,9 @@ export class AITranslationEngine {
    */
   static async exportForAgency(
     workflowId,
-    format: 'xliff' | 'tmx' | 'json' = 'xliff'
+    format = 'xliff'
   ) {
-    const { data } = await supabase
+    const { data: workflow } = await supabase // Added data alias
       .from('agency_collaboration_workflows')
       .select('*')
       .eq('id', workflowId)
@@ -364,7 +361,7 @@ export class AITranslationEngine {
     }
   }
 
-  private static generateXLIFF(translationData) {
+  static generateXLIFF(translationData) { // Removed private keyword
     // Simplified XLIFF 2.1 format for agency handoff
     const xliff = `<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.1" xmlns="urn.1">
@@ -381,7 +378,7 @@ export class AITranslationEngine {
     return xliff;
   }
 
-  private static generateTMX(translationData) {
+  static generateTMX(translationData) { // Removed private keyword
     // Simplified TMX format
     const tmx = `<?xml version="1.0" encoding="UTF-8"?>
 <tmx version="1.4">
@@ -403,7 +400,7 @@ export class AITranslationEngine {
     return tmx;
   }
 
-  private static escapeXML(text) {
+  static escapeXML(text) { // Removed private keyword
     return text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')

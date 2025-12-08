@@ -1,174 +1,173 @@
-// Note: The original TypeScript file imported the 'supabase' client.
-// In a standalone JS environment, you must ensure the 'supabase' client
-// is accessible if you uncomment the database interaction logic.
-// import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Service for tracking and analyzing performance of individual content elements
- * (subject lines, CTAs, tones, message themes, etc.) by aggregating data
- * from multiple campaigns associated with a content registry entry.
+ * (subject lines, CTAs, tones, message themes, etc.)
  */
 export class ContentElementPerformanceService {
-
-    /**
-     * Extracts and aggregates performance of content elements from all relevant campaigns
-     * for a given brand, and updates the 'content_element_performance' table.
-     *
-     * @param {string} brandId - The ID of the brand whose content elements are being tracked.
-     * @returns {Promise<void>}
-     */
-    static async trackContentElements(brandId) {
-        console.log('📊 Tracking content element performance...');
-
-        try {
-            // Get all campaigns with content fingerprints (only fetching email content for this logic)
-            const { data: campaigns } = await supabase
-                .from('content_registry')
-                .select(`
-                    id,
-                    content_name,
-                    content_fingerprint,
-                    campaign_performance_analytics (
-                        open_rate,
-                        click_rate,
-                        conversion_rate,
-                        engagement_score,
-                        total_audience_size,
-                        total_engaged,
-                        total_converted
-                    )
-                `)
-                .eq('brand_id', brandId)
-                .eq('content_type', 'email');
-
-            if (!campaigns || campaigns.length === 0) {
-                console.log('No email content found with associated campaign analytics.');
-                return;
-            }
-
-            // Maps to store aggregated performance metrics for each unique element value
-            const subjectLinePerf = new Map();
-            const ctaPerf = new Map();
-            const tonePerf = new Map();
-            const themePerf = new Map();
-
-            for (const campaign of campaigns) {
-                const fp = campaign.content_fingerprint;
-                // Safely access the first (or only) performance analytics record
-                const perf = campaign.campaign_performance_analytics?.[0];
-
-                if (!fp || !perf) continue;
-
-                /**
-                 * Helper function to update the performance map
-                 * @param {Map<string, any>} perfMap
-                 * @param {string} elementType
-                 * @param {string} elementValue
-                 * @param {object} [context]
-                 */
-                const updatePerfMap = (perfMap, elementType, elementValue, context = {}) => {
-                    if (!perfMap.has(elementValue)) {
-                        perfMap.set(elementValue, {
-                            element_type: elementType,
-                            element_value: elementValue,
-                            element_context: context,
-                            total_impressions: 0,
-                            total_engagements: 0,
-                            total_conversions: 0,
-                            sample_size: 0,
-                        });
-                    }
-                    const elem = perfMap.get(elementValue);
-                    elem.total_impressions += perf.total_audience_size || 0;
-                    elem.total_engagements += perf.total_engaged || 0;
-                    elem.total_conversions += perf.total_converted || 0;
-                    elem.sample_size += 1;
-                };
-
-                // 1. Track Subject Line
-                if (fp.subject_line) {
-                    updatePerfMap(subjectLinePerf, 'subject_line', fp.subject_line);
-                }
-
-                // 2. Track CTA performance
-                if (fp.primary_cta) {
-                    updatePerfMap(ctaPerf, 'cta', fp.primary_cta, { position: fp.cta_position });
-                }
-
-                // 3. Track tone performance
-                if (fp.tone) {
-                    updatePerfMap(tonePerf, 'tone', fp.tone, { sophistication: fp.sophistication_level });
-                }
-
-                // 4. Track message theme performance
-                if (fp.message_theme) {
-                    // Assuming clinical_focus might be an object or value stored in element_context
-                    updatePerfMap(themePerf, 'message_theme', fp.message_theme, fp.clinical_focus);
-                }
-            }
-
-            // Combine all tracked elements
-            const allElements = [
-                ...Array.from(subjectLinePerf.values()),
-                ...Array.from(ctaPerf.values()),
-                ...Array.from(tonePerf.values()),
-                ...Array.from(themePerf.values()),
-            ];
-
-            // Calculate final rates and perform the database insertion/update
-            for (const elem of allElements) {
-                // Engagement Rate: Engagements / Impressions
-                const avgEngagementRate = elem.total_impressions > 0
-                    ? (elem.total_engagements / elem.total_impressions) * 100
-                    : 0;
-
-                // Conversion Rate: Conversions / Engagements (Click-Through Conversion)
-                // NOTE: The original logic used total_engagements as the denominator for conversion rate.
-                // Depending on the business rule, this might also be total_impressions or total_delivered.
-                const avgConversionRate = elem.total_engagements > 0
-                    ? (elem.total_conversions / elem.total_engagements) * 100
-                    : 0;
-
-                const avgPerformanceScore = (avgEngagementRate + avgConversionRate) / 2;
-
-                // Determine confidence based on sample size (number of campaigns tracked)
-                const confidenceLevel = elem.sample_size >= 10 ? 'high' : elem.sample_size >= 5 ? 'medium' : 'low';
-
-                // Use upsert here to handle existing element performance records (recommended for this type of aggregation)
-                await supabase.from('content_element_performance').upsert({
-                    brand_id: brandId,
-                    element_type: elem.element_type,
-                    element_value: elem.element_value,
-                    element_context: elem.element_context,
-                    total_impressions: elem.total_impressions,
-                    total_engagements: elem.total_engagements,
-                    total_conversions: elem.total_conversions,
-                    usage_count: elem.sample_size, // usage_count is effectively the sample_size here
-                    sample_size: elem.sample_size,
-                    avg_engagement_rate: avgEngagementRate,
-                    avg_conversion_rate: avgConversionRate,
-                    avg_performance_score: avgPerformanceScore,
-                    confidence_level: confidenceLevel,
-                    // Assuming first_seen is only set on initial insert, but upsert handles this complexly.
-                    // For simplicity, we update last_seen/calculated always.
-                    // If upsert logic is 'onConflict: brand_id, element_type, element_value' then the existing
-                    // first_seen value would be preserved.
-                    last_seen: new Date().toISOString(),
-                    last_calculated: new Date().toISOString(),
-                }, {
-                    // NOTE: It is critical to define the conflict columns if this is intended as a true upsert
-                    // to accumulate data, but the original TS code used .insert() which suggests repeated inserts.
-                    // Since this is aggregation, upsert is usually better for production:
-                    onConflict: 'brand_id,element_type,element_value',
-                    ignoreDuplicates: false,
-                });
-            }
-
-            console.log(`✅ Tracked ${allElements.length} unique content elements for brand ${brandId}`);
-        } catch (error) {
-            console.error('Error tracking content elements:', error);
-            // Optionally rethrow the error for upstream handling
-            // throw error;
-        }
+  
+  /**
+   * Extract and track performance of content elements from campaigns
+   */
+  static async trackContentElements(brandId) {
+  console.log('📊 Tracking content element performance...');
+  
+  // Get all campaigns with content fingerprints
+  const { data: campaigns } = await supabase
+    .from('content_registry')
+    .select(`
+    id,
+    content_name,
+    content_fingerprint,
+    campaign_performance_analytics (
+      open_rate,
+      click_rate,
+      conversion_rate,
+      engagement_score,
+      total_audience_size,
+      total_engaged,
+      total_converted
+    )
+    `)
+    .eq('brand_id', brandId)
+    .eq('content_type', 'email');
+  
+  if (!campaigns || campaigns.length === 0) return;
+  
+  // Track subject line performance
+  const subjectLinePerf = new Map();
+  const ctaPerf = new Map();
+  const tonePerf = new Map();
+  const themePerf = new Map();
+  
+  for (const campaign of campaigns) {
+    const fp = campaign.content_fingerprint;
+    const perf = campaign.campaign_performance_analytics?.[0];
+    
+    if (!fp || !perf) continue;
+    
+    // Track subject line
+    if (fp.subject_line) {
+    const key = fp.subject_line;
+    if (!subjectLinePerf.has(key)) {
+      subjectLinePerf.set(key, {
+      element_type: 'subject_line',
+      element_value: key,
+      total_impressions: 0,
+      total_engagements: 0,
+      total_conversions: 0,
+      sample_size: 0,
+      });
     }
+    const sl = subjectLinePerf.get(key);
+    sl.total_impressions += perf.total_audience_size || 0;
+    sl.total_engagements += perf.total_engaged || 0;
+    sl.total_conversions += perf.total_converted || 0;
+    sl.sample_size += 1;
+    }
+    
+    // Track CTA performance
+    if (fp.primary_cta) {
+    const key = fp.primary_cta;
+    if (!ctaPerf.has(key)) {
+      ctaPerf.set(key, {
+      element_type: 'cta',
+      element_value: key,
+      element_context: { position: fp.cta_position },
+      total_impressions: 0,
+      total_engagements: 0,
+      total_conversions: 0,
+      sample_size: 0,
+      });
+    }
+    const cta = ctaPerf.get(key);
+    cta.total_impressions += perf.total_audience_size || 0;
+    cta.total_engagements += perf.total_engaged || 0;
+    cta.total_conversions += perf.total_converted || 0;
+    cta.sample_size += 1;
+    }
+    
+    // Track tone performance
+    if (fp.tone) {
+    const key = fp.tone;
+    if (!tonePerf.has(key)) {
+      tonePerf.set(key, {
+      element_type: 'tone',
+      element_value: key,
+      element_context: { sophistication: fp.sophistication_level },
+      total_impressions: 0,
+      total_engagements: 0,
+      total_conversions: 0,
+      sample_size: 0,
+      });
+    }
+    const tone = tonePerf.get(key);
+    tone.total_impressions += perf.total_audience_size || 0;
+    tone.total_engagements += perf.total_engaged || 0;
+    tone.total_conversions += perf.total_converted || 0;
+    tone.sample_size += 1;
+    }
+    
+    // Track message theme performance
+    if (fp.message_theme) {
+    const key = fp.message_theme;
+    if (!themePerf.has(key)) {
+      themePerf.set(key, {
+      element_type: 'message_theme',
+      element_value: key,
+      element_context: fp.clinical_focus,
+      total_impressions: 0,
+      total_engagements: 0,
+      total_conversions: 0,
+      sample_size: 0,
+      });
+    }
+    const theme = themePerf.get(key);
+    theme.total_impressions += perf.total_audience_size || 0;
+    theme.total_engagements += perf.total_engaged || 0;
+    theme.total_conversions += perf.total_converted || 0;
+    theme.sample_size += 1;
+    }
+  }
+  
+  // Insert all tracked elements
+  const allElements = [
+    ...Array.from(subjectLinePerf.values()),
+    ...Array.from(ctaPerf.values()),
+    ...Array.from(tonePerf.values()),
+    ...Array.from(themePerf.values()),
+  ];
+  
+  for (const elem of allElements) {
+    const avgEngagementRate = elem.total_impressions > 0 
+    ? (elem.total_engagements / elem.total_impressions) * 100 
+    : 0;
+    const avgConversionRate = elem.total_engagements > 0 
+    ? (elem.total_conversions / elem.total_engagements) * 100 
+    : 0;
+    const avgPerformanceScore = (avgEngagementRate + avgConversionRate) / 2;
+    
+    await supabase.from('content_element_performance').insert({
+    brand_id: brandId,
+    element_type: elem.element_type,
+    element_value: elem.element_value,
+    element_context: elem.element_context,
+    total_impressions: elem.total_impressions,
+    total_engagements: elem.total_engagements,
+    total_conversions: elem.total_conversions,
+    usage_count: elem.sample_size,
+    sample_size: elem.sample_size,
+    avg_engagement_rate: avgEngagementRate,
+    avg_conversion_rate: avgConversionRate,
+    avg_performance_score: avgPerformanceScore,
+    confidence_level: elem.sample_size >= 10 ? 'high' : elem.sample_size >= 5 ? 'medium' : 'low',
+    first_seen: new Date().toISOString(),
+    last_seen: new Date().toISOString(),
+    last_calculated: new Date().toISOString(),
+    });
+  }
+  
+  console.log(`✅ Tracked ${allElements.length} content elements`);
+  }
 }
+

@@ -1,8 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
 
-// Interfaces for enhanced asset metadata with global context preservation
-
-
 /**
  * Service for preserving complete global asset context and metadata throughout localization
  */
@@ -14,11 +11,11 @@ export class AssetMetadataPreservationService {
   static async captureGlobalAssetContext(
     assetId, 
     brandId,
-    additionalContext: any
-  ): Promise {
+    additionalContext // Removed type annotation
+  ) { // Removed return type Promise
     try {
       // Fetch asset data separately for better error handling
-      const { data, error } = await supabase
+      const { data: asset, error: assetError } = await supabase
         .from('content_assets')
         .select('*')
         .eq('id', assetId)
@@ -36,91 +33,97 @@ export class AssetMetadataPreservationService {
       // Fetch content project if exists
       let contentProject = null;
       if (asset.project_id) {
-        const { data } = await supabase
+        const { data: projectData, error: projectError } = await supabase // Added destructured variables
           .from('content_projects')
           .select('*')
           .eq('id', asset.project_id)
           .maybeSingle();
+        if (projectError) console.error("Error fetching content project:", projectError);
         contentProject = projectData;
       }
 
       // Fetch complete brand context including guidelines and competitive landscape
       const [
-        { data },
-        { data },
-        { data }
+        { data: brandProfile, error: profileError }, // Added destructured variables
+        { data: brandGuidelines, error: guidelinesError }, // Added destructured variables
+        { data: competitiveLandscape, error: competitiveError } // Added destructured variables
       ] = await Promise.all([
         supabase.from('brand_profiles').select('*').eq('id', brandId).maybeSingle(),
         supabase.from('brand_guidelines').select('*').eq('brand_id', brandId).maybeSingle(),
         supabase.from('competitive_landscape').select('*').eq('brand_id', brandId)
       ]);
 
+      if (profileError) console.error("Error fetching brand profile:", profileError);
+      if (guidelinesError) console.error("Error fetching brand guidelines:", guidelinesError);
+      if (competitiveError) console.error("Error fetching competitive landscape:", competitiveError);
+
       // Extract strategic context from primary_content with proper type handling
-      const primaryContent = (asset.primary_content ) || {};
+      // Corrected property access and default values
+      const primaryContent = asset.primary_content || {};
       const strategicContext = {
-        keyMessage.keyMessage || 'Not specified',
-        indication.indication || brandProfile.therapeutic_area || 'General',
-        primaryAudience.primaryAudience || 'General',
-        callToAction.callToAction || 'Not specified',
-        primaryObjective.primaryObjective || 'General awareness'
+        keyMessage: primaryContent.keyMessage || 'Not specified',
+        indication: primaryContent.indication || brandProfile?.therapeutic_area || 'General',
+        primaryAudience: primaryContent.primaryAudience || 'General',
+        callToAction: primaryContent.callToAction || 'Not specified',
+        primaryObjective: primaryContent.primaryObjective || 'General awareness'
       };
 
       // Handle brand guidelines with proper type casting
-      const brandGuidelinesData = (brandGuidelines ) || {};
-      const messagingFramework = (brandGuidelinesData.messaging_framework ) || {};
-      const toneOfVoice = (brandGuidelinesData.tone_of_voice ) || {};
-      const visualGuidelines = (brandGuidelinesData.visual_guidelines ) || {};
+      const brandGuidelinesData = brandGuidelines || {};
+      const messagingFramework = brandGuidelinesData.messaging_framework || {};
+      const toneOfVoice = brandGuidelinesData.tone_of_voice || {};
+      const visualGuidelines = brandGuidelinesData.visual_guidelines || {};
 
       // Create enhanced metadata structure with real brand data
       const metadata = {
-        assetId,
+        assetId: assetId,
         globalContext: {
-          sourceAssetId,
-          brandName.brand_name || 'Unknown Brand',
-          therapeuticArea.therapeutic_area || 'General',
-          assetType.asset_type,
-          complianceStatus.status,
-          approvalDate.completed_at,
+          sourceAssetId: assetId,
+          brandName: brandProfile?.brand_name || 'Unknown Brand',
+          therapeuticArea: brandProfile?.therapeutic_area || 'General',
+          assetType: asset.asset_type,
+          complianceStatus: asset.status,
+          approvalDate: asset.completed_at,
         },
         brandContext: {
           brandGuidelines: {
-            primaryColor.primary_color,
-            secondaryColor.secondary_color,
-            accentColor.accent_color,
-            fontFamily.font_family || 'Inter',
-            therapeuticArea.therapeutic_area,
-            company.company,
+            primaryColor: brandProfile?.primary_color,
+            secondaryColor: brandProfile?.secondary_color,
+            accentColor: brandProfile?.accent_color,
+            fontFamily: brandGuidelinesData.font_family || 'Inter',
+            therapeuticArea: brandProfile?.therapeutic_area,
+            company: brandProfile?.company,
             // Real brand guidelines from database
             messagingFramework,
             toneOfVoice,
             visualGuidelines,
-            keyMessages.key_pillars || []
+            keyMessages: brandGuidelinesData.key_pillars || []
           },
           messagingFramework: {
             ...strategicContext,
-            ...(asset.intake_context  || {})
+            ...(asset.intake_context || {})
           },
-          visualIdentity.channel_specifications || {},
+          visualIdentity: contentProject?.channel_specifications || {},
           complianceRequirements: {
-            regulatoryNotes.compliance_notes,
-            fairBalanceRequired.fairBalanceRequired || false,
-            regulatoryFlags.regulatoryFlags || [],
-            targetMarkets.targetMarkets || []
+            regulatoryNotes: asset.compliance_notes || [],
+            fairBalanceRequired: asset.fairBalanceRequired || false,
+            regulatoryFlags: asset.regulatoryFlags || [],
+            targetMarkets: contentProject?.targetMarkets || []
           }
         },
         provenance: {
           sourceSystem: 'content_studio',
-          createdBy.created_by,
-          createdAt.created_at,
-          lastModified.updated_at,
+          createdBy: asset.created_by,
+          createdAt: asset.created_at,
+          lastModified: asset.updated_at,
           version: '1.0',
-          author.created_by
+          author: asset.created_by // Duplicated field, kept for consistency with original
         },
         relationships: {
           parentAssets: [],
           childAssets: [],
-          relatedCampaigns.project_id  [asset.project_id] : [],
-          assetFamily.asset_type
+          relatedCampaigns: asset.project_id ? [asset.project_id] : [],
+          assetFamily: asset.asset_type
         }
       };
 
@@ -129,11 +132,11 @@ export class AssetMetadataPreservationService {
         ...metadata,
         brandContext: {
           ...metadata.brandContext,
-          competitiveLandscape.map((comp) => ({
-            competitor.competitor_name,
-            differentiators.key_differentiators || [],
-            threatLevel.threat_level,
-            messagingOpportunities.messaging_opportunities || []
+          competitiveLandscape: (competitiveLandscape || []).map((comp) => ({
+            competitor: comp.competitor_name,
+            differentiators: comp.key_differentiators || [],
+            threatLevel: comp.threat_level,
+            messagingOpportunities: comp.messaging_opportunities || []
           })) || []
         }
       };
@@ -155,7 +158,7 @@ export class AssetMetadataPreservationService {
     assetId,
     stage,
     transformationData
-  ): Promise {
+  ) { // Removed return type Promise
     try {
       // Get existing metadata
       const existingMetadata = await this.getPreservedMetadata(assetId, stage);
@@ -164,9 +167,9 @@ export class AssetMetadataPreservationService {
       const updatedMetadata = {
         ...existingMetadata,
         localizationContext: {
-          ...existingMetadata.localizationContext,
+          ...(existingMetadata?.localizationContext || {}),
           [`${stage}_transformations`]: transformationData,
-          lastUpdated Date().toISOString()
+          lastUpdated: new Date().toISOString() // Corrected assignment
         }
       };
 
@@ -186,7 +189,7 @@ export class AssetMetadataPreservationService {
     targetMarkets,
     culturalAdaptations,
     regulatoryModifications
-  ): Promise {
+  ) { // Removed return type Promise
     try {
       const metadata = await this.getPreservedMetadata(assetId, 'localization_update');
       
@@ -214,17 +217,16 @@ export class AssetMetadataPreservationService {
     assetId,
     localizationContext,
     intelligenceData
-  ): Promise {
+  ) { // Removed return type Promise
     try {
       // Get preserved metadata
       const originalMetadata = await this.getPreservedMetadata(assetId, 'comprehensive_analysis');
       
-      // Generate DAM-ready package
-      const damPackage = {
-        originalMetadata || {
+      // Corrected object property access and default initialization
+      const defaultMetadata = originalMetadata || {
           assetId,
           globalContext: {
-            sourceAssetId,
+            sourceAssetId: assetId,
             brandName: 'Unknown',
             therapeuticArea: 'General',
             assetType: 'Unknown',
@@ -238,8 +240,8 @@ export class AssetMetadataPreservationService {
           },
           provenance: {
             sourceSystem: 'content_studio',
-            createdAt Date().toISOString(),
-            lastModified Date().toISOString(),
+            createdAt: new Date().toISOString(), // Corrected assignment
+            lastModified: new Date().toISOString(), // Corrected assignment
             version: '1.0'
           },
           relationships: {
@@ -248,14 +250,18 @@ export class AssetMetadataPreservationService {
             relatedCampaigns: [],
             assetFamily: 'unknown'
           }
-        },
+        };
+
+      // Generate DAM-ready package
+      const damPackage = {
+        ...defaultMetadata,
         localizationIntelligence: {
-          culturalAdaptations.cultural || {},
-          regulatoryCompliance.regulatory || {},
-          qualityPredictions.quality || {},
-          terminologyMatches.terminology || {}
+          culturalAdaptations: intelligenceData?.cultural || {}, // Corrected property access
+          regulatoryCompliance: intelligenceData?.regulatory || {}, // Corrected property access
+          qualityPredictions: intelligenceData?.quality || {}, // Corrected property access
+          terminologyMatches: intelligenceData?.terminology || {} // Corrected property access
         },
-        marketSpecificMetadata.targetMarkets.reduce((acc, market) => {
+        marketSpecificMetadata: localizationContext.targetMarkets.reduce((acc, market) => {
           acc[market] = {
             culturalContext: {},
             regulatoryStatus: 'pending',
@@ -265,7 +271,7 @@ export class AssetMetadataPreservationService {
           return acc;
         }, {}),
         damTaxonomy: {
-          primaryCategory.globalContext.assetType || 'marketing_material',
+          primaryCategory: defaultMetadata.globalContext.assetType || 'marketing_material',
           secondaryCategories: [],
           tags: [],
           searchKeywords: []
@@ -292,16 +298,21 @@ export class AssetMetadataPreservationService {
     assetId, 
     metadata, 
     stage = 'general'
-  ): Promise {
+  ) { // Removed return type Promise
     try {
+      // Ensure user ID is available or default to 'system'
+      const user = await supabase.auth.getUser();
+      const userId = user.data.user?.id || 'system';
+
       const { error } = await supabase
         .from('content_sessions')
+        // Corrected object assignment and property names
         .upsert({
-          user_id: (await supabase.auth.getUser()).data.user.id || 'system',
-          asset_id,
+          user_id: userId,
+          asset_id: assetId,
           session_type: `metadata_preservation_${stage}`,
-          session_state,
-          last_activity Date().toISOString()
+          session_state: metadata, // Used 'metadata' instead of 'session_state'
+          last_activity: new Date().toISOString() // Corrected assignment
         }, {
           onConflict: 'user_id,asset_id,session_type'
         });
@@ -319,20 +330,21 @@ export class AssetMetadataPreservationService {
   static async getPreservedMetadata(
     assetId, 
     stage = 'general'
-  ): Promise {
+  ) { // Removed return type Promise
     try {
       const { data, error } = await supabase
         .from('content_sessions')
         .select('session_state')
         .eq('asset_id', assetId)
         .eq('session_type', `metadata_preservation_${stage}`)
-        .order('last_activity', { ascending })
+        .order('last_activity', { ascending: false }) // Corrected boolean shorthand
         .limit(1)
         .single();
 
       if (error || !data) return null;
 
-      return (data.session_state ) as EnhancedAssetMetadata;
+      // Removed type cast
+      return data.session_state;
     } catch (error) {
       console.error('Error retrieving preserved metadata:', error);
       return null;
@@ -344,21 +356,22 @@ export class AssetMetadataPreservationService {
    */
   static async generateAuditTrail(
     assetId
-  ): Promise {
+  ) { // Removed return type Promise
     try {
       const { data, error } = await supabase
         .from('content_sessions')
         .select('*')
         .eq('asset_id', assetId)
         .like('session_type', 'metadata_preservation_%')
-        .order('last_activity', { ascending });
+        .order('last_activity', { ascending: true }); // Corrected boolean shorthand
 
       if (error) throw error;
 
-      return data.map(session => ({
-        stage.session_type.replace('metadata_preservation_', ''),
-        timestamp.last_activity,
-        changes.session_state
+      // Corrected object assignment
+      return (data || []).map(session => ({
+        stage: session.session_type.replace('metadata_preservation_', ''),
+        timestamp: session.last_activity,
+        changes: session.session_state
       })) || [];
     } catch (error) {
       console.error('Error generating audit trail:', error);
@@ -372,63 +385,67 @@ export class AssetMetadataPreservationService {
   static async createMetadataFromProject(
     project,
     brandId
-  ): Promise {
+  ) { // Removed return type Promise
     try {
       // Fetch brand context
       const [
-        { data },
-        { data }
+        { data: brandProfile, error: profileError }, // Added destructured variables
+        { data: brandGuidelines, error: guidelinesError } // Added destructured variables
       ] = await Promise.all([
         supabase.from('brand_profiles').select('*').eq('id', brandId).maybeSingle(),
         supabase.from('brand_guidelines').select('*').eq('brand_id', brandId).maybeSingle()
       ]);
+      
+      if (profileError) console.error("Error fetching brand profile:", profileError);
+      if (guidelinesError) console.error("Error fetching brand guidelines:", guidelinesError);
 
-      const brandGuidelinesData = (brandGuidelines ) || {};
-      const projectMetadata = project.project_metadata || {};
+      const brandGuidelinesData = brandGuidelines || {};
+      const projectMetadata = project.project_metadata || {}; // projectMetadata was unused, but kept definition.
 
+      // Corrected property access and default values
       const metadata = {
-        assetId.source_content_id || project.id,
+        assetId: project.source_content_id || project.id,
         globalContext: {
-          sourceAssetId.source_content_id,
-          brandName.brand_name || 'Unknown Brand',
-          therapeuticArea.therapeutic_area || brandProfile.therapeutic_area || 'General',
-          assetType.asset_type || 'Marketing Material',
-          complianceStatus.project_status || 'draft',
-          approvalDate.created_at,
+          sourceAssetId: project.source_content_id,
+          brandName: brandProfile?.brand_name || 'Unknown Brand',
+          therapeuticArea: project.therapeutic_area || brandProfile?.therapeutic_area || 'General',
+          assetType: project.asset_type || 'Marketing Material',
+          complianceStatus: project.project_status || 'draft',
+          approvalDate: project.created_at,
         },
         brandContext: {
           brandGuidelines: {
-            primaryColor.primary_color,
-            secondaryColor.secondary_color,
-            accentColor.accent_color,
-            fontFamily.font_family || 'Inter',
-            therapeuticArea.therapeutic_area,
-            company.company,
-            messagingFramework.messaging_framework || {},
-            toneOfVoice.tone_of_voice || {},
-            visualGuidelines.visual_guidelines || {},
-            keyMessages.messaging_framework.key_pillars || []
+            primaryColor: brandProfile?.primary_color,
+            secondaryColor: brandProfile?.secondary_color,
+            accentColor: brandProfile?.accent_color,
+            fontFamily: brandGuidelinesData.font_family || 'Inter',
+            therapeuticArea: brandProfile?.therapeutic_area,
+            company: brandProfile?.company,
+            messagingFramework: brandGuidelinesData.messaging_framework || {},
+            toneOfVoice: brandGuidelinesData.tone_of_voice || {},
+            visualGuidelines: brandGuidelinesData.visual_guidelines || {},
+            keyMessages: brandGuidelinesData.messaging_framework?.key_pillars || []
           },
-          messagingFramework.messaging_context || {},
+          messagingFramework: project.messaging_context || {},
           visualIdentity: {},
           complianceRequirements: {
-            regulatoryNotes.regulatory_notes || [],
-            fairBalanceRequired,
+            regulatoryNotes: project.regulatory_notes || [],
+            fairBalanceRequired: project.fairBalanceRequired || false,
             regulatoryFlags: [],
-            targetMarkets.target_markets || []
+            targetMarkets: project.target_markets || []
           }
         },
         provenance: {
           sourceSystem: 'localization_project',
-          createdAt.created_at,
-          lastModified.updated_at,
+          createdAt: project.created_at,
+          lastModified: project.updated_at,
           version: '1.0',
         },
         relationships: {
           parentAssets: [],
           childAssets: [],
           relatedCampaigns: [],
-          assetFamily.asset_type || 'marketing_material'
+          assetFamily: project.asset_type || 'marketing_material'
         }
       };
 

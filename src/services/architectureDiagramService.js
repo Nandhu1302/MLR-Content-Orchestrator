@@ -1,6 +1,11 @@
+/**
+ * Service class to provide definitions for various architecture diagrams
+ * using the C4 model, Deployment, ERD, and Sequence diagrams.
+ */
 import { DiagramDefinition, DiagramType } from '@/types/diagram';
 
 class ArchitectureDiagramService {
+  
   static getAllDiagrams() {
     return [
       // Platform-wide diagrams
@@ -21,7 +26,8 @@ class ArchitectureDiagramService {
     ];
   }
 
-  static getDiagramById(id) | undefined {
+  // FIX 1: Removed invalid TypeScript return type | undefined from method signature
+  static getDiagramById(id) {
     return this.getAllDiagrams().find(d => d.id === id);
   }
 
@@ -48,7 +54,12 @@ class ArchitectureDiagramService {
     ];
   }
 
-  private static getC4ContextDiagram() {
+  // FIX 2: Replaced 'private static' with standard 'static' methods.
+  // In JavaScript, convention dictates that methods not intended for external use 
+  // are named with an underscore prefix (e.g., '_getC4ContextDiagram').
+  // Since the original used 'private static', I'm keeping 'static' and allowing the original names 
+  // as the methods are only called internally by other static methods.
+  static getC4ContextDiagram() {
     return {
       id: 'c4-context',
       name: 'C4 Context Diagram (Level 1)',
@@ -100,7 +111,7 @@ graph TB
     };
   }
 
-  private static getC4ContainerDiagram() {
+  static getC4ContainerDiagram() {
     return {
       id: 'c4-container',
       name: 'C4 Container Diagram (Level 2)',
@@ -170,7 +181,7 @@ graph TB
     };
   }
 
-  private static getDeploymentDiagram() {
+  static getDeploymentDiagram() {
     return {
       id: 'deployment',
       name: 'Deployment Architecture',
@@ -259,7 +270,7 @@ graph TB
     };
   }
 
-  private static getC4ComponentDiagram() {
+  static getC4ComponentDiagram() {
     return {
       id: 'c4-component',
       name: 'C4 Component Diagram - AI Translation Engine',
@@ -341,7 +352,7 @@ graph TB
     };
   }
 
-  private static getERDiagram() {
+  static getERDiagram() {
     return {
       id: 'erd',
       name: 'Entity-Relationship Diagram (ERD)',
@@ -530,7 +541,7 @@ erDiagram
     };
   }
 
-  private static getSequenceTranslationDiagram() {
+  static getSequenceTranslationDiagram() {
     return {
       id: 'sequence-translation',
       name: 'Sequence Diagram - Translation Workflow',
@@ -600,7 +611,7 @@ sequenceDiagram
     };
   }
 
-  private static getSequenceCulturalDiagram() {
+  static getSequenceCulturalDiagram() {
     return {
       id: 'sequence-cultural',
       name: 'Sequence Diagram - Cultural Analysis',
@@ -677,7 +688,7 @@ sequenceDiagram
     };
   }
 
-  private static getDataFlowDiagram() {
+  static getDataFlowDiagram() {
     return {
       id: 'data-flow',
       name: 'Data Flow Diagram',
@@ -796,7 +807,7 @@ graph LR
 
   // ============= PLATFORM-WIDE ARCHITECTURE DIAGRAMS =============
 
-  private static getFullPlatformC4ContextDiagram() {
+  static getFullPlatformC4ContextDiagram() {
     return {
       id: 'c4-context',
       name: 'Full Platform C4 Context Diagram',
@@ -868,7 +879,7 @@ graph TB
     };
   }
 
-  private static getFullPlatformC4ContainerDiagram() {
+  static getFullPlatformC4ContainerDiagram() {
     return {
       id: 'c4-container',
       name: 'Full Platform C4 Container Diagram',
@@ -960,7 +971,7 @@ graph TB
     };
   }
 
-  private static getFullPlatformDeploymentDiagram() {
+  static getFullPlatformDeploymentDiagram() {
     return {
       id: 'deployment',
       name: 'Full Platform Deployment Architecture',
@@ -1060,7 +1071,7 @@ graph TB
     };
   }
 
-  private static getModuleInteractionSequenceDiagram() {
+  static getModuleInteractionSequenceDiagram() {
     return {
       id: 'sequence-translation',
       name: 'Cross-Module Workflow Sequence',
@@ -1132,7 +1143,7 @@ sequenceDiagram
     };
   }
 
-  private static getFullPlatformERDiagram() {
+  static getFullPlatformERDiagram() {
     return {
       id: 'erd',
       name: 'Full Platform Entity-Relationship Diagram',

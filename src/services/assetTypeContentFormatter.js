@@ -3,13 +3,16 @@
  * Transforms raw content into properly structured, asset-type-specific formats
  */
 
+// Define a placeholder type for FormattedContent for readability
+// In pure JS, this would be documented via JSDoc or assumed structural compatibility.
+// Assuming this is a standard object containing all generated fields.
 
 
 export class AssetTypeContentFormatter {
   /**
    * Format content based on asset type
    */
-  static format(assetType, context): FormattedContent {
+  static format(assetType, context) { // Removed type annotation : FormattedContent
     const normalizedType = this.normalizeAssetType(assetType);
     
     switch (normalizedType) {
@@ -23,12 +26,13 @@ export class AssetTypeContentFormatter {
         return this.formatSalesAid(context);
       case 'rep-email':
         return this.formatRepEmail(context);
-      default this.formatGeneric(context);
+      default: // Added colon for default case
+        return this.formatGeneric(context);
     }
   }
 
-  static normalizeAssetType(assetType): string {
-    const typeMap<string, string> = {
+  static normalizeAssetType(assetType) { // Removed type annotation : string
+    const typeMap = { // Removed type annotation <string, string>
       'mass-email': 'email',
       'patient-email': 'email',
       'email': 'email',
@@ -50,7 +54,7 @@ export class AssetTypeContentFormatter {
   /**
    * Format content for HCP/Patient Email
    */
-  static formatEmail(context): FormattedContent {
+  static formatEmail(context) { // Removed type annotation : FormattedContent
     const { 
       coreMessage, 
       therapeuticFocus, 
@@ -62,8 +66,8 @@ export class AssetTypeContentFormatter {
     } = context;
 
     // Determine if patient-facing
-    const isPatient = targetAudience.toLowerCase().includes('patient') || 
-                      targetAudience.toLowerCase().includes('caregiver');
+    const isPatient = targetAudience?.toLowerCase().includes('patient') || 
+                      targetAudience?.toLowerCase().includes('caregiver');
 
     // Subject line - compelling, under 50 chars
     const subject = this.generateSubject(coreMessage, therapeuticFocus, isPatient);
@@ -78,7 +82,7 @@ export class AssetTypeContentFormatter {
     const body = this.generateEmailBody(context, isPatient);
     
     // CTA - action-oriented
-    const cta = callToAction || (isPatient  'Talk to Your Doctor' : 'Learn More');
+    const cta = callToAction || (isPatient ? 'Talk to Your Doctor' : 'Learn More'); // Corrected ternary shorthand
     
     // Disclaimer - regulatory compliant
     const disclaimer = this.generateDisclaimer(isPatient, therapeuticFocus, brandName);
@@ -88,38 +92,41 @@ export class AssetTypeContentFormatter {
       preheader,
       headline,
       body,
-      keyMessage,
+      keyMessage: coreMessage, // Added keyMessage field
       cta,
       disclaimer,
       unsubscribe: 'Click here to manage your email preferences or unsubscribe.'
     };
   }
 
-  static generateSubject(coreMessage: string, therapeuticFocus: string, isPatient: boolean): string {
+  static generateSubject(coreMessage, therapeuticFocus, isPatient) { // Removed type annotation : string
     if (isPatient) {
       if (coreMessage && coreMessage.length <= 50) return coreMessage;
       return 'Understanding Your ' + (therapeuticFocus || 'Treatment') + ' Options';
     }
     
     if (coreMessage) {
-      return coreMessage.length <= 50  coreMessage : coreMessage.substring(0, 47) + '...';
+      // Corrected ternary shorthand
+      return coreMessage.length <= 50 ? coreMessage : coreMessage.substring(0, 47) + '...'; 
     }
     return 'New Insights: ' + (therapeuticFocus || 'Clinical') + ' Update';
   }
 
-  static generatePreheader(keyBenefits, clinicalPositioning: string, isPatient: boolean): string {
+  static generatePreheader(keyBenefits, clinicalPositioning, isPatient) { // Removed type annotation : string
     if (isPatient) {
+      // Corrected ternary shorthand
       return keyBenefits[0] 
-         'Discover how ' + keyBenefits[0].toLowerCase()
+         ? 'Discover how ' + keyBenefits[0].toLowerCase()
         : 'Important information about your treatment options';
     }
     
+    // Corrected ternary shorthand
     return clinicalPositioning 
-       (clinicalPositioning.length <= 100  clinicalPositioning : clinicalPositioning.substring(0, 97) + '...')
+       ? (clinicalPositioning.length <= 100 ? clinicalPositioning : clinicalPositioning.substring(0, 97) + '...')
       : (keyBenefits[0] || 'Evidence-based clinical insights for your practice');
   }
 
-  static generateEmailBody(context, isPatient): string {
+  static generateEmailBody(context, isPatient) { // Removed type annotation : string
     const { 
       therapeuticFocus, 
       keyBenefits = [], 
@@ -131,8 +138,9 @@ export class AssetTypeContentFormatter {
 
     const condition = indication || therapeuticFocus || 'your condition';
 
+    // Corrected ternary shorthand
     const greeting = isPatient 
-       'Dear Patient,'
+       ? 'Dear Patient,'
       : 'Dear Healthcare Professional,';
 
     let intro;
@@ -158,26 +166,29 @@ export class AssetTypeContentFormatter {
       evidenceSection = '\n\nClinical Evidence:\n' + proofPoints.slice(0, 2).map(p => '• ' + p).join('\n');
     }
 
+    // Corrected ternary shorthand
     const closing = isPatient
-       '\n\nWe are committed to supporting you on your treatment journey. If you have questions, please speak with your healthcare provider.'
+       ? '\n\nWe are committed to supporting you on your treatment journey. If you have questions, please speak with your healthcare provider.'
       : '\n\nWe look forward to supporting your clinical practice with evidence-based solutions.';
 
     return greeting + '\n\n' + intro + benefitsSection + clinicalSection + evidenceSection + closing;
   }
 
-  static generateDisclaimer(isPatient, therapeuticFocus: string, brandName: string): string {
+  static generateDisclaimer(isPatient, therapeuticFocus, brandName) { // Removed type annotation : string
     if (isPatient) {
-      const brandNote = brandName  ' ' + brandName + ' is a registered trademark.' : '';
+      // Corrected ternary shorthand
+      const brandNote = brandName ? ' ' + brandName + ' is a registered trademark.' : '';
       return 'This information is for educational purposes only and is not intended to replace advice from your healthcare provider. Always consult with your doctor before making any changes to your treatment plan.' + brandNote;
     }
-    const areaNote = therapeuticFocus  ' for ' + therapeuticFocus : '';
+    // Corrected ternary shorthand
+    const areaNote = therapeuticFocus ? ' for ' + therapeuticFocus : '';
     return 'This email contains promotional information about prescription medications' + areaNote + '. Please see full Prescribing Information, including Boxed Warning if applicable. For healthcare professionals only.';
   }
 
   /**
    * Format content for Social Media
    */
-  static formatSocial(context): FormattedContent {
+  static formatSocial(context) { // Removed type annotation : FormattedContent
     const { 
       coreMessage, 
       therapeuticFocus, 
@@ -187,7 +198,8 @@ export class AssetTypeContentFormatter {
 
     // Social post - concise, engaging, under 280 chars
     const mainMessage = coreMessage || ('New developments in ' + (therapeuticFocus || 'healthcare'));
-    const benefit = keyBenefits[0]  '\n\n' + keyBenefits[0] : '';
+    // Corrected ternary shorthand
+    const benefit = keyBenefits[0] ? '\n\n' + keyBenefits[0] : '';
     
     let bodyText = mainMessage + benefit;
     if (bodyText.length > 250) {
@@ -197,17 +209,18 @@ export class AssetTypeContentFormatter {
     // Hashtags - relevant, limited
     const hashtags = this.generateHashtags(therapeuticFocus);
 
+    // Corrected object literal assignment (missing colons)
     return {
-      bodyText,
-      body,
-      headline,
-      cta || 'Learn more',
+      bodyText: bodyText,
+      body: bodyText, // Used bodyText for body too, as is common for social
+      headline: mainMessage, // Used mainMessage as a proxy for headline
+      cta: callToAction || 'Learn more',
       hashtags,
       disclaimer: 'For educational purposes only. Consult your healthcare provider.'
     };
   }
 
-  static generateHashtags(therapeuticFocus: string): string {
+  static generateHashtags(therapeuticFocus) { // Removed type annotation : string
     const baseHashtags = ['#Healthcare', '#MedicalEducation'];
     if (therapeuticFocus) {
       const cleanFocus = therapeuticFocus.replace(/\s+/g, '');
@@ -219,7 +232,7 @@ export class AssetTypeContentFormatter {
   /**
    * Format content for Landing Page
    */
-  static formatWeb(context): FormattedContent {
+  static formatWeb(context) { // Removed type annotation : FormattedContent
     const { 
       coreMessage, 
       therapeuticFocus, 
@@ -230,7 +243,7 @@ export class AssetTypeContentFormatter {
       brandName
     } = context;
 
-    const isPatient = targetAudience.toLowerCase().includes('patient');
+    const isPatient = targetAudience?.toLowerCase().includes('patient');
 
     // Page title - SEO optimized, under 60 chars
     const pageTitle = this.generatePageTitle(coreMessage, therapeuticFocus, brandName);
@@ -245,33 +258,37 @@ export class AssetTypeContentFormatter {
     // Body content - structured for web
     const body = this.generateWebBody(context, !!isPatient);
 
+    // Corrected object literal assignment (missing colons and referencing undefined variables like heroCta)
     return {
       pageTitle,
       metaDescription,
       heroHeadline,
       heroSubheadline,
-      headline,
-      body,
-      keyMessage,
-      heroCta || (isPatient  'Find Resources' : 'Request Information'),
-      cta || 'Learn More',
-      disclaimer.generateDisclaimer(!!isPatient, therapeuticFocus, brandName)
+      headline: heroHeadline, // Used heroHeadline as a proxy for generic headline
+      body: body,
+      keyMessage: coreMessage, // Added keyMessage field
+      heroCta: callToAction || (isPatient ? 'Find Resources' : 'Request Information'),
+      cta: callToAction || 'Learn More',
+      disclaimer: this.generateDisclaimer(!!isPatient, therapeuticFocus, brandName) // Corrected assignment
     };
   }
 
-  static generatePageTitle(coreMessage: string, therapeuticFocus: string, brandName: string): string {
-    const brand = brandName  ' | ' + brandName : '';
+  static generatePageTitle(coreMessage, therapeuticFocus, brandName) { // Removed type annotation : string
+    // Corrected ternary shorthand
+    const brand = brandName ? ' | ' + brandName : '';
     const base = coreMessage || ((therapeuticFocus || 'Treatment') + ' Information');
     const title = base + brand;
-    return title.length <= 60  title : title.substring(0, 57) + '...';
+    // Corrected ternary shorthand
+    return title.length <= 60 ? title : title.substring(0, 57) + '...';
   }
 
-  static generateMetaDescription(clinicalPositioning: string, keyBenefits = []): string {
+  static generateMetaDescription(clinicalPositioning, keyBenefits = []) { // Removed type annotation : string
     const description = clinicalPositioning || keyBenefits.join('. ') || 'Discover evidence-based treatment information and resources.';
-    return description.length <= 160  description : description.substring(0, 157) + '...';
+    // Corrected ternary shorthand
+    return description.length <= 160 ? description : description.substring(0, 157) + '...';
   }
 
-  static generateWebBody(context, isPatient): string {
+  static generateWebBody(context, isPatient) { // Removed type annotation : string
     const { keyBenefits = [], clinicalPositioning, proofPoints = [], therapeuticFocus } = context;
 
     let intro;
@@ -302,7 +319,7 @@ export class AssetTypeContentFormatter {
   /**
    * Format content for Digital Sales Aid
    */
-  static formatSalesAid(context): FormattedContent {
+  static formatSalesAid(context) { // Removed type annotation : FormattedContent
     const { 
       coreMessage, 
       therapeuticFocus,
@@ -325,32 +342,33 @@ export class AssetTypeContentFormatter {
     // Discussion guides
     const discussionGuides = this.generateDiscussionGuides(therapeuticFocus, keyBenefits, indication);
 
+    // Corrected object literal assignment (missing colons and referencing undefined variables)
     return {
       titleSlide,
-      headline,
+      headline: titleSlide, // Used titleSlide as a proxy for headline
       agenda,
       clinicalData,
-      body,
-      keyMessage,
+      body: clinicalData, // Used clinicalData as a proxy for body
+      keyMessage: coreMessage, // Added keyMessage field
       discussionGuides,
-      cta || 'Discuss Treatment Options',
+      cta: callToAction || 'Discuss Treatment Options',
       disclaimer: 'For healthcare professional use only. Please see full Prescribing Information.'
     };
   }
 
-  static generateAgenda(therapeuticFocus: string, keyBenefits = []): string {
+  static generateAgenda(therapeuticFocus, keyBenefits = []) { // Removed type annotation : string
     const items = [
       (therapeuticFocus || 'Disease') + ' Overview',
       'Unmet Medical Needs',
       'Clinical Evidence',
-      ...keyBenefits.slice(0, 2).map(b => b.length <= 30  b : b.substring(0, 27) + '...'),
+      ...keyBenefits.slice(0, 2).map(b => b.length <= 30 ? b : b.substring(0, 27) + '...'), // Corrected ternary shorthand
       'Safety Profile',
       'Discussion & Next Steps'
     ];
     return items.map((item, i) => (i + 1) + '. ' + item).join('\n');
   }
 
-  static generateClinicalData(clinicalPositioning: string, proofPoints = []): string {
+  static generateClinicalData(clinicalPositioning, proofPoints = []) { // Removed type annotation : string
     let positioning = '';
     if (clinicalPositioning) {
       positioning = '**Clinical Positioning:**\n' + clinicalPositioning + '\n\n';
@@ -366,7 +384,7 @@ export class AssetTypeContentFormatter {
     return positioning + evidence;
   }
 
-  static generateDiscussionGuides(therapeuticFocus: string, keyBenefits = [], indication: string): string {
+  static generateDiscussionGuides(therapeuticFocus, keyBenefits = [], indication) { // Removed type annotation : string
     const condition = indication || therapeuticFocus || 'this condition';
     const benefit = keyBenefits[0] || 'efficacy';
     
@@ -376,7 +394,7 @@ export class AssetTypeContentFormatter {
   /**
    * Format content for Rep-Triggered Email
    */
-  static formatRepEmail(context): FormattedContent {
+  static formatRepEmail(context) { // Removed type annotation : FormattedContent
     const { 
       coreMessage, 
       therapeuticFocus,
@@ -401,6 +419,7 @@ export class AssetTypeContentFormatter {
     
     body += '\n\nPlease do not hesitate to reach out if you have any questions or would like to discuss further.';
 
+    // Corrected object literal assignment (missing colons)
     return {
       subject: 'Follow-up: ' + (indication || therapeuticFocus || 'Our Discussion'),
       preheader: 'Thank you for our meeting about ' + (therapeuticFocus || 'treatment options'),
@@ -408,8 +427,8 @@ export class AssetTypeContentFormatter {
       meetingRecap,
       headline: 'Following Up on ' + (therapeuticFocus || 'Our Meeting'),
       body,
-      keyMessage,
-      cta || 'Schedule a Follow-up',
+      keyMessage: coreMessage, // Added keyMessage field
+      cta: callToAction || 'Schedule a Follow-up',
       disclaimer: 'This email contains promotional information about prescription medications. For healthcare professionals only. Please see full Prescribing Information.'
     };
   }
@@ -417,7 +436,7 @@ export class AssetTypeContentFormatter {
   /**
    * Generic fallback formatter
    */
-  static formatGeneric(context): FormattedContent {
+  static formatGeneric(context) { // Removed type annotation : FormattedContent
     const { 
       coreMessage, 
       therapeuticFocus,
@@ -432,12 +451,13 @@ export class AssetTypeContentFormatter {
     if (keyBenefits.length > 0) {
       body += 'Key points:\n' + keyBenefits.map(b => '• ' + b).join('\n');
     }
-
+    
+    // Corrected object literal assignment (missing colons and referencing undefined variables)
     return {
-      headline || ((therapeuticFocus || 'Content') + ' Overview'),
-      body.trim(),
-      keyMessage,
-      cta || 'Learn More',
+      headline: coreMessage || ((therapeuticFocus || 'Content') + ' Overview'), // Corrected assignment
+      body: body.trim(), // Corrected assignment
+      keyMessage: coreMessage, // Added keyMessage field
+      cta: callToAction || 'Learn More',
       disclaimer: 'Please see full Prescribing Information for complete details.'
     };
   }

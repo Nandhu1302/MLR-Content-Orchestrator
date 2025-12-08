@@ -10,11 +10,11 @@ export class ChannelService {
   static async fetchChannelIntelligence(
     brandId,
     selectedAssets
-  ): Promise {
+  ) {
     const channels = [];
 
     // Email Performance
-    const { data } = await supabase
+    const { data: emailData } = await supabase
       .from('sfmc_campaign_raw')
       .select('total_opens, total_clicks, total_delivered')
       .limit(50);
@@ -26,18 +26,18 @@ export class ChannelService {
 
       channels.push({
         channel: 'Email',
-        performance_score.round((totalOpens / totalDelivered) * 100),
-        recommended_for_audience.includes('email'),
+        performance_score: Math.round((totalOpens / totalDelivered) * 100),
+        recommended_for_audience: ['email'],
         engagement_metrics: {
-          impressions,
-          clicks,
-          conversions.round(totalClicks * 0.15)
+          impressions: totalDelivered,
+          clicks: totalClicks,
+          conversions: Math.round(totalClicks * 0.15)
         }
       });
     }
 
     // Social Performance
-    const { data } = await supabase
+    const { data: socialData } = await supabase
       .from('social_listening_raw')
       .select('id, brand_id')
       .limit(30);
@@ -47,17 +47,17 @@ export class ChannelService {
 
       channels.push({
         channel: 'Social',
-        performance_score,
-        recommended_for_audience.includes('social'),
+        performance_score: performanceScore,
+        recommended_for_audience: ['social'],
         engagement_metrics: {
-          impressions.length * 1000,
-          clicks.length * 50
+          impressions: socialData.length * 1000,
+          clicks: socialData.length * 50
         }
       });
     }
 
     // Website Performance
-    const { data } = await supabase
+    const { data: webData } = await supabase
       .from('web_analytics_raw')
       .select('page_views, cta_clicks')
       .limit(100);
@@ -68,11 +68,11 @@ export class ChannelService {
 
       channels.push({
         channel: 'Website',
-        performance_score.round((totalCTAs / totalViews) * 100),
-        recommended_for_audience.includes('landing-page'),
+        performance_score: Math.round((totalCTAs / totalViews) * 100),
+        recommended_for_audience: ['landing-page'],
         engagement_metrics: {
-          impressions,
-          clicks
+          impressions: totalViews,
+          clicks: totalCTAs
         }
       });
     }
@@ -82,8 +82,8 @@ export class ChannelService {
 
   static async fetchCrossChannelJourneys(
     brandId,
-    intent | undefined
-  ): Promise {
+    intent
+  ) {
     const { data, error } = await supabase
       .from('content_performance_attribution')
       .select('content_registry_id, channel, engagement_rate, conversion_rate')
@@ -91,22 +91,22 @@ export class ChannelService {
       .not('channel', 'is', null)
       .limit(100);
 
-    if (error || data) {
+    if (error || !data) {
       console.error('Error fetching cross-channel journeys:', error);
       return [];
     }
 
     // Group by content_registry_id to find multi-channel content
-    const contentChannels = new Map>();
+    const contentChannels = new Map();
     data.forEach(item => {
-      if (item.content_registry_id || item.channel) return;
+      if (!item.content_registry_id || !item.channel) return;
       
-      if (contentChannels.has(item.content_registry_id)) {
+      if (!contentChannels.has(item.content_registry_id)) {
         contentChannels.set(item.content_registry_id, []);
       }
       contentChannels.get(item.content_registry_id).push({
-        channel.channel,
-        conversion.conversion_rate || 0
+        channel: item.channel,
+        conversion: item.conversion_rate || 0
       });
     });
 
@@ -120,10 +120,10 @@ export class ChannelService {
         const lift = Math.round((channels.length - 1) * 0.45 * 100);
 
         journeys.push({
-          journey_path,
-          conversion_rate,
-          lift_vs_single_channel,
-          sample_size.length,
+          journey_path: channelPath,
+          conversion_rate: avgConversion,
+          lift_vs_single_channel: lift,
+          sample_size: channels.length,
           description: `${channelPath.join(' → ')} journey shows ${lift}% lift`
         });
       }
@@ -134,14 +134,14 @@ export class ChannelService {
 
   static async fetchMarketingMixRecommendations(
     brandId,
-    audienceType?: string
-  ): Promise> {
-    const recommendations<{ channel; percentage; avgPerformance; rationale }> = [];
+    audienceType
+  ) {
+    const recommendations = [];
 
     // Fetch audience channel preferences
     let channelPreferences = [];
     if (audienceType) {
-      const { data } = await supabase
+      const { data: audienceData } = await supabase
         .from('audience_segments')
         .select('channel_preferences')
         .eq('brand_id', brandId)
@@ -156,7 +156,7 @@ export class ChannelService {
     }
 
     // Fetch email performance
-    const { data } = await supabase
+    const { data: emailData } = await supabase
       .from('sfmc_campaign_raw')
       .select('total_opens, total_clicks, total_delivered')
       .limit(50);
@@ -168,16 +168,16 @@ export class ChannelService {
       
       recommendations.push({
         channel: 'Email',
-        percentage ? 35 : 25,
-        avgPerformance.round(openRate * 100),
-        rationale 
+        percentage: isPreferred ? 35 : 25,
+        avgPerformance: Math.round(openRate * 100),
+        rationale: isPreferred
           ? `${Math.round(openRate * 100)}% avg open rate - audience prefers email`
           : `${Math.round(openRate * 100)}% avg open rate`
       });
     }
 
     // Fetch web analytics
-    const { data } = await supabase
+    const { data: webData } = await supabase
       .from('web_analytics_raw')
       .select('scroll_depth, cta_clicks, page_views')
       .limit(100);
@@ -188,16 +188,16 @@ export class ChannelService {
       
       recommendations.push({
         channel: 'Website',
-        percentage ? 30 : 25,
-        avgPerformance.round(avgScroll),
-        rationale
+        percentage: isPreferred ? 30 : 25,
+        avgPerformance: Math.round(avgScroll),
+        rationale: isPreferred
           ? `${Math.round(avgScroll)}% avg scroll depth - audience prefers digital`
           : `${Math.round(avgScroll)}% avg scroll depth`
       });
     }
 
     // Fetch rep/field activity
-    const { data } = await supabase
+    const { data: crmData } = await supabase
       .from('veeva_crm_activity_raw')
       .select('engagement_score')
       .limit(50);
@@ -208,22 +208,22 @@ export class ChannelService {
       
       recommendations.push({
         channel: 'Rep-Enabled',
-        percentage ? 25 : 20,
-        avgPerformance.round(avgEngagement),
-        rationale
+        percentage: isPreferred ? 25 : 20,
+        avgPerformance: Math.round(avgEngagement),
+        rationale: isPreferred
           ? `${Math.round(avgEngagement)}/100 avg engagement - audience values rep interaction`
           : `${Math.round(avgEngagement)}/100 avg engagement`
       });
     }
 
     // Fetch social listening
-    const { data } = await supabase
+    const { data: socialData } = await supabase
       .from('social_listening_raw')
       .select('sentiment_score, post_date')
       .limit(30);
 
     if (socialData && socialData.length > 0) {
-      const validSentiments = socialData.filter(s => s.sentiment_score == null);
+      const validSentiments = socialData.filter(s => s.sentiment_score != null);
       const avgSentiment = validSentiments.length > 0
         ? validSentiments.reduce((sum, s) => sum + (s.sentiment_score || 0), 0) / validSentiments.length
         : 0.5;
@@ -232,9 +232,9 @@ export class ChannelService {
       
       recommendations.push({
         channel: 'Social',
-        percentage ? 15 : 10,
-        avgPerformance.round(avgSentiment * 100),
-        rationale
+        percentage: isPreferred ? 15 : 10,
+        avgPerformance: Math.round(avgSentiment * 100),
+        rationale: isPreferred
           ? `${Math.round(avgSentiment * 100)}% positive sentiment - audience active on social`
           : `${Math.round(avgSentiment * 100)}% positive sentiment`
       });

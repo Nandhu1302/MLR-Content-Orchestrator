@@ -10,8 +10,8 @@ import { WORKSHOP_CONFIG } from '@/config/workshop';
 export class ModulesService {
   static async fetchMatchingModules(
     brandId,
-    intent | undefined
-  ): Promise {
+    intent
+  ) {
     const { data, error } = await supabase
       .from('content_modules')
       .select('*')
@@ -25,11 +25,11 @@ export class ModulesService {
     }
 
     return (data || []).map((module, index) => ({
-      id.id,
-      module_text.module_text,
-      module_type.module_type,
-      relevance_score.8 - (index * 0.08),
-      mlr_approved.mlr_approved || false
+      id: module.id,
+      module_text: module.module_text,
+      module_type: module.module_type,
+      relevance_score: 0.8 - (index * 0.08),
+      mlr_approved: module.mlr_approved || false
     }));
   }
 }
