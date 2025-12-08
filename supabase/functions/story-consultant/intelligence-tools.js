@@ -1,22 +1,10 @@
+
 // ============================================
 // Intelligence Query Tools for Story Consultant
 // Enables AI to query live data during conversation
 // ============================================
-
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
-
-/**
- * Queries key brand performance and competitive metrics.
- * @param {object} args - Arguments (unused, but kept for tool conformity).
- * @param {string} brandId - The ID of the brand.
- * @param {object} supabase - The Supabase client instance.
- */
-export async function queryBrandStatus(args, brandId, supabase) {
+export async function queryBrandStatus(supabase, brandId) {
   console.log('Querying brand status for:', brandId);
-  
-  // Note: In a real environment, the supabase client might be passed in, 
-  // or created here using environment variables.
-  
   const [market, campaigns, assets, competitive] = await Promise.all([
     supabase.from('market_intelligence_analytics').select('*')
       .eq('brand_id', brandId)
@@ -35,269 +23,338 @@ export async function queryBrandStatus(args, brandId, supabase) {
       .order('discovered_at', { ascending: false })
       .limit(3)
   ]);
-  
   const marketData = market.data?.[0];
-  const activeAssets = assets.data?.filter(a => a.status === 'approved').length || 0;
-  
-  // Format results for the AI
   return {
-    marketShare: marketData?.market_share_percent || 0,
-    rxGrowth: marketData?.rx_growth_rate || 0,
-    topRegion: marketData?.top_performing_region || 'National',
-    activeAssetsCount: activeAssets,
-    campaigns: campaigns.data?.map(c => ({
+    marketShare: marketData?.market_share_percent ?? 0,
+    rxGrowth: marketData?.rx_growth_rate ?? 0,
+    topRegion: marketData?.top_performing_region ?? 'Unknown',
+    topCompetitor: marketData?.primary_competitor ?? 'None',
+    recentCampaigns: (campaigns.data ?? []).map((c) => ({
       name: c.campaign_name,
-      npi: c.npi_lift_percent, // NPI Lift
-      roi: c.roi_index
-    })) || [],
-    competitiveSignals: competitive.data?.map(c => ({
+      openRate: c.open_rate,
+      clickRate: c.click_rate,
+      engagementScore: c.engagement_score,
+    })),
+    activeAssets: (assets.data ?? []).map((a) => ({
+      name: a.asset_name,
+      status: a.status,
+    })),
+    competitiveThreats: (competitive.data ?? []).map((c) => ({
       competitor: c.competitor_name,
-      signal: c.signal_type,
-      relevance: c.relevance_score
-    })) || []
+      threat: c.threat_level,
+      content: c.content?.substring(0, 100),
+    })),
   };
 }
 
-/**
- * Queries historical campaign performance for specific channels or regions.
- * @param {object} args - Arguments including channel, region, and timeframe.
- * @param {string} brandId - The ID of the brand.
- * @param {object} supabase - The Supabase client instance.
- */
-export async function queryCampaignHistory(args, brandId, supabase) {
-  console.log('Querying campaign history with arguments:', args);
-  
+export async function queryCampaignHistory(supabase, brandId, campaignName) {
+  console.log('Querying campaign history:', { brandId, campaignName });
   let query = supabase.from('campaign_performance_analytics').select('*')
     .eq('brand_id', brandId)
-    .order('calculated_at', { ascending: false })
-    .limit(10);
-    
-  if (args.channel) {
-    query = query.eq('channel', args.channel);
+    .order('calculated_at', { ascending: false });
+  if (campaignName) {
+    query = query.ilike('campaign_name', `%${campaignName}%`);
   }
-  if (args.region) {
-    query = query.eq('region', args.region);
-  }
-  
-  const { data, error } = await query;
-  
+  const { data, error } = await query.limit(5);
   if (error) {
-    console.error('Campaign History Error:', error);
-    return { error: 'Failed to retrieve campaign history data.' };
+    console.error('Error querying campaign history:', error);
+    return [];
   }
-  
-  // Summarize and format the data
-  const summary = {
-    totalCampaigns: data.length,
-    averageNpiLift: data.reduce((sum, c) => sum + (c.npi_lift_percent || 0), 0) / data.length || 0,
-    averageRoi: data.reduce((sum, c) => sum + (c.roi_index || 0), 0) / data.length || 0,
-    topPerformer: data.sort((a, b) => (b.npi_lift_percent || 0) - (a.npi_lift_percent || 0))[0]?.campaign_name || 'N/A'
-  };
-
-  return summary;
+  return (data ?? []).map((c) => ({
+    name: c.campaign_name,
+    type: c.campaign_type,
+    openRate: c.open_rate,
+    clickRate: c.click_rate,
+    conversionRate: c.conversion_rate,
+    engagementScore: c.engagement_score,
+    audienceSize: c.total_audience_size,
+    benchmarkComparison: c.performance_vs_benchmark,
+    period: c.reporting_period,
+  }));
 }
 
-/**
- * Queries in-depth insights about a specific audience segment.
- * @param {object} args - Arguments including audience_type.
- * @param {string} brandId - The ID of the brand.
- * @param {object} supabase - The Supabase client instance.
- */
-export async function queryAudienceInsights(args, brandId, supabase) {
-  console.log('Querying audience insights for:', args.audience_type);
-  
-  const { data, error } = await supabase.from('audience_insights').select('*')
+export async function queryAudienceInsights(supabase, brandId, audienceType) {
+  console.log('Querying audience insights:', { brandId, audienceType });
+  const { data, error } = await supabase
+    .from('audience_segments')
+    .select('*')
     .eq('brand_id', brandId)
-    .eq('audience_segment', args.audience_type)
-    .single();
-
-  if (error || !data) {
-    console.error('Audience Insights Error:', error);
-    return {
-      audience: args.audience_type,
-      error: 'No specific data found, relying on general segment knowledge.',
-      keyBarriers: ['Lack of awareness', 'Cost concerns'],
-      preferredChannels: ['Peer-reviewed journals', 'Conferences'],
-      decisionFactors: ['Clinical efficacy', 'Safety profile']
-    };
+    .ilike('segment_name', `%${audienceType}%`)
+    .limit(1);
+  if (error || !data || data.length === 0) {
+    console.error('Error or no data for audience insights:', error);
+    return null;
   }
-  
+  const segment = data[0];
   return {
-    audience: data.audience_segment,
-    keyBarriers: data.primary_barriers || [],
-    preferredChannels: data.preferred_channels || [],
-    decisionFactors: data.top_decision_factors || [],
-    recentInteractionRate: data.interaction_rate_last_90d || 0.15
+    segmentName: segment.segment_name,
+    demographics: segment.demographics ?? {},
+    psychographics: segment.psychographics ?? {},
+    decisionFactors: segment.decision_factors ?? [],
+    barriers: segment.barriers_to_engagement ?? [],
+    motivations: segment.motivations ?? [],
+    channelPreferences: segment.channel_preferences ?? [],
+    messagingPreferences: segment.messaging_preferences ?? {},
+    contentPreferences: segment.content_preferences ?? {},
+    trustFactors: segment.trust_factors ?? [],
+    engagementPatterns: segment.engagement_patterns ?? {},
   };
 }
 
-/**
- * Recommends a multi-channel strategy with performance predictions.
- * @param {object} args - Arguments including audience, occasion, region, and activities.
- * @param {string} brandId - The ID of the brand (unused but kept for tool conformity).
- * @param {object} supabase - The Supabase client instance (unused but kept for tool conformity).
- */
-export async function suggestMultiChannelApproach(args, brandId, supabase) {
-  console.log('Suggesting multi-channel approach with arguments:', args);
+export async function suggestMultiChannelApproach(
+  supabase,
+  brandId,
+  context
+) {
+  console.log('Suggesting multi-channel approach:', context);
+  // Map activities to channel names matching database values
+  // Database channels: 'email', 'web', 'event', 'rep_presentation'
+  const activityToChannelMap = {
+    'booth': ['event', 'rep_presentation'],
+    'booth materials': ['event', 'rep_presentation'],
+    'booth engagement': ['event', 'rep_presentation'],
+    'podium': ['event', 'rep_presentation'],
+    'podium presentation': ['event', 'rep_presentation'],
+    'presentation': ['event', 'rep_presentation'],
+    'workshop': ['event', 'rep_presentation'],
+    'networking': ['event'],
+    'email': ['email'],
+    'email campaign': ['email'],
+    'follow-up': ['email'],
+    'webinar': ['email', 'web'],
+    'web': ['web'],
+    'website': ['web'],
+    'social': ['web'],
+    'conference': ['event', 'rep_presentation', 'email'],
+    'medical conference': ['event', 'rep_presentation', 'email'],
+  };
 
-  // NOTE: This is a complex simulation, typically performed by a machine learning model.
-  // The logic here is purely illustrative and heuristic.
-  
-  const baseLift = 0.05; // 5% baseline NRx lift prediction
-  const channels = [];
+  // Fuzzy activity matching - normalize and check for partial matches
+  const normalizeActivity = (activity) => {
+    const lower = activity.toLowerCase().trim();
+    // Direct match first
+    if (activityToChannelMap[lower]) {
+      return activityToChannelMap[lower];
+    }
+    // Fuzzy matching for partial strings
+    if (lower.includes('booth')) return activityToChannelMap['booth'];
+    if (lower.includes('podium')) return activityToChannelMap['podium'];
+    if (lower.includes('presentation')) return activityToChannelMap['presentation'];
+    if (lower.includes('conference')) return activityToChannelMap['conference'];
+    if (lower.includes('email')) return activityToChannelMap['email'];
+    if (lower.includes('web')) return activityToChannelMap['web'];
+    if (lower.includes('workshop')) return activityToChannelMap['workshop'];
+    return [];
+  };
 
-  // Heuristic for channel selection
-  if (args.occasion.toLowerCase().includes('congress')) {
-    channels.push({ name: 'Conference Booth Follow-up Email', estimatedLift: baseLift + 0.02, roiIndex: 4.5 });
-    channels.push({ name: 'Post-Event Social Media Retargeting', estimatedLift: baseLift + 0.015, roiIndex: 3.2 });
-  } else if (args.activities?.includes('rep_visit')) {
-    channels.push({ name: 'Digital Sales Aid (Rep)', estimatedLift: baseLift + 0.03, roiIndex: 5.8 });
-    channels.push({ name: 'Rep-Triggered Email', estimatedLift: baseLift + 0.025, roiIndex: 4.9 });
-  } else {
-    channels.push({ name: 'Educational Webinar Series', estimatedLift: baseLift + 0.04, roiIndex: 6.5 });
-    channels.push({ name: 'Search Engine Marketing (SEO/SEM)', estimatedLift: baseLift + 0.01, roiIndex: 2.1 });
+  // Convert activities to channel names using fuzzy matching
+  const channelsFromActivities = (context.activities ?? [])
+    .flatMap((activity) => normalizeActivity(activity))
+    .filter((v, i, a) => a.indexOf(v) === i); // Deduplicate
+  console.log('Mapped activities to channels:', { activities: context.activities, channels: channelsFromActivities });
+
+  // Query success patterns with proper channel filtering
+  const { data: patterns, error: patternError } = await supabase
+    .from('content_success_patterns')
+    .select('*')
+    .eq('brand_id', brandId)
+    .order('avg_performance_lift', { ascending: false })
+    .limit(10);
+  if (patternError) {
+    console.error('Error querying success patterns:', patternError);
   }
-  
-  const totalPredictedLift = channels.reduce((sum, c) => sum + c.estimatedLift, 0);
+
+  // Filter patterns by channels if we have activities
+  let relevantPatterns = patterns ?? [];
+  if (channelsFromActivities.length > 0) {
+    relevantPatterns = relevantPatterns.filter((p) => {
+      const patternChannels = p.applicable_channels ?? [];
+      return channelsFromActivities.some((ch) => patternChannels.includes(ch));
+    });
+  }
+  console.log('Found relevant patterns:', relevantPatterns.length);
+
+  // Build recommendations from success patterns
+  const patternRecs = relevantPatterns.slice(0, 5).map((p) => ({
+    patternName: p.pattern_name,
+    channels: p.applicable_channels ?? [],
+    performanceLift: p.avg_performance_lift ?? 0,
+    confidence: p.confidence_score ?? 0,
+    sampleSize: p.sample_size ?? 0,
+  }));
+
+  // Synthesize best multi-channel combo from patterns
+  const channelPerformance = {};
+  relevantPatterns.forEach((p) => {
+    (p.applicable_channels ?? []).forEach((ch) => {
+      if (!channelPerformance[ch]) {
+        channelPerformance[ch] = { count: 0, totalLift: 0 };
+      }
+      channelPerformance[ch].count++;
+      channelPerformance[ch].totalLift += p.avg_performance_lift ?? 0;
+    });
+  });
+
+  const topChannels = Object.entries(channelPerformance)
+    .map(([channel, stats]) => ({
+      channel,
+      avgLift: stats.totalLift / stats.count,
+      frequency: stats.count,
+    }))
+    .sort((a, b) => b.avgLift - a.avgLift)
+    .slice(0, 3);
+
+  const suggestedCombo = topChannels.length > 0 ? {
+    channels: topChannels.map((c) => c.channel),
+    conversionLift: topChannels[0].avgLift,
+    rationale: `Based on ${relevantPatterns.length} success patterns`,
+  } : {
+    channels: ['email', 'rep-visit', 'digital-sales-aid'],
+    conversionLift: 2.8,
+    rationale: 'Default recommendation (no pattern data available)',
+  };
 
   return {
-    strategySummary: `A coordinated multi-channel approach focusing on ${args.audience} for the ${args.occasion}.`,
-    predictedNpiLift: parseFloat(totalPredictedLift.toFixed(3)),
-    recommendedChannels: channels
+    patterns: patternRecs,
+    suggestedCombo,
+    dataSource: relevantPatterns.length > 0 ? 'success_patterns' : 'fallback',
   };
 }
 
-/**
- * Pre-selects relevant clinical claims, visual assets, and content modules.
- * @param {object} args - Arguments including audience, occasion, and asset_types.
- * @param {string} brandId - The ID of the brand.
- * @param {object} supabase - The Supabase client instance.
- */
-export async function preSelectEvidence(args, brandId, supabase) {
-  console.log('Pre-selecting evidence with arguments:', args);
-  
-  // NOTE: This simulation fetches data directly from the DB based on heuristics.
-  
-  const { data: claimsData } = await supabase.from('mlr_approved_claims')
-    .select('claim_text, data_point, source')
-    .eq('brand_id', brandId)
-    .or(`audience.cs.{"${args.audience}"},asset_type.cs.{"${args.asset_types?.[0] || 'Email'}"}`)
-    .limit(3);
+export async function preSelectEvidence(
+  supabase,
+  brandId,
+  context
+) {
+  console.log('Pre-selecting evidence:', context);
+  // Map audience to database format
+  const audienceFilter = (context.audience?.includes('specialist') || context.audience?.includes('hcp'))
+    ? 'Physician-Specialist'
+    : (context.audience?.includes('patient')
+      ? 'Patient'
+      : (context.audience?.includes('caregiver')
+        ? 'Caregiver'
+        : 'Physician-Specialist'));
 
-  const { data: visualData } = await supabase.from('visual_assets')
-    .select('title, type, link')
-    .eq('brand_id', brandId)
-    .limit(2);
+  const [claims, visuals, modules] = await Promise.all([
+    // Query clinical claims
+    supabase.from('clinical_claims').select('*')
+      .eq('brand_id', brandId)
+      .eq('review_status', 'approved')
+      .contains('target_audiences', [audienceFilter])
+      .limit(5),
+    // Query visual assets
+    supabase.from('visual_assets').select('*')
+      .eq('brand_id', brandId)
+      .eq('mlr_approved', true)
+      .limit(3),
+    // Query content modules
+    supabase.from('content_modules').select('*')
+      .eq('brand_id', brandId)
+      .eq('mlr_approved', true)
+      .limit(3),
+  ]);
 
   return {
-    audience: args.audience,
-    claims: claimsData?.map(c => ({ 
-      claim: c.claim_text.substring(0, 100) + '...', 
-      data: c.data_point 
-    })) || [],
-    visualAssets: visualData?.map(v => ({ 
-      title: v.title, 
-      type: v.type,
-      link: v.link 
-    })) || [],
-    contentModules: ['Safety Overview Module', 'Efficacy Trial Summary Module', 'Mechanism of Action Animation']
+    selectedClaims: (claims.data ?? []).map((c, idx) => ({
+      id: c.id,
+      claimText: c.claim_text,
+      claimType: c.claim_type,
+      relevanceScore: 0.9 - (idx * 0.1),
+    })),
+    selectedVisuals: (visuals.data ?? []).map((v, idx) => ({
+      id: v.id,
+      assetName: v.title ?? 'Visual Asset',
+      assetType: v.visual_type,
+      relevanceScore: 0.85 - (idx * 0.1),
+    })),
+    selectedModules: (modules.data ?? []).map((m, idx) => ({
+      id: m.id,
+      moduleText: (m.module_text?.substring(0, 100) ?? '') + '...',
+      moduleType: m.module_type,
+      relevanceScore: 0.8 - (idx * 0.1),
+    })),
   };
 }
 
-
-// ============================================
-// AI Tool Schema Definitions
-// ============================================
-
-/**
- * Tool definitions array used to register functions with the LLM.
- * NOTE: The structure matches the required format for the AI Gateway/LLM tooling.
- */
+// Tool definitions for AI tool calling
 export const intelligenceQueryTools = [
   {
-    name: 'query_brand_status',
-    executor: queryBrandStatus,
-    description: 'Get an up-to-date snapshot of brand performance (market share, Rx growth), top campaigns, and recent competitive signals.',
-    parameters: {
-      type: 'object',
-      properties: {
-        // No specific arguments needed for a general status query
-      },
-      required: []
+    type: 'function',
+    function: {
+      name: 'query_brand_status',
+      description: 'Get current brand health metrics: market share, Rx growth, competitive position, recent campaign performance',
+      parameters: { type: 'object', properties: {}, required: [] },
     }
   },
   {
-    name: 'query_campaign_history',
-    executor: queryCampaignHistory,
-    description: 'Retrieve historical performance (NRx lift, ROI) for past campaigns, optionally filtered by channel, region, or time.',
-    parameters: {
-      type: 'object',
-      properties: {
-        channel: { 
-          type: 'string', 
-          description: 'Filter by channel (e.g., Email, Social, Display, Rep)' 
-        },
-        region: { 
-          type: 'string', 
-          description: 'Filter by region (e.g., Midwest, Northeast)' 
-        },
-        timeframe: { 
-          type: 'string', 
-          description: 'Timeframe for analysis (e.g., Last 6 months, Q1 2024)' 
-        }
-      },
-      required: []
-    }
-  },
-  {
-    name: 'query_audience_insights',
-    executor: queryAudienceInsights,
-    description: 'Get deep insights about a specific audience segment including decision factors, barriers, channel preferences',
-    parameters: {
-      type: 'object',
-      properties: {
-        audience_type: { 
-          type: 'string',
-          description: 'Audience type (e.g., "HCP Specialist", "Patient", "Caregiver")'
-        }
-      },
-      required: ['audience_type']
-    }
-  },
-  {
-    name: 'suggest_multi_channel_approach',
-    executor: suggestMultiChannelApproach,
-    description: 'Recommend coordinated multi-channel strategy with performance predictions based on cross-channel journey data',
-    parameters: {
-      type: 'object',
-      properties: {
-        audience: { type: 'string' },
-        occasion: { type: 'string' },
-        region: { type: 'string' },
-        activities: { 
-          type: 'array',
-          items: { type: 'string' },
-          description: 'List of specific activities (e.g., "booth_visit", "podium_presentation")'
+    type: 'function',
+    function: {
+      name: 'query_campaign_history',
+      description: 'Get performance metrics for recent campaigns or search for specific campaign by name',
+      parameters: {
+        type: 'object',
+        properties: {
+          campaign_name: {
+            type: 'string',
+            description: 'Optional: specific campaign name to search for',
+          }
         }
       }
     }
   },
   {
-    name: 'pre_select_evidence',
-    executor: preSelectEvidence,
-    description: 'Pre-select relevant clinical claims, visual assets, and content modules for confirmed audience and asset types',
-    parameters: {
-      type: 'object',
-      properties: {
-        audience: { type: 'string' },
-        occasion: { type: 'string' },
-        asset_types: { 
-          type: 'array', 
-          items: { type: 'string' },
-          description: 'List of content types to be created (e.g., "email", "digital_sales_aid")'
+    type: 'function',
+    function: {
+      name: 'query_audience_insights',
+      description: 'Get deep insights about a specific audience segment including decision factors, barriers, channel preferences',
+      parameters: {
+        type: 'object',
+        properties: {
+          audience_type: {
+            type: 'string',
+            description: 'Audience type (e.g., "HCP Specialist", "Patient", "Caregiver")'
+          }
+        },
+        required: ['audience_type']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'suggest_multi_channel_approach',
+      description: 'Recommend coordinated multi-channel strategy with performance predictions based on cross-channel journey data',
+      parameters: {
+        type: 'object',
+        properties: {
+          audience: { type: 'string' },
+          occasion: { type: 'string' },
+          region: { type: 'string' },
+          activities: {
+            type: 'array',
+            items: { type: 'string' }
+          }
         }
-      },
-      required: ['audience']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'pre_select_evidence',
+      description: 'Pre-select relevant clinical claims, visual assets, and content modules for confirmed audience and asset types',
+      parameters: {
+        type: 'object',
+        properties: {
+          audience: { type: 'string' },
+          occasion: { type: 'string' },
+          asset_types: {
+            type: 'array',
+            items: { type: 'string' }
+          }
+        }
+      }
     }
   }
 ];

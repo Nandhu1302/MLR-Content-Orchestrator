@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.js";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
@@ -6,75 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Removed all TypeScript interface definitions (ValidationRequest, ValidationResult, etc.)
-// The data structures are now defined implicitly by their usage.
+// Removed ValidationRequest interface
 
-/**
- * Builds the AI prompt for content validation.
- * @param {string} content The content to validate.
- * @param {Array<object>} piDocuments The array of Prescribing Information documents.
- * @returns {string} The complete user prompt.
- */
-function buildValidationPrompt(content, piDocuments) {
-  const piContext = piDocuments.map(doc => 
-    `--- PI Document: ${doc.drug_name} v${doc.version} ---\n${doc.parsed_data?.full_text || doc.parsed_data?.indications || 'No text found'}\n`
-  ).join('\n\n');
-
-  // Strict JSON Schema instruction (implicitly defining the expected output structure)
-  const jsonSchema = {
-    overallCompliance: "string", // "compliant", "warning", or "violation"
-    complianceScore: "number", // 0-100
-    summary: "string",
-    issues: [
-      {
-        type: "string", // "claim_unsupported", "data_mismatch", "contraindication"
-        severity: "string", // "critical", "high", "medium", "low"
-        location: "string", // Specific part of the content (e.g., "Headline", "Paragraph 2")
-        claim: "string",
-        issue: "string",
-        piReference: "string", // Reference text from the PI document
-        suggestion: "string" // Actionable suggestion for correction
-      }
-    ],
-    validatedClaims: [
-      {
-        claim: "string",
-        status: "string", // "verified", "warning", "unverified"
-        piSource: "string" // Document ID or name
-      }
-    ]
-  };
-
-  const schemaInstruction = JSON.stringify(jsonSchema, null, 2);
-
-  return `
-You are an expert Regulatory and Medical Legal Review (MLR) AI.
-Your task is to validate the marketing content below against the provided Prescribing Information (PI) documents.
-
-RULES:
-1. All claims MUST be supported by the PI text.
-2. Contraindications, warnings, and adverse events must NOT be misrepresented or omitted where contextually relevant.
-3. Compare data points strictly (e.g., "5 years" vs. "5-year data").
-
-MARKETING CONTENT TO VALIDATE:
----
-${content}
----
-
-PRESCRIPTION INFORMATION CONTEXT:
----
-${piContext}
----
-
-INSTRUCTIONS:
-1.  Analyze the content against the PI.
-2.  Generate a list of 'issues' with appropriate severity and type.
-3.  Provide a 'complianceScore' (0-100) and 'overallCompliance' status.
-4.  Return ONLY a single JSON object conforming to this schema. DO NOT include any text outside the JSON:
-
-${schemaInstruction}
-`;
-}
+// Removed ValidationResult interface
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -82,89 +16,164 @@ serve(async (req) => {
   }
 
   try {
-    // Implicitly treating the request body as the expected ValidationRequest structure
-    const { content, linkedPIIds, assetId, brandId } = await req.json();
-    
-    if (!content || !linkedPIIds || !assetId || !brandId) {
-      throw new Error("Missing required fields: content, linkedPIIds, assetId, or brandId");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!supabaseUrl || !supabaseKey || !lovableApiKey) {
+      throw new Error("Missing required environment variables");
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
-    }
-    
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const { content, linkedPIIds, assetId, brandId } = await req.json(); // Type annotation removed here
 
-    // ===============================================
-    // 1. Fetch PI Documents
-    // ===============================================
+    console.log("Validating content against PI documents:", { assetId, piCount: linkedPIIds?.length });
 
-    console.log(`Fetching PI documents for IDs: ${linkedPIIds.join(', ')}`);
-    const { data: piDocuments, error: fetchError } = await supabase
-      .from('prescribing_information')
-      .select('id, drug_name, version, parsed_data')
-      .in('id', linkedPIIds);
-
-    if (fetchError) {
-      throw fetchError;
+    if (!linkedPIIds || linkedPIIds.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          result: {
+            overallCompliance: "warning",
+            issues: [{
+              type: "missing_context",
+              severity: "medium",
+              location: "general",
+              claim: "No PI documents linked",
+              issue: "Cannot validate claims without linked Prescribing Information",
+              suggestion: "Link relevant PI documents to enable automated validation"
+            }],
+            validatedClaims: [],
+            complianceScore: 50,
+            summary: "No PI documents linked for validation"
+          }
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    // Fetch PI documents and their parsed data
+    const { data: piDocuments, error: piError } = await supabase
+      .from("prescribing_information")
+      .select("id, drug_name, version, parsed_data")
+      .in("id", linkedPIIds)
+      .eq("parsing_status", "completed");
+
+    if (piError) throw piError;
+
     if (!piDocuments || piDocuments.length === 0) {
-      throw new Error(`Could not find Prescribing Information for IDs: ${linkedPIIds.join(', ')}`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          result: {
+            overallCompliance: "warning",
+            issues: [{
+              type: "missing_context",
+              severity: "high",
+              location: "general",
+              claim: "Linked PI documents not available",
+              issue: "PI documents are still being parsed or failed to parse",
+              suggestion: "Wait for PI parsing to complete or re-upload documents"
+            }],
+            validatedClaims: [],
+            complianceScore: 30,
+            summary: "PI documents are not ready for validation"
+          }
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // ===============================================
-    // 2. Build Prompt and Call AI
-    // ===============================================
+    console.log(`Loaded ${piDocuments.length} PI documents for validation`);
 
-    const userPrompt = buildValidationPrompt(content, piDocuments);
+    // Prepare PI context for AI validation
+    const piContext = piDocuments.map(doc => ({
+      drug_name: doc.drug_name,
+      version: doc.version,
+      data: doc.parsed_data
+    }));
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Use Lovable AI to perform intelligent validation
+    const validationPrompt = `You are a pharmaceutical regulatory compliance expert. Your task is to validate marketing content against Prescribing Information (PI) documents.
+ 
+CONTENT TO VALIDATE:
+${content}
+ 
+PRESCRIBING INFORMATION DATA:
+${JSON.stringify(piContext, null, 2)}
+ 
+VALIDATION REQUIREMENTS:
+1. Check all clinical claims against PI data
+2. Verify efficacy data matches PI exactly
+3. Ensure safety information is complete and accurate
+4. Validate that indications are correctly stated
+5. Check for any contraindications or warnings mentioned
+6. Verify dosage information if present
+7. Ensure no off-label claims or unapproved uses
+ 
+For each issue found, provide:
+- type: claim_unsupported | data_mismatch | missing_context | inaccurate_claim | contraindication
+- severity: critical | high | medium | low
+- location: where in content the issue appears
+- claim: the specific claim being made
+- issue: what's wrong with it
+- piReference: relevant section from PI (if applicable)
+- suggestion: how to fix it
+ 
+Also identify claims that ARE properly supported by the PI.
+ 
+Return your analysis in this JSON format (no markdown, just raw JSON):
+{
+  "overallCompliance": "compliant" | "warning" | "violation",
+  "issues": [...],
+  "validatedClaims": [...],
+  "complianceScore": 0-100,
+  "summary": "brief overall assessment"
+}`;
+
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are an expert MLR validation engine. Return only valid JSON." },
-          { role: "user", content: userPrompt }
+          { role: "system", content: "You are a pharmaceutical compliance validation expert. Always respond with valid JSON only." },
+          { role: "user", content: validationPrompt }
         ],
+        temperature: 0.3,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`AI API error (${response.status}):`, errorText);
-      throw new Error(`AI validation error: ${response.status}`);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error("AI validation failed:", aiResponse.status, errorText);
+      throw new Error(`AI validation failed: ${errorText}`);
     }
 
-    const aiResponse = await response.json();
-    const rawContent = aiResponse.choices?.[0]?.message?.content;
-    
-    if (!rawContent) {
-      throw new Error('AI response content was empty.');
+    const aiResult = await aiResponse.json();
+    const aiContent = aiResult.choices[0]?.message?.content;
+
+    if (!aiContent) {
+      throw new Error("No content in AI response");
     }
 
-    let validationResult;
+    // Parse AI response
+    let validationResult; // Type annotation removed here
     try {
-      // The AI is instructed to return only JSON, attempt to parse the content directly.
-      validationResult = JSON.parse(rawContent);
-    } catch (e) {
-      console.error('Failed to parse AI response as JSON:', e);
-      throw new Error(`Failed to parse AI validation response: ${e.message}. Raw response: ${rawContent.substring(0, 500)}`);
+      // Remove markdown code blocks if present
+      const cleanedContent = aiContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      validationResult = JSON.parse(cleanedContent);
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", aiContent);
+      throw new Error("Failed to parse validation results");
     }
 
-    // ===============================================
-    // 3. Store Validation Results
-    // ===============================================
-
-    // Insert the full validation result into the validation history table
+    // Store validation results in database
     const { error: insertError } = await supabase
-      .from('content_validation_history')
+      .from("content_validation_results")
       .insert({
         asset_id: assetId,
         validation_type: "pi_compliance",
@@ -174,14 +183,14 @@ serve(async (req) => {
           content_snapshot: content.substring(0, 500),
           validated_at: new Date().toISOString()
         },
-        overall_status: validationResult.overallCompliance,
+overall_status: validationResult.overallCompliance,
         compliance_score: validationResult.complianceScore,
         issues_count: validationResult.issues.length
       });
 
     if (insertError) {
       console.error("Failed to store validation results:", insertError);
-      // Continue anyway - don't fail the request just because storage failed
+      // Continue anyway - don't fail the request
     }
 
     console.log("Validation complete:", {
@@ -190,10 +199,6 @@ serve(async (req) => {
       issuesCount: validationResult.issues.length
     });
 
-    // ===============================================
-    // 4. Return Final Response
-    // ===============================================
-    
     return new Response(
       JSON.stringify({
         success: true,
