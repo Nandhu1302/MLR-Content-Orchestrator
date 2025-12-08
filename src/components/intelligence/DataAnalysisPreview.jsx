@@ -84,4 +84,4 @@ function DataAnalysisPreview({ brandId, filters }) {
 }
 
 // ✅ Explicit export
-export default DataAnalysisPreview;
+export { DataAnalysisPreview };

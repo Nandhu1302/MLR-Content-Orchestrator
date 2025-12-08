@@ -101,4 +101,4 @@ function ContentInspirationPanel({ brandId, filters }) {
 }
 
 // ✅ Explicit export
-export default ContentInspirationPanel;
+export {ContentInspirationPanel};

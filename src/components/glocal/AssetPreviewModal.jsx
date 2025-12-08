@@ -164,4 +164,4 @@ const AssetPreviewModal = ({ asset, open, onOpenChange, onSelect }) => {
   );
 };
 
-export default AssetPreviewModal;
+export {AssetPreviewModal};

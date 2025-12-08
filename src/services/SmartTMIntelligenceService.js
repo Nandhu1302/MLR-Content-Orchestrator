@@ -5,7 +5,7 @@
 // Assumed import (replace with actual JS import if necessary)
 // import { supabase } from '@/integrations/supabase/client';
 // Assuming supabase is imported or defined globally
-const { supabase } = require("@/integrations/supabase/client");
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * @typedef {Object} TMIntelligenceMatch

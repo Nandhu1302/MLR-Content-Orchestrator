@@ -117,4 +117,4 @@ function CompetitiveIntelligencePanel({ brandId, filters }) {
 }
 
 // ✅ Explicit export
-export default CompetitiveIntelligencePanel;
+export {CompetitiveIntelligencePanel};

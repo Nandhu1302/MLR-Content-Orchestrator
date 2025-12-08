@@ -36,8 +36,4 @@
  * @property {ExportFormat} format
  */
 
-/*
-  JSDoc typedefs replace TypeScript types so editors still get type hints in plain JavaScript.
-*/
-
 export default {};

@@ -205,4 +205,4 @@ const AssetMetadataPanel = ({ asset, context, brandId }) => {
 };
 
 // ✅ Export the component
-export default AssetMetadataPanel;
+export { AssetMetadataPanel };

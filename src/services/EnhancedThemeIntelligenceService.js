@@ -1234,4 +1234,4 @@ class EnhancedThemeIntelligenceService {
   }
 }
 
-export default EnhancedThemeIntelligenceService;
+export {EnhancedThemeIntelligenceService};

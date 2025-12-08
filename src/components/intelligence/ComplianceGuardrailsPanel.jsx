@@ -94,4 +94,4 @@ function ComplianceGuardrailsPanel({ brandId, filters }) {
 }
 
 // ✅ Explicit export
-export default ComplianceGuardrailsPanel;
+export {ComplianceGuardrailsPanel};

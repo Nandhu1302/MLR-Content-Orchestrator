@@ -2,7 +2,7 @@
  * Service class to provide definitions for various architecture diagrams
  * using the C4 model, Deployment, ERD, and Sequence diagrams.
  */
-import { DiagramDefinition, DiagramType } from '@/types/diagram';
+import '@/types/diagram';
 
 class ArchitectureDiagramService {
   
@@ -1297,4 +1297,4 @@ erDiagram
 }
 
 
-export default ArchitectureDiagramService;
+export {ArchitectureDiagramService};

@@ -225,4 +225,4 @@ const AssetDiscoveryDashboard = ({
   );
 };
 
-export default AssetDiscoveryDashboard;
+export  {AssetDiscoveryDashboard};

@@ -85,4 +85,4 @@ function AudienceContextPanel({ brandId, filters }) {
 }
 
 // ✅ Explicit export statement
-export default AudienceContextPanel;
+export {AudienceContextPanel};

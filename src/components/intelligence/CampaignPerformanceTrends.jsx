@@ -1,9 +1,9 @@
-
 import { Card } from "@/components/ui/card";
 import { useDataIntelligence } from "@/hooks/useDataIntelligence";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp } from "lucide-react";
 
+// The function declaration does not change
 function CampaignPerformanceTrends({ brandId, filters }) {
   const { contentTrends, isLoading } = useDataIntelligence(brandId, 90, filters);
 
@@ -63,5 +63,5 @@ function CampaignPerformanceTrends({ brandId, filters }) {
   );
 }
 
-// ✅ Explicit export
-export default CampaignPerformanceTrends;
+// 🎯 FIX: Changed 'export default' to 'export const' or in this case 'export' on the function itself
+export { CampaignPerformanceTrends }; // Exporting the component as a Named Export

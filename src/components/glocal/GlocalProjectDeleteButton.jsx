@@ -227,4 +227,4 @@ const GlocalProjectDeleteButton = ({
   );
 };
 
-export default GlocalProjectDeleteButton;
+export {GlocalProjectDeleteButton};

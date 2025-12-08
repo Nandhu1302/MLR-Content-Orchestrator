@@ -98,7 +98,7 @@ export const exportCurrentSlide = async (
   downloadBlob(blob, fileName);
 };
 
-export const exportAllSlidesToZip = async (
+export const exportMarketingDeckToPPT = async (
   slideElements,
   slideNames,
   progressCallback,

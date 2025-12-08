@@ -389,4 +389,4 @@ const MLRMemoryPanel = ({
 };
 
 
-export default MLRMemoryPanel;
+export { MLRMemoryPanel };

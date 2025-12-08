@@ -281,4 +281,4 @@ const ReferenceDetailsModal = ({
 	);
 };
 
-export default ReferenceDetailsModal;
+export { ReferenceDetailsModal };

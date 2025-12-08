@@ -198,4 +198,4 @@ function ContentIntelligenceOverview({ brandId }) {
 }
 
 // ✅ Explicit export
-export default ContentIntelligenceOverview;
+export {ContentIntelligenceOverview};

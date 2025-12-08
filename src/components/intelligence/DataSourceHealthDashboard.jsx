@@ -56,4 +56,4 @@ function DataSourceHealthDashboard({ brandId }) {
 }
 
 // ✅ Explicit export
-export default DataSourceHealthDashboard;
+export {DataSourceHealthDashboard};

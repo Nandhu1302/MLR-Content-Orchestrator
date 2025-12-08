@@ -1,4 +1,4 @@
-import { RegulatoryMatrixEntry } from '@/services/RegulatoryIntelligenceMatrixService';
+import "/src/services/RegulatoryIntelligenceMatrixService";
 
 /**
  * Entresto (Novartis - Heart Failure) - Regulatory Rules

@@ -70,4 +70,4 @@ function ElementPerformanceHeatmap({ brandId }) {
 }
 
 // ✅ Explicit export
-export default ElementPerformanceHeatmap;
+export {ElementPerformanceHeatmap};

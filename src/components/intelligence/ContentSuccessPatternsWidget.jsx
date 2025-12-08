@@ -140,4 +140,4 @@ function ContentSuccessPatternsWidget({ brandId, filters }) {
 }
 
 // ✅ Explicit export
-export default ContentSuccessPatternsWidget;
+export { ContentSuccessPatternsWidget };

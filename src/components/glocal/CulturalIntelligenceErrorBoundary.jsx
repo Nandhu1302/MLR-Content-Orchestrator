@@ -86,4 +86,4 @@ class CulturalIntelligenceErrorBoundary extends Component {
   }
 }
 
-export default CulturalIntelligenceErrorBoundary;
+export {CulturalIntelligenceErrorBoundary};
