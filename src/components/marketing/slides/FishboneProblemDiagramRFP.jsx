@@ -1,18 +1,19 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, FileDown, Image as ImageIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 
-
+// The CauseCard interface is removed for pure JS/JSX compatibility, 
+// but the data structure remains the same.
 
 const topCauses = [
   {
     icon: '🎯',
     category: 'Strategy Silos',
     impact: '40% Time Wasted',
-    issues
+    issues: [
       'Disconnected planning tools',
       'No cross-functional visibility',
       'Inconsistent initiative handoffs'
@@ -23,7 +24,7 @@ const topCauses = [
     icon: '📝',
     category: 'Content Creation Gaps',
     impact: '3x Duplicate Work',
-    issues
+    issues: [
       'No campaign asset reuse',
       'Manual duplicate entry',
       'Lost institutional knowledge'
@@ -34,7 +35,7 @@ const topCauses = [
     icon: '🎨',
     category: 'Design/Brand Compliance Breakdown',
     impact: '65% Brand Inconsistency',
-    issues
+    issues: [
       'Brand guidelines not centralized',
       'Visual inconsistencies across channels',
       'Design review bottlenecks'
@@ -45,7 +46,7 @@ const topCauses = [
     icon: '⚖️',
     category: 'Compliance & Regulatory Fragmentation',
     impact: 'Multiple MLR Cycles',
-    issues
+    issues: [
       'Regulatory reviews in isolation',
       'No version control',
       'Repeated approval loops'
@@ -59,7 +60,7 @@ const bottomCauses = [
     icon: '🌍',
     category: 'Localization Barriers',
     impact: '6-8 Week Delays',
-    issues
+    issues: [
       'Slow regional adaptation',
       'Lost context in translation',
       'Manual localization workflows'
@@ -70,7 +71,7 @@ const bottomCauses = [
     icon: '📊',
     category: 'Performance & Feedback Gaps',
     impact: 'No Real-Time Insights',
-    issues
+    issues: [
       'Delayed analytics integration',
       'Poor feedback loops',
       'Learnings not fed back to strategy'
@@ -81,7 +82,7 @@ const bottomCauses = [
     icon: '🔌',
     category: 'Technical Integration Failure',
     impact: '85% Manual Handoffs',
-    issues
+    issues: [
       'No workflow automation',
       'Manual data transfers',
       'Siloed systems & databases'
@@ -91,16 +92,16 @@ const bottomCauses = [
 ];
 
 export const FishboneProblemDiagramRFP = () => {
-  const diagramRef = useRef<HTMLDivElement>(null);
+  const diagramRef = useRef(null); // Removed TypeScript generic type
 
   const exportToPNG = async () => {
     if (!diagramRef.current) return;
     
     try {
       const canvas = await html2canvas(diagramRef.current, {
-        scale,
+        scale: 3,
         backgroundColor: '#ffffff',
-        logging,
+        logging: false,
       });
       
       const link = document.createElement('a');
@@ -120,16 +121,16 @@ export const FishboneProblemDiagramRFP = () => {
     
     try {
       const canvas = await html2canvas(diagramRef.current, {
-        scale,
+        scale: 2,
         backgroundColor: '#ffffff',
-        logging,
+        logging: false,
       });
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'px',
-        format.width, canvas.height]
+        format: [canvas.width, canvas.height]
       });
       
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
@@ -146,15 +147,18 @@ export const FishboneProblemDiagramRFP = () => {
     if (!diagramRef.current) return;
     
     try {
+      // Note: html2canvas produces a raster image (PNG) which is saved here. 
+      // True SVG export requires a different library/approach (e.g., converting DOM to SVG).
       const canvas = await html2canvas(diagramRef.current, {
-        scale,
+        scale: 2,
         backgroundColor: '#ffffff',
-        logging,
+        logging: false,
       });
       
       const imgData = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = 'fishbone-analysis-raster.png';
+      // Renamed download file to reflect it's a high-res raster export, not true SVG
+      link.download = 'fishbone-analysis-highres.png'; 
       link.href = imgData;
       link.click();
       
@@ -170,7 +174,7 @@ export const FishboneProblemDiagramRFP = () => {
       <div className="w-full max-w-[1800px] space-y-8">
         <div className="text-center space-y-4">
           <h2 className="text-4xl font-bold text-foreground">
-            Root Cause Analysis Marketing Operations
+            Root Cause Analysis: Pharma Marketing Operations
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             7 Critical Failure Points Driving Inefficiency & Waste
@@ -212,7 +216,7 @@ export const FishboneProblemDiagramRFP = () => {
                 />
                 
                 {/* Cause Card */}
-                <div className={`bg-gradient-to-br ${cause.color} p-4 rounded-lg shadow-lg text-white transform hover-105 transition-transform`}>
+                <div className={`bg-gradient-to-br ${cause.color} p-4 rounded-lg shadow-lg text-white transform hover:scale-105 transition-transform`}>
                   <div className="text-4xl mb-2 text-center">{cause.icon}</div>
                   <h3 className="font-bold text-lg mb-1 text-center">{cause.category}</h3>
                   <div className="text-sm font-semibold bg-white/20 rounded px-2 py-1 mb-3 text-center">
@@ -238,8 +242,8 @@ export const FishboneProblemDiagramRFP = () => {
               <div 
                 className="absolute right-0 top-1/2 transform translate-x-full -translate-y-1/2"
                 style={{
-                  width,
-                  height,
+                  width: 0,
+                  height: 0,
                   borderTop: '20px solid transparent',
                   borderBottom: '20px solid transparent',
                   borderLeft: '30px solid #dc2626'
@@ -262,7 +266,7 @@ export const FishboneProblemDiagramRFP = () => {
                 />
                 
                 {/* Cause Card */}
-                <div className={`bg-gradient-to-br ${cause.color} p-4 rounded-lg shadow-lg text-white transform hover-105 transition-transform`}>
+                <div className={`bg-gradient-to-br ${cause.color} p-4 rounded-lg shadow-lg text-white transform hover:scale-105 transition-transform`}>
                   <div className="text-4xl mb-2 text-center">{cause.icon}</div>
                   <h3 className="font-bold text-lg mb-1 text-center">{cause.category}</h3>
                   <div className="text-sm font-semibold bg-white/20 rounded px-2 py-1 mb-3 text-center">
@@ -345,6 +349,3 @@ export const FishboneProblemDiagramRFP = () => {
     </section>
   );
 };
-
-
-export default FishboneProblemDiagramRFP;
