@@ -1,4 +1,4 @@
-  import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { 
   queryBrandStatus, 
@@ -7,9 +7,9 @@ import {
   suggestMultiChannelApproach,
   preSelectEvidence,
   intelligenceQueryTools
-} from './intelligence-tools.ts';
-import { detectInteractionMode, extractThemeSpecification } from './mode-detection.ts';
-import { getModeSpecificPrompt } from './get-mode-prompt.ts';
+} from './intelligence-tools.js';
+import { detectInteractionMode, extractThemeSpecification } from './mode-detection.js';
+import { getModeSpecificPrompt } from './get-mode-prompt.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,30 +17,37 @@ const corsHeaders = {
 };
 
 // Intent-based response types
-enum ResponseIntent {
-  OPEN_QUERY = 'open_query',         // "What's going on with my brand?"
-  STORY_ANALYSIS = 'story_analysis', // User shared a story
-  CLARIFICATION = 'clarification',   // AI needs more info
-  SUGGESTION = 'suggestion',         // AI ready to suggest
-  CONFIRMATION = 'confirmation'      // Ready for generation
-}
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  quickReplies?: { label: string; value: string }[];
-}
+/**
+ * @readonly
+ * @enum {string}
+ */
+const ResponseIntent = {
+  OPEN_QUERY: 'open_query',         // "What's going on with my brand?"
+  STORY_ANALYSIS: 'story_analysis', // User shared a story
+  CLARIFICATION: 'clarification',   // AI needs more info
+  SUGGESTION: 'suggestion',         // AI ready to suggest
+  CONFIRMATION: 'confirmation'      // Ready for generation
+};
 
-interface ConversationContext {
-  userStory: string;
-  brandId?: string;
-  detectedIntent?: any;
-  matchedTemplateId?: string;
-  selectedAssets?: string[];
-  interactionMode?: string;
-  themeSpecification?: any;
-}
+/**
+ * @typedef {Object} Message
+ * @property {string} id
+ * @property {'user' | 'assistant'} role
+ * @property {string} content
+ * @property {{ label: string; value: string }[]} [quickReplies]
+ */
+
+/**
+ * @typedef {Object} ConversationContext
+ * @property {string} userStory
+ * @property {string} [brandId]
+ * @property {any} [detectedIntent]
+ * @property {string} [matchedTemplateId]
+ * @property {string[]} [selectedAssets]
+ * @property {string} [interactionMode]
+ * @property {any} [themeSpecification]
+ */
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -48,21 +55,16 @@ serve(async (req) => {
   }
 
   try {
-    const { userMessage, conversationHistory, context, isInitialAnalysis, specifiedMode } = await req.json() as {
-      userMessage: string;
-      conversationHistory: Message[];
-      context: ConversationContext;
-      isInitialAnalysis?: boolean;
-      specifiedMode?: string;
-    };
+    /** @type {{ userMessage: string, conversationHistory: Message[], context: ConversationContext, isInitialAnalysis?: boolean, specifiedMode?: string }} */
+    const { userMessage, conversationHistory, context, isInitialAnalysis, specifiedMode } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const brandId = context.brandId || '225d6bbc-c663-462f-86a8-21886bc40047';
@@ -120,7 +122,7 @@ serve(async (req) => {
     let aiMessage = choice.message.content;
 
     // Handle tool calls
-    const toolResults: any = {};
+    const toolResults = {};
     if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
       for (const toolCall of choice.message.tool_calls) {
         const toolName = toolCall.function.name;
@@ -204,7 +206,12 @@ serve(async (req) => {
   }
 });
 
-function determineResponseIntent(userMessage: string, context: ConversationContext): ResponseIntent {
+/**
+ * @param {string} userMessage
+ * @param {ConversationContext} context
+ * @returns {ResponseIntent}
+ */
+function determineResponseIntent(userMessage, context) {
   const lower = userMessage.toLowerCase();
   
   // Open query patterns
@@ -227,7 +234,12 @@ function determineResponseIntent(userMessage: string, context: ConversationConte
   return ResponseIntent.CLARIFICATION;
 }
 
-async function fetchBrandContext(supabase: any, brandId: string) {
+/**
+ * @param {any} supabase
+ * @param {string} brandId
+ * @returns {Promise<any>}
+ */
+async function fetchBrandContext(supabase, brandId) {
   const [brandProfile, audienceSegments, topClaims, successPatterns] = await Promise.all([
     supabase.from('brand_profiles').select('*').eq('id', brandId).single(),
     supabase.from('audience_segments').select('*').eq('brand_id', brandId).limit(5),
@@ -243,7 +255,13 @@ async function fetchBrandContext(supabase: any, brandId: string) {
   };
 }
 
-function buildAgencyPartnerPrompt(context: ConversationContext, brandContext: any, mode?: string): string {
+/**
+ * @param {ConversationContext} context
+ * @param {any} brandContext
+ * @param {string} [mode]
+ * @returns {string}
+ */
+function buildAgencyPartnerPrompt(context, brandContext, mode) {
   const brand = brandContext.brand || {};
   const segments = brandContext.segments || {};
   
@@ -275,7 +293,7 @@ RESPONSE STYLE:
 - When you call tools, ALWAYS synthesize the results into actionable insights
 
 AVAILABLE AUDIENCE SEGMENTS:
-${segments.map((s: any) => `• ${s.segment_name}: ${(s.decision_factors || []).slice(0, 2).join(', ')}`).join('\n')}
+${segments.map((s) => `• ${s.segment_name}: ${(s.decision_factors || []).slice(0, 2).join(', ')}`).join('\n')}
 
 WHEN USER ASKS OPEN QUESTIONS:
 - "What's going on?" → Call query_brand_status tool, synthesize findings with specific metrics
@@ -291,7 +309,13 @@ IMPORTANT:
 `;
 }
 
-function generateSmartQuickReplies(userMessage: string, context: ConversationContext, toolResults: any): { label: string; value: string }[] {
+/**
+ * @param {string} userMessage
+ * @param {ConversationContext} context
+ * @param {any} toolResults
+ * @returns {{ label: string; value: string }[]}
+ */
+function generateSmartQuickReplies(userMessage, context, toolResults) {
   // If we have tool results, generate context-aware replies
   if (toolResults.brandStatus) {
     return [
