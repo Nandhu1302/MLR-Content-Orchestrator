@@ -1,0 +1,64 @@
+project_id = "aggvubbylgrdbqtkyuxi"
+
+[functions.parse-brand-document]
+verify_jwt = false
+
+[functions.extract-document-insights]
+verify_jwt = false
+
+[functions.assemble-content]
+verify_jwt = false
+
+[functions.reprocess-all-documents-once]
+verify_jwt = false
+
+[functions.reprocess-document]
+verify_jwt = false
+
+[functions.extract-visual-assets-once]
+verify_jwt = false
+
+[functions.extract-visual-images-once]
+verify_jwt = false
+
+[functions.deduplicate-evidence]
+verify_jwt = false
+
+[functions.health-check]
+verify_jwt = false
+
+[functions.ingest-sample-data]
+verify_jwt = false
+
+[functions.generate-enhanced-intelligence]
+verify_jwt = false
+
+[functions.populate-comprehensive-data]
+verify_jwt = false
+
+[functions.generate-initial-content]
+verify_jwt = false
+
+[functions.enhance-channel-content]
+verify_jwt = false
+
+[functions.story-consultant]
+verify_jwt = false
+
+[functions.story-analyst]
+verify_jwt = false
+
+[functions.intelligence-curator]
+verify_jwt = false
+
+[functions.theme-architect]
+verify_jwt = false
+
+[functions.asset-orchestrator]
+verify_jwt = false
+
+[functions.enhance-content-brief]
+verify_jwt = false
+
+[functions.theme-specifier]
+verify_jwt = false
