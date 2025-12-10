@@ -5,9 +5,8 @@ import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { useContext } from 'react';
 import { IntelligenceContext } from '@/contexts/IntelligenceContext';
 
-// TypeScript interfaces removed
-
-const IntelligenceReadinessCheck = () => {
+export const IntelligenceReadinessCheck = () => {
+  // Type annotation removed
   const context = useContext(IntelligenceContext);
   
   // If not wrapped in provider, don't render anything
@@ -36,15 +35,20 @@ const IntelligenceReadinessCheck = () => {
   }
 
   const { dataReadiness } = intelligence;
-  // Function to get color (original code used a function that wasn't used, sticking to the existing logic below)
+  // Type annotations removed from function arguments
+  const getReadinessColor = (score) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 50) return 'text-yellow-600';
+    return 'text-red-600';
+  };
 
-  const getReadinessIcon = (score) => { // Type annotation removed
+  const getReadinessIcon = (score) => {
     if (score >= 80) return <CheckCircle2 className="h-4 w-4 text-green-600" />;
     if (score >= 50) return <Info className="h-4 w-4 text-yellow-600" />;
     return <AlertCircle className="h-4 w-4 text-red-600" />;
   };
 
-  const getReadinessLabel = (score) => { // Type annotation removed
+  const getReadinessLabel = (score) => {
     if (score >= 80) return 'Excellent';
     if (score >= 50) return 'Good';
     return 'Limited';
@@ -115,8 +119,9 @@ const IntelligenceReadinessCheck = () => {
   );
 };
 
-// TypeScript interface removed
-const ReadinessItem = ({ label, score, description }) => { // Props type annotation removed
+// interface ReadinessItemProps removed
+
+const ReadinessItem = ({ label, score, description }) => { // Type annotations removed
   const getColor = (score) => { // Type annotation removed
     if (score >= 80) return 'bg-green-500';
     if (score >= 50) return 'bg-yellow-500';
@@ -136,6 +141,3 @@ const ReadinessItem = ({ label, score, description }) => { // Props type annotat
     </div>
   );
 };
-
-// FIX: Named export
-export { IntelligenceReadinessCheck };

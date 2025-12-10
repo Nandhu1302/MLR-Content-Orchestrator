@@ -13,9 +13,10 @@ import {
   Loader2
 } from 'lucide-react';
 
-// TypeScript interfaces removed
+// interface IntelligenceUsageItem removed
+// interface RealTimeIntelligenceTrackerProps removed
 
-const INTELLIGENCE_ICONS = {
+const INTELLIGENCE_ICONS = { // Type annotation removed
   evidence: Shield,
   performance: TrendingUp,
   competitive: Target,
@@ -23,7 +24,7 @@ const INTELLIGENCE_ICONS = {
   brand: Database
 };
 
-const INTELLIGENCE_COLORS = {
+const INTELLIGENCE_COLORS = { // Type annotation removed
   evidence: 'text-blue-600',
   performance: 'text-green-600',
   competitive: 'text-purple-600',
@@ -31,7 +32,7 @@ const INTELLIGENCE_COLORS = {
   brand: 'text-pink-600'
 };
 
-const INTELLIGENCE_BG_COLORS = {
+const INTELLIGENCE_BG_COLORS = { // Type annotation removed
   evidence: 'bg-blue-50',
   performance: 'bg-green-50',
   competitive: 'bg-purple-50',
@@ -39,7 +40,7 @@ const INTELLIGENCE_BG_COLORS = {
   brand: 'bg-pink-50'
 };
 
-const INTELLIGENCE_LABELS = {
+const INTELLIGENCE_LABELS = { // Type annotation removed
   evidence: 'Evidence',
   performance: 'Performance',
   competitive: 'Competitive',
@@ -47,23 +48,23 @@ const INTELLIGENCE_LABELS = {
   brand: 'Brand'
 };
 
-const RealTimeIntelligenceTracker = ({ 
+export const RealTimeIntelligenceTracker = ({ 
   intelligenceUsed, 
   isGenerating,
   totalLayers = 5 
 }) => {
   
-  // Group intelligence by type
+  // Type annotations removed from reduce function and initial value
   const groupedIntelligence = intelligenceUsed.reduce((acc, item) => {
     if (!acc[item.type]) {
       acc[item.type] = [];
     }
     acc[item.type].push(item);
     return acc;
-  }, {}); // Initial value type annotation removed
+  }, {}); // Type annotation removed
 
-  // Further break down evidence by source type for clearer display
-  const getEvidenceBreakdown = (items) => { // Type annotation removed
+  // Type annotations removed from function arguments
+  const getEvidenceBreakdown = (items) => {
     const claims = items.filter(i => i.source?.toLowerCase().includes('claim'));
     const references = items.filter(i => i.source?.toLowerCase().includes('reference'));
     const visuals = items.filter(i => i.source?.toLowerCase().includes('visual'));
@@ -75,6 +76,7 @@ const RealTimeIntelligenceTracker = ({
     return { claims, references, visuals, other };
   };
 
+  // Type annotations removed from Object.keys
   const activeLayers = Object.keys(groupedIntelligence).length;
   const layerProgress = (activeLayers / totalLayers) * 100;
 
@@ -217,6 +219,3 @@ const RealTimeIntelligenceTracker = ({
     </Card>
   );
 };
-
-// FIX: Named export
-export { RealTimeIntelligenceTracker };

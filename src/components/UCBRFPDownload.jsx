@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { FileText, Presentation } from "lucide-react";
 import { generateUCBRFPResponsePresentation } from "@/utils/ucbRFPResponsePresentation";
@@ -52,11 +51,22 @@ export const UCBRFPDownload = () => {
 
   return (
     <div className="flex gap-2">
-      <Button onClick={handleDownloadWord} className="gap-1.5" size="sm">
+      <Button
+        onClick={handleDownloadWord}
+        className="gap-1.5"
+        size="sm"
+        variant="outline"
+        disabled={isGenerating !== null}
+      >
         <FileText className="h-4 w-4" />
         {isGenerating === 'word' ? "Generating..." : "Word"}
       </Button>
-      <Button onClick={handleDownloadPPT} className="gap-1.5" size="sm">
+      <Button
+        onClick={handleDownloadPPT}
+        className="gap-1.5"
+        size="sm"
+        disabled={isGenerating !== null}
+      >
         <Presentation className="h-4 w-4" />
         {isGenerating === 'ppt' ? "Generating..." : "PowerPoint"}
       </Button>

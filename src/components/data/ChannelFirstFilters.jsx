@@ -45,7 +45,7 @@ const channelConfig = {
   },
 };
 
-export const ChannelFilters = ({ filters, onFilterChange }) => {
+export const ChannelFirstFilters = ({ filters, onFilterChange }) => {
   const channels = ['Website', 'Email', 'Social', 'Rep-Enabled', 'Video'];
   const audienceTypes = ['All', 'HCP', 'Patient', 'Caregiver'];
   const regions = ['All', 'Northeast', 'Southeast', 'Midwest', 'West', 'Southwest'];

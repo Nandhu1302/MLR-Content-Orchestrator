@@ -1,4 +1,5 @@
-import { supabase } from "../integrations/supabase/client.js";// The mlrContextService import is retained as it suggests a necessary dependency, 
+import { supabase } from '../integrations/supabase/client';  // Adjust the import path as necessary
+// The mlrContextService import is retained as it suggests a necessary dependency, 
 // but is not directly used or defined in the provided code block.
 
 /**

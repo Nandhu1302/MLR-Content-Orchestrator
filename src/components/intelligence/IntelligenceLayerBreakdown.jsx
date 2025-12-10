@@ -11,10 +11,10 @@ import {
   XCircle
 } from 'lucide-react';
 
-// TypeScript interfaces are removed
-// The component is rewritten to accept 'layers' directly
+// interface IntelligenceLayer removed
+// interface IntelligenceLayerBreakdownProps removed
 
-const LAYER_CONFIG = {
+const LAYER_CONFIG = { // Type annotation removed
   evidence: {
     icon: Shield,
     color: 'text-blue-600',
@@ -42,7 +42,7 @@ const LAYER_CONFIG = {
   }
 };
 
-const IntelligenceLayerBreakdown = ({ layers }) => {
+export const IntelligenceLayerBreakdown = ({ layers }) => {
   return (
     <Card>
       <CardHeader>
@@ -111,6 +111,3 @@ const IntelligenceLayerBreakdown = ({ layers }) => {
     </Card>
   );
 };
-
-// FIX: Change to named export
-export { IntelligenceLayerBreakdown };

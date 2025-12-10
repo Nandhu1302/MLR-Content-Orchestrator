@@ -1,4 +1,4 @@
-import { supabase } from "../integrations/supabase/client.js";
+import { supabase } from '@/integrations/supabase/client';
 import { AssetMetadataPreservationService, EnhancedAssetMetadata, DAMMetadataPackage } from './AssetMetadataPreservationService';
 import { GlobalTerminologyIntelligenceService } from './GlobalTerminologyIntelligenceService';
 import { CulturalIntelligenceValidationService } from './CulturalIntelligenceValidationService';

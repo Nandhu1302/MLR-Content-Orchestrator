@@ -1,12 +1,14 @@
+
 import { useState, useCallback, useEffect } from 'react';
 
+// JS version of useLocalizationWorkflow (types removed, same context/logic)
 export const useLocalizationWorkflow = (asset) => {
   const [workflowState, setWorkflowState] = useState({
     currentStep: 'marketReadiness',
     completedSteps: [],
     stepData: {},
     overallProgress: 0,
-    isComplete: false
+    isComplete: false,
   });
 
   const setFullWorkflowState = useCallback((newState) => {
@@ -16,36 +18,33 @@ export const useLocalizationWorkflow = (asset) => {
   const stepOrder = ['marketReadiness', 'intelligence', 'optimization'];
 
   const updateStepData = useCallback((step, data) => {
-    setWorkflowState(prev => ({
+    setWorkflowState((prev) => ({
       ...prev,
       stepData: {
         ...prev.stepData,
-        [step]: { ...prev.stepData[step], ...data }
-      }
+        [step]: { ...(prev.stepData?.[step] || {}), ...(data || {}) },
+      },
     }));
   }, []);
 
-  const completeStep = useCallback((step) => {
-    setWorkflowState(prev => {
-      const newCompletedSteps = [...prev.completedSteps];
-      if (!newCompletedSteps.includes(step)) {
-        newCompletedSteps.push(step);
-      }
+  const completeStep = useCallback(() => {
+    setWorkflowState((prev) => {
+      const newCompletedSteps = Array.from(new Set([...(prev.completedSteps || []), prev.currentStep]));
       const progress = (newCompletedSteps.length / stepOrder.length) * 100;
       const isComplete = newCompletedSteps.length === stepOrder.length;
       return {
         ...prev,
         completedSteps: newCompletedSteps,
         overallProgress: progress,
-        isComplete
+        isComplete,
       };
     });
   }, [stepOrder.length]);
 
   const goToStep = useCallback((step) => {
-    setWorkflowState(prev => ({
+    setWorkflowState((prev) => ({
       ...prev,
-      currentStep: step
+      currentStep: step,
     }));
   }, []);
 
@@ -64,26 +63,29 @@ export const useLocalizationWorkflow = (asset) => {
   }, [workflowState.currentStep, stepOrder, goToStep]);
 
   const isStepCompleted = useCallback((step) => {
-    return workflowState.completedSteps.includes(step);
+    return (workflowState.completedSteps || []).includes(step);
   }, [workflowState.completedSteps]);
 
   const canAccessStep = useCallback((step) => {
     const stepIndex = stepOrder.indexOf(step);
     const currentIndex = stepOrder.indexOf(workflowState.currentStep);
-    return stepIndex <= currentIndex || 
-           (stepIndex === currentIndex + 1 && isStepCompleted(workflowState.currentStep));
+    return (
+      stepIndex <= currentIndex ||
+      (stepIndex === currentIndex + 1 && isStepCompleted(workflowState.currentStep))
+    );
   }, [stepOrder, workflowState.currentStep, isStepCompleted]);
 
   const getStepProgress = useCallback((step) => {
     if (isStepCompleted(step)) return 100;
-    if (step === workflowState.currentStep) return 50;
+    if (step === workflowState.currentStep) return 50; // In progress
     return 0;
   }, [workflowState.currentStep, isStepCompleted]);
 
+  // Generate workflow summary for project creation
   const generateWorkflowSummary = useCallback(() => {
-    const { marketReadiness, intelligence, optimization } = workflowState.stepData;
+    const { marketReadiness, intelligence, optimization } = workflowState.stepData || {};
     return {
-      asset: asset,
+      asset,
       localizationBrief: intelligence?.localizationBrief,
       selectedMarkets: marketReadiness?.selectedMarkets || [],
       estimatedTimeline: marketReadiness?.timelineEstimate || 0,
@@ -93,8 +95,8 @@ export const useLocalizationWorkflow = (asset) => {
       generatedAssets: {
         brief: intelligence?.localizationBrief,
         checklist: marketReadiness?.complianceChecklist,
-        proposal: optimization?.projectProposal
-      }
+        proposal: optimization?.projectProposal,
+      },
     };
   }, [asset, workflowState]);
 
@@ -110,6 +112,6 @@ export const useLocalizationWorkflow = (asset) => {
     canAccessStep,
     getStepProgress,
     generateWorkflowSummary,
-    stepOrder
+    stepOrder,
   };
 };

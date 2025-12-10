@@ -7,9 +7,25 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-// Removed all interface declarations
+// Props are documented via JSDoc to preserve context without TypeScript types
+/**
+ * @typedef {Object} TranslationEditorModalProps
+ * @property {boolean} isOpen
+ * @property {() => void} onClose
+ * @property {string} segmentName
+ * @property {string} originalText
+ * @property {string} translationText
+ * @property {(newTranslation: string) => void} onSave
+ * @property {{ highPriority: number, mediumPriority: number, terminologyStatus: string }} [aiSummary]
+ * @property {Array<{ original: string, suggested: string, applied: boolean }>} [quickSuggestions]
+ */
 
-export const TranslationEditorModal = ({ // Removed : React.FC<TranslationEditorModalProps>
+/**
+ * TranslationEditorModal (JSX)
+ * Converted from TSX to JSX without changing behavior.
+ * @param {TranslationEditorModalProps} props
+ */
+export const TranslationEditorModal = ({
   isOpen,
   onClose,
   segmentName,
@@ -28,7 +44,6 @@ export const TranslationEditorModal = ({ // Removed : React.FC<TranslationEditor
     setCharCount(translationText.length);
   }, [translationText]);
 
-  // Removed (e: React.ChangeEvent<HTMLTextAreaElement>) type annotation
   const handleTextChange = (e) => {
     const newText = e.target.value;
     setEditedText(newText);
@@ -38,26 +53,25 @@ export const TranslationEditorModal = ({ // Removed : React.FC<TranslationEditor
   const handleSave = () => {
     if (!editedText.trim()) {
       toast({
-        title: "Translation cannot be empty",
-        variant: "destructive",
+        title: 'Translation cannot be empty',
+        variant: 'destructive',
       });
       return;
     }
     onSave(editedText);
     toast({
-      title: "Translation saved",
-      description: "Your changes have been saved successfully.",
+      title: 'Translation saved',
+      description: 'Your changes have been saved successfully.',
     });
     onClose();
   };
 
-  // Removed (original: string, suggested: string) type annotation
   const applySuggestion = (original, suggested) => {
     const newText = editedText.replace(original, suggested);
     setEditedText(newText);
     setCharCount(newText.length);
     toast({
-      title: "Suggestion applied",
+      title: 'Suggestion applied',
       description: `Changed "${original}" to "${suggested}"`,
     });
   };
@@ -171,4 +185,4 @@ export const TranslationEditorModal = ({ // Removed : React.FC<TranslationEditor
       </DialogContent>
     </Dialog>
   );
-}; // FIX: Added closing curly brace
+};

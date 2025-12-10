@@ -3,12 +3,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package, ArrowRight } from 'lucide-react';
 
-// Removed interface DAMHandoffGeneratorProps
+/**
+ * @typedef {Object} DAMHandoffGeneratorProps
+ * @property {any} selectedAsset
+ * @property {(data: any) => void} onPhaseComplete
+ * @property {() => void} onBack
+ */
 
-export const DAMHandoffGenerator = ({ // Removed : React.FC<DAMHandoffGeneratorProps>
+/**
+ * DAMHandoffGenerator (JSX)
+ * Converted from TSX to JSX without changing logic or context.
+ * @param {DAMHandoffGeneratorProps} props
+ */
+export const DAMHandoffGenerator = ({
   selectedAsset,
   onPhaseComplete,
-  onBack
+  onBack,
 }) => {
   return (
     <div className="space-y-6">
@@ -19,7 +29,7 @@ export const DAMHandoffGenerator = ({ // Removed : React.FC<DAMHandoffGeneratorP
             Phase 6: DAM Ready Handoff Generation
           </h2>
           <p className="text-muted-foreground">
-            Complete metadata DAM handoff generation for {selectedAsset.name}
+            Complete metadata DAM handoff generation for {selectedAsset?.name}
           </p>
         </div>
         <Button variant="outline" onClick={onBack}>
@@ -49,4 +59,4 @@ export const DAMHandoffGenerator = ({ // Removed : React.FC<DAMHandoffGeneratorP
       </Card>
     </div>
   );
-}; // FIX: Added closing curly brace
+};

@@ -3,7 +3,7 @@
 
 // NOTE: The path '@/integrations/supabase/client' is a TypeScript alias.
 // Assuming it's in a relative path for a standard JS environment.
-import { supabase } from "../integrations/supabase/client.js";
+import { supabase } from './integrations/supabase/client';
 
 // The interfaces (RegulatoryRequirement, ComplianceCheck, ComplianceIssue)
 // are removed, and the structures are implied by the data used.

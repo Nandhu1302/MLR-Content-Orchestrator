@@ -1,12 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
+import { DataFilters } from '@/components/data/DataFilters';
 import { useQuery } from '@tanstack/react-query';
 import { EnhancedThemeIntelligenceService } from '@/services/EnhancedThemeIntelligenceService';
 import { Skeleton } from '@/components/ui/skeleton';
-// DataFilters component and type are implicitly handled by removing the type import/interface
 
-const MarketPositionPanel = ({ brandId, filters }) => { // Props type annotation removed
+// interface MarketPositionPanelProps removed
+
+export const MarketPositionPanel = ({ brandId, filters }) => {
+  // Type annotations removed from useQuery and function arguments
   const { data: marketPosition, isLoading } = useQuery({
     queryKey: ['market-position', brandId, filters],
     queryFn: () => EnhancedThemeIntelligenceService.getMarketPosition(brandId, filters),
@@ -38,7 +41,7 @@ const MarketPositionPanel = ({ brandId, filters }) => { // Props type annotation
     );
   }
 
-  const getTrendIcon = (trend) => { // Type annotation removed
+  const getTrendIcon = (trend) => {
     if (trend === 'growing') return <TrendingUp className="h-4 w-4 text-green-500" />;
     if (trend === 'declining') return <TrendingDown className="h-4 w-4 text-red-500" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
@@ -138,6 +141,3 @@ const MarketPositionPanel = ({ brandId, filters }) => { // Props type annotation
     </Card>
   );
 };
-
-// FIX: Named export
-export { MarketPositionPanel };

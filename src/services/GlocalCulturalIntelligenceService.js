@@ -3,7 +3,7 @@
 
 // NOTE: The path '@/integrations/supabase/client' is a TypeScript alias.
 // In a standard JS environment, this needs adjustment. Assuming it's in a relative path.
-import { supabase } from "../integrations/supabase/client.js";
+import { supabase } from './integrations/supabase/client';
 
 // The following objects represent the structure previously defined by interfaces
 // CulturalAnalysis, MarketProfile, GlocalContentSegment, etc. are now implicit.

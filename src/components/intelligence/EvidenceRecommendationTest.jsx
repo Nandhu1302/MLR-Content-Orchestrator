@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useBrand } from '@/contexts/BrandContext';
-// Assuming these imports correctly point to JavaScript files now
-import { EvidenceRecommendationService } from '@/services/evidenceRecommendationService'; 
+import { EvidenceRecommendationService } from '@/services/evidenceRecommendationService';
+// import type { AudienceType } from '@/types/intake'; // Type import removed
 import { Loader2, CheckCircle2, XCircle, Target, Shield } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-const AUDIENCE_OPTIONS = [
+const AUDIENCE_OPTIONS = [ // Type removed from array literal
   'Physician-Specialist',
   'Physician-PrimaryCare',
   'Pharmacist',
@@ -29,26 +29,27 @@ const ASSET_TYPE_OPTIONS = [
   { value: 'social-media-post', label: 'Social Media Post' }
 ];
 
-const EvidenceRecommendationTest = () => {
+export const EvidenceRecommendationTest = () => {
   const { selectedBrand } = useBrand();
-  // Removed type annotation
-  const [selectedAudience, setSelectedAudience] = useState('Physician-Specialist');
+  // Type annotations removed from useState
+  const [selectedAudience, setSelectedAudience] = useState('Physician-Specialist'); 
   const [selectedAssetType, setSelectedAssetType] = useState('website-landing-page');
   const [isLoading, setIsLoading] = useState(false);
-  // Removed type annotation for results
-  const [results, setResults] = useState(null); 
-  // Removed type annotation for error
-  const [error, setError] = useState(null); 
+  const [results, setResults] = useState(null); // Type annotation removed
+  const [error, setError] = useState(null); // Type annotation removed
   const [showOnlyMLR, setShowOnlyMLR] = useState(false);
 
+  // Type annotations removed from handleTestQuery and error handling
   const handleTestQuery = async () => {
     if (!selectedBrand?.id) {
       setError('No brand selected');
       return;
     }
+
     setIsLoading(true);
     setError(null);
     setResults(null);
+
     try {
       const evidence = await EvidenceRecommendationService.getRecommendedEvidence(
         selectedBrand.id,
@@ -63,9 +64,7 @@ const EvidenceRecommendationTest = () => {
       );
       setResults(evidence);
     } catch (err) {
-      // Adjusted error handling for JS:
-      // In JS, 'err' might not be an instance of Error, so simplified.
-      setError(err?.message || 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
       console.error('[EvidenceRecommendationTest] Error:', err);
     } finally {
       setIsLoading(false);
@@ -84,16 +83,16 @@ const EvidenceRecommendationTest = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Controls */}
-        <div className="flex items-end gap-4 p-4 border rounded-lg bg-white">
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Select Audience</label>
-            <Select value={selectedAudience} onValueChange={setSelectedAudience}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Audience" />
+        {/* Test Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Target Audience</label>
+            <Select value={selectedAudience} onValueChange={(value) => setSelectedAudience(value)}>
+              <SelectTrigger>
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {AUDIENCE_OPTIONS.map((audience) => (
+                {AUDIENCE_OPTIONS.map(audience => (
                   <SelectItem key={audience} value={audience}>
                     {audience}
                   </SelectItem>
@@ -101,137 +100,271 @@ const EvidenceRecommendationTest = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Select Asset Type</label>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Asset Type</label>
             <Select value={selectedAssetType} onValueChange={setSelectedAssetType}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Asset Type" />
+              <SelectTrigger>
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ASSET_TYPE_OPTIONS.map((asset) => (
-                  <SelectItem key={asset.value} value={asset.value}>
-                    {asset.label}
+                {ASSET_TYPE_OPTIONS.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <Button 
-            onClick={handleTestQuery} 
-            disabled={!selectedBrand || isLoading}
-            className="w-48"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Querying...
-              </>
-            ) : (
-              'Run Test Query'
-            )}
-          </Button>
+
+          <div className="flex items-end">
+            <Button 
+              onClick={handleTestQuery} 
+              disabled={isLoading || !selectedBrand}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Testing...
+                </>
+              ) : (
+                'Test Query'
+              )}
+            </Button>
+          </div>
         </div>
 
-        {/* MLR Filter */}
-        <div className="flex items-center space-x-2">
-          <Shield className={`h-4 w-4 ${showOnlyMLR ? 'text-green-600' : 'text-gray-400'}`} />
-          <input 
-            type="checkbox" 
-            id="mlr-filter" 
-            checked={showOnlyMLR} 
-            onChange={(e) => setShowOnlyMLR(e.target.checked)} 
-            className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+        <div className="flex items-center space-x-2 pt-4 border-t">
+          <input
+            type="checkbox"
+            id="mlr-only"
+            checked={showOnlyMLR}
+            onChange={(e) => setShowOnlyMLR(e.target.checked)}
+            className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
           />
-          <label htmlFor="mlr-filter" className="text-sm font-medium cursor-pointer">
-            Show only MLR Approved Evidence
+          <label htmlFor="mlr-only" className="text-sm text-muted-foreground cursor-pointer">
+            Show only MLR approved assets
           </label>
         </div>
 
-        {/* Results / Error */}
+        {/* Error Display */}
         {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-start gap-2">
-            <XCircle className="h-5 w-5 mt-0.5" />
-            <div className="font-medium">Error: {error}</div>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+            <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-900">Query Failed</p>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
           </div>
         )}
 
+        {/* Results Display */}
         {results && (
-          <div className="space-y-6 pt-4">
-            <h4 className="text-lg font-bold">Query Results:</h4>
-
-            {/* Claims */}
-            <div>
+          <div className="space-y-6">
+            {/* Matching Criteria Summary */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
-                <h5 className="font-semibold text-base">Recommended Claims ({results.claims.length})</h5>
-                <Badge variant="outline" className="bg-blue-100 text-blue-800">Matching: {results.claims.filter(c => c.isMatch).length}</Badge>
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <h3 className="font-semibold text-green-900">Query Successful</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {results.claims.map((claim, index) => (
-                  <div key={index} className="p-3 border rounded-lg shadow-sm space-y-1">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-medium">{claim.claimTitle}</p>
-                      {claim.isMatch ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" title="Audience/Asset Match" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" title="No Match" />
-                      )}
-                    </div>
-                    <Progress value={claim.relevanceScore * 100} className="h-2" />
-                    <p className="text-xs text-muted-foreground">Score: {(claim.relevanceScore * 100).toFixed(0)}%</p>
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Audience Used:</span>
+                  <p className="font-medium">{results.matchingCriteria.audienceUsed}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Mapped to: {results.matchingCriteria.audienceMappedTo.join(', ')}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Asset Type Used:</span>
+                  <p className="font-medium">{results.matchingCriteria.assetTypeUsed}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Mapped to: {results.matchingCriteria.assetTypeMappedTo.join(', ')}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Total Evidence Matched:</span>
+                  <p className="text-2xl font-bold text-green-600">{results.matchingCriteria.totalMatched}</p>
+                </div>
               </div>
             </div>
 
-            {/* Visuals */}
+            {/* Clinical Claims */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <h5 className="font-semibold text-base">Recommended Visuals ({results.visuals.length})</h5>
-                <Badge variant="outline" className="bg-purple-100 text-purple-800">MLR Approved: {results.visuals.filter(v => v.isMLRApproved).length}</Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {results.visuals.map((visual, index) => (
-                  <div key={index} className="p-3 border rounded-lg shadow-sm space-y-1">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-medium truncate">{visual.visualTitle}</p>
-                      {visual.isMLRApproved ? (
-                        <Shield className="h-4 w-4 text-indigo-500 flex-shrink-0" title="MLR Approved" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" title="Not MLR Approved" />
-                      )}
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                📋 Clinical Claims ({results.claims.length})
+              </h3>
+              {results.claims.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No claims matched the criteria</p>
+              ) : (
+                <div className="space-y-3">
+                  {results.claims.map((claim, idx) => (
+                    <div key={claim.id} className="border rounded-lg p-3 bg-white">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className="text-xs">
+                              {claim.claim_id_display}
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {claim.claim_type}
+                            </Badge>
+                          </div>
+                          <p className="text-sm">{claim.claim_text.substring(0, 150)}...</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-2xl font-bold text-blue-600">{claim.relevanceScore}</div>
+                          <div className="text-xs text-muted-foreground">relevance</div>
+                          <Progress value={claim.relevanceScore} className="w-20 h-2 mt-1" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        {claim.matchingCriteria.audienceMatch && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Audience Match
+                          </Badge>
+                        )}
+                        {claim.matchingCriteria.claimTypeRelevance && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Type Relevant
+                          </Badge>
+                        )}
+                        {claim.matchingCriteria.hasStatisticalData && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Has Data
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{visual.relatedClaimId}</p>
-                    <p className="text-xs text-muted-foreground">Type: {visual.visualType}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-             {/* Modules */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <h5 className="font-semibold text-base">Recommended Modules ({results.modules.length})</h5>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {results.modules.map((moduleItem, index) => (
-                  <div key={index} className="p-3 border rounded-lg shadow-sm space-y-1">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-medium">{moduleItem.moduleName}</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Primary Claim: {moduleItem.primaryClaimId}</p>
-                    <p className="text-xs text-muted-foreground">Last Updated: {new Date(moduleItem.lastUpdated).toLocaleDateString()}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
+            {/* Visual Assets */}
+            <div>
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                📊 Visual Assets ({results.visualAssets.length})
+              </h3>
+              {results.visualAssets.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No visual assets matched the criteria</p>
+              ) : (
+                <div className="space-y-3">
+                  {results.visualAssets.map((asset, idx) => (
+                    <div key={asset.id} className="border rounded-lg p-3 bg-white">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {asset.visual_type}
+                            </Badge>
+                            {asset.mlrApproved ? (
+                              <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                                <Shield className="h-3 w-3 mr-1" />
+                                MLR Approved
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs text-orange-600 border-orange-600">
+                                Pending Review
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="font-medium text-sm">{asset.title}</p>
+                          {asset.linkedClaims.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Linked to {asset.linkedClaims.length} claim(s)
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-2xl font-bold text-purple-600">{asset.relevanceScore}</div>
+                          <div className="text-xs text-muted-foreground">relevance</div>
+                          <Progress value={asset.relevanceScore} className="w-20 h-2 mt-1" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        {asset.matchingCriteria.audienceMatch && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Audience Match
+                          </Badge>
+                        )}
+                        {asset.matchingCriteria.assetTypeMatch && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Asset Type Match
+                          </Badge>
+                        )}
+                        {asset.matchingCriteria.hasLinkedClaims && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Has Claims
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Content Modules */}
+            <div>
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                📝 Content Modules ({results.contentModules.length})
+              </h3>
+              {results.contentModules.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No content modules matched the criteria</p>
+              ) : (
+                <div className="space-y-3">
+                  {results.contentModules.map((module, idx) => (
+                    <div key={module.id} className="border rounded-lg p-3 bg-white">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {module.module_type}
+                            </Badge>
+                            {module.mlr_approved && (
+                              <Badge variant="default" className="text-xs bg-green-600">
+                                MLR Approved
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm">{module.module_text.substring(0, 150)}...</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-2xl font-bold text-orange-600">{module.relevanceScore}</div>
+                          <div className="text-xs text-muted-foreground">relevance</div>
+                          <Progress value={module.relevanceScore} className="w-20 h-2 mt-1" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        {module.matchingCriteria.audienceMatch && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Audience Match
+                          </Badge>
+                        )}
+                        {module.matchingCriteria.mlrApproved && (
+                          <Badge variant="outline" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            MLR Approved
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
-
       </CardContent>
     </Card>
   );
 };
-
-// 🎯 FIX: Named export as requested
-export { EvidenceRecommendationTest };

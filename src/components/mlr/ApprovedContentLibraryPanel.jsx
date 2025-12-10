@@ -241,4 +241,4 @@ const ApprovedContentLibraryPanel = ({ onInsert }) => {
 };
 
 // ✅ Export the component
-export { ApprovedContentLibraryPanel };
+export {ApprovedContentLibraryPanel};

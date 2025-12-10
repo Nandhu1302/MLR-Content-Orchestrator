@@ -244,32 +244,32 @@ export class TemplateRecommendationService {
 
         // Add personalization fit reasons
         if (factors?.hcp_experience_level === 'expert') {
-            reasons.push('Optimized for **expert HCP** with data-heavy layout');
+            reasons.push('Optimized for expert HCP with data-heavy layout');
         }
 
         if (factors?.hcp_experience_level === 'entry') {
-            reasons.push('Simplified layout for **entry-level HCP** education');
+            reasons.push('Simplified layout for entry-level HCP education');
         }
 
         if (factors?.patient_health_literacy === 'low') {
-            reasons.push('Uses **visual explanations** and simple language zones');
+            reasons.push('Uses visual explanations and simple language zones');
         }
 
         if (factors?.patient_disease_stage === 'newly_diagnosed') {
-            reasons.push('**Warm, supportive design** for newly diagnosed patients');
+            reasons.push('Warm, supportive design for newly diagnosed patients');
         }
 
         // Add performance reason
         if (template.performance_history?.avgEngagement && template.performance_history.avgEngagement > 70) {
-            reasons.push(`**High historical engagement rate** (${template.performance_history.avgEngagement}%)`);
+            reasons.push(`High historical engagement rate (${template.performance_history.avgEngagement}%)`);
         }
 
         // Add content fit reason
-        reasons.push(`**Perfect content zone fit** for ${asset.asset_type} channel`);
+        reasons.push(`Perfect fit for ${asset.asset_type} channel`);
 
         // Add regulatory reason
         if (template.brand_requirements?.regulatoryZones?.length > 0) {
-            reasons.push('Includes **required regulatory zones** (e.g., ISI)');
+            reasons.push('Includes required regulatory zones');
         }
 
         return reasons;

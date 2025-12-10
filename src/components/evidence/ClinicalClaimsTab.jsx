@@ -1,15 +1,18 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, FileText, AlertCircle, CheckCircle2, Eye } from 'lucide-react';
+import { ClaimDetailsModal } from '@/components/mlr/ClaimDetailsModal';
 
 export const ClinicalClaimsTab = ({ claims }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [claimTypeFilter, setClaimTypeFilter] = useState('all');
   const [reviewStatusFilter, setReviewStatusFilter] = useState('all');
+  const [selectedClaim, setSelectedClaim] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredClaims = claims.filter((claim) => {
     const matchesSearch = claim.claim_text.toLowerCase().includes(searchQuery.toLowerCase());
@@ -34,16 +37,37 @@ export const ClinicalClaimsTab = ({ claims }) => {
       case 'pending':
         return <AlertCircle className="h-4 w-4 text-yellow-600" />;
       default:
-        return <FileText className="h-4 w-4 text-gray-500" />;
+        return <FileText className="h-4 w-4 text-muted-foreground" />;
     }
   };
+
+  const handleViewDetails = (claim) => {
+    setSelectedClaim(claim);
+    setIsModalOpen(true);
+  };
+
+  const convertToDetectedClaim = (claim) => ({
+    id: claim.id,
+    text: claim.claim_text,
+    type: claim.claim_type,
+    severity: 'info',
+    reason: `${claim.claim_type} claim from ${claim.source_section}`,
+    suggestion: `Review claim details and supporting evidence`,
+    start: 0,
+    end: claim.claim_text.length,
+    context: claim.source_section,
+    requiredEvidence: [],
+    isOverridden: claim.review_status === 'approved',
+    confidence: claim.confidence_score || 0,
+    brandCompliance: claim.review_status === 'approved' ? 'compliant' : 'warning',
+  });
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="flex gap-4 items-center">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search claims..."
             value={searchQuery}
@@ -51,29 +75,25 @@ export const ClinicalClaimsTab = ({ claims }) => {
             className="pl-9"
           />
         </div>
-        <Select value={claimTypeFilter} onValueChange={(value) => setClaimTypeFilter(value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="All Types" />
+        <Select value={claimTypeFilter} onValueChange={setClaimTypeFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Claim Type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             {claimTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
+              <SelectItem key={type} value={type}>{type}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select value={reviewStatusFilter} onValueChange={(value) => setReviewStatusFilter(value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="All Statuses" />
+        <Select value={reviewStatusFilter} onValueChange={setReviewStatusFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Review Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             {reviewStatuses.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status}
-              </SelectItem>
+              <SelectItem key={status} value={status}>{status}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -85,36 +105,113 @@ export const ClinicalClaimsTab = ({ claims }) => {
       </div>
 
       {/* Claims List */}
-      <div className="space-y-4">
+      <div className="grid gap-4">
         {filteredClaims.map((claim) => (
-          <Card key={claim.id} className="border rounded-lg">
+          <Card
+            key={claim.id}
+            className="hover:shadow-md transition-shadow cursor-pointer group"
+            onClick={() => handleViewDetails(claim)}
+          >
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {getReviewStatusIcon(claim.review_status)}
-                {claim.claim_type}
-              </CardTitle>
-              <CardDescription>{claim.regulatory_status}</CardDescription>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    {getReviewStatusIcon(claim.review_status)}
+                    <Badge variant="outline">{claim.claim_type}</Badge>
+                    <Badge variant="secondary">{claim.regulatory_status}</Badge>
+                  </div>
+                  <CardTitle className="text-base group-hover:text-primary transition-colors">
+                    {claim.claim_text}
+                  </CardTitle>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge className={getConfidenceColor(claim.confidence_score)} variant="outline">
+                    {(claim.confidence_score * 100).toFixed(0)}% confidence
+                  </Badge>
+                  <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleViewDetails(claim); }}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="mb-2">{claim.claim_text}</p>
-              <Badge className={getConfidenceColor(claim.confidence_score)}>
-                {(claim.confidence_score * 100).toFixed(0)}% confidence
-              </Badge>
-              <div className="text-xs text-muted-foreground mt-2">
-                Source Section: {claim.source_section}
-                {claim.source_page && <div>Source Page: Page {claim.source_page}</div>}
-                <div>Review Status: {claim.review_status}</div>
-                <div>Extracted: {new Date(claim.created_at).toLocaleDateString()}</div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Claim ID:</span>
+                  <p className="font-medium font-mono">{claim.claim_id_display || 'Pending'}</p>
+                </div>
+                {claim.indication_product && (
+                  <div>
+                    <span className="text-muted-foreground">Indication/Product:</span>
+                    <p className="font-medium">{claim.indication_product}</p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-muted-foreground">Source Section:</span>
+                  <p className="font-medium">{claim.source_section}</p>
+                </div>
+                {claim.source_page && (
+                  <div>
+                    <span className="text-muted-foreground">Source Page:</span>
+                    <p className="font-medium">Page {claim.source_page}</p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-muted-foreground">Effective Date:</span>
+                  <p className="font-medium">
+                    {claim.effective_date ? new Date(claim.effective_date).toLocaleDateString() : 'Not set'}
+                  </p>
+                </div>
+                {claim.expiration_date && (
+                  <div>
+                    <span className="text-muted-foreground">Expiration Date:</span>
+                    <p className="font-medium text-destructive">
+                      {new Date(claim.expiration_date).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-muted-foreground">Review Status:</span>
+                  <p className="font-medium capitalize">{claim.review_status}</p>
+                </div>
+                {claim.approval_scope && claim.approval_scope.length > 0 && (
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Approval Scope:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {claim.approval_scope.map((scope, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">
+                          {scope}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <span className="text-muted-foreground">Extracted:</span>
+                  <p className="font-medium">{new Date(claim.created_at).toLocaleDateString()}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
-        {filteredClaims.length === 0 && (
-          <div className="text-center text-muted-foreground py-6">
-            No claims found matching your filters
-          </div>
-        )}
       </div>
+
+      {filteredClaims.length === 0 && (
+        <div className="text-center py-12">
+          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">No claims found matching your filters</p>
+        </div>
+      )}
+
+      {/* Claim Details Modal */}
+      {selectedClaim && (
+        <ClaimDetailsModal
+          claim={convertToDetectedClaim(selectedClaim)}
+          isOpen={isModalOpen}
+          onClose={() => { setIsModalOpen(false); setSelectedClaim(null); }}
+          onOverride={() => {}}
+        />
+      )}
     </div>
   );
 };

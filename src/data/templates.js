@@ -1,7 +1,9 @@
+
+// Converted from TypeScript to JavaScript (types removed, runtime kept)
 import { regulatoryFlags } from './assetConfigurations';
 
 // Pre-built Campaign Templates
-export const campaignTemplates = [ // Removed : IntakeTemplate[]
+export const campaignTemplates = [
   {
     id: 'product-launch-campaign',
     name: 'Product Launch Campaign',
@@ -21,12 +23,12 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'rep-triggered-email', name: 'Follow-up Templates', estimatedHours: 6 }
     ],
     preFilledData: {
-      initiativeType: 'campaign', // Removed ' as InitiativeType'
+      initiativeType: 'campaign',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US', 'EU'], // Removed ' as Market[]'
-      selectedAssetTypes: ['mass-email', 'website-landing-page', 'digital-sales-aid', 'social-media-post', 'rep-triggered-email'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US', 'EU'],
+      selectedAssetTypes: ['mass-email', 'website-landing-page', 'digital-sales-aid', 'social-media-post', 'rep-triggered-email'],
       primaryObjective: 'Drive awareness and adoption of new indication',
       keyMessage: 'Expanding treatment options with proven efficacy',
       callToAction: 'Learn more about [indication] treatment',
@@ -40,7 +42,7 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   },
   {
@@ -61,12 +63,12 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'digital-sales-aid', name: 'Disease Education Aid', estimatedHours: 20 }
     ],
     preFilledData: {
-      initiativeType: 'campaign', // Removed ' as InitiativeType'
+      initiativeType: 'campaign',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US', 'EU', 'UK'], // Removed ' as Market[]'
-      selectedAssetTypes: ['social-media-post', 'mass-email', 'website-landing-page', 'digital-sales-aid'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US', 'EU', 'UK'],
+      selectedAssetTypes: ['social-media-post', 'mass-email', 'website-landing-page', 'digital-sales-aid'],
       primaryObjective: 'Increase disease awareness and early recognition',
       keyMessage: 'Early diagnosis leads to better outcomes',
       callToAction: 'Access diagnostic resources',
@@ -80,7 +82,7 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   },
   {
@@ -100,12 +102,12 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'mass-email', name: 'Series Introduction', estimatedHours: 8 }
     ],
     preFilledData: {
-      initiativeType: 'campaign', // Removed ' as InitiativeType'
+      initiativeType: 'campaign',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US', 'EU', 'UK', 'Canada'], // Removed ' as Market[]'
-      selectedAssetTypes: ['rep-triggered-email', 'digital-sales-aid', 'mass-email'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US', 'EU', 'UK', 'Canada'],
+      selectedAssetTypes: ['rep-triggered-email', 'digital-sales-aid', 'mass-email'],
       primaryObjective: 'Provide ongoing clinical education and support',
       keyMessage: 'Evidence-based treatment decisions',
       callToAction: 'Schedule clinical discussion',
@@ -119,7 +121,7 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   },
   {
@@ -139,12 +141,12 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'rep-triggered-email', name: 'Objection Handling', estimatedHours: 6 }
     ],
     preFilledData: {
-      initiativeType: 'campaign', // Removed ' as InitiativeType'
+      initiativeType: 'campaign',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US'], // Removed ' as Market[]'
-      selectedAssetTypes: ['mass-email', 'digital-sales-aid', 'rep-triggered-email'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US'],
+      selectedAssetTypes: ['mass-email', 'digital-sales-aid', 'rep-triggered-email'],
       primaryObjective: 'Reinforce competitive differentiation',
       keyMessage: 'Proven efficacy with established safety profile',
       callToAction: 'Compare treatment options',
@@ -158,7 +160,7 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   },
   {
@@ -179,12 +181,12 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'social-media-post', name: 'Congress Highlights', estimatedHours: 4 }
     ],
     preFilledData: {
-      initiativeType: 'campaign', // Removed ' as InitiativeType'
+      initiativeType: 'campaign',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US', 'EU'], // Removed ' as Market[]'
-      selectedAssetTypes: ['digital-sales-aid', 'mass-email', 'rep-triggered-email', 'social-media-post'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US', 'EU'],
+      selectedAssetTypes: ['digital-sales-aid', 'mass-email', 'rep-triggered-email', 'social-media-post'],
       primaryObjective: 'Maximize congress impact and engagement',
       keyMessage: 'Latest clinical evidence and insights',
       callToAction: 'Schedule congress meeting',
@@ -198,13 +200,13 @@ export const campaignTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   }
 ];
 
 // Single Asset Templates
-export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
+export const singleAssetTemplates = [
   {
     id: 'hcp-email-followup',
     name: 'HCP Email Follow-up',
@@ -220,12 +222,12 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'rep-triggered-email', name: 'HCP Follow-up Email', estimatedHours: 6 }
     ],
     preFilledData: {
-      initiativeType: 'single-asset', // Removed ' as InitiativeType'
+      initiativeType: 'single-asset',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US'], // Removed ' as Market[]'
-      selectedAssetTypes: ['rep-triggered-email'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US'],
+      selectedAssetTypes: ['rep-triggered-email'],
       primaryObjective: 'Maintain engagement after HCP meeting',
       keyMessage: 'Thank you for our discussion about Ofev',
       callToAction: 'Access additional resources',
@@ -239,7 +241,7 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   },
   {
@@ -257,12 +259,12 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'social-media-post', name: 'Patient Journey Infographic', estimatedHours: 4 }
     ],
     preFilledData: {
-      initiativeType: 'single-asset', // Removed ' as InitiativeType'
+      initiativeType: 'single-asset',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'Patient', // Removed ' as AudienceType'
-      targetMarkets: ['US', 'EU'], // Removed ' as Market[]'
-      selectedAssetTypes: ['social-media-post'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'Patient',
+      targetMarkets: ['US', 'EU'],
+      selectedAssetTypes: ['social-media-post'],
       primaryObjective: 'Educate about disease progression and treatment journey',
       keyMessage: 'Understanding your IPF journey',
       callToAction: 'Learn more about treatment options',
@@ -276,7 +278,7 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   },
   {
@@ -294,12 +296,12 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'mass-email', name: 'Clinical Data Email', estimatedHours: 8 }
     ],
     preFilledData: {
-      initiativeType: 'single-asset', // Removed ' as InitiativeType'
+      initiativeType: 'single-asset',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US', 'EU', 'UK'], // Removed ' as Market[]'
-      selectedAssetTypes: ['mass-email'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US', 'EU', 'UK'],
+      selectedAssetTypes: ['mass-email'],
       primaryObjective: 'Share latest clinical evidence and research',
       keyMessage: 'New evidence reinforces Ofev\'s efficacy profile',
       callToAction: 'Review clinical data',
@@ -313,7 +315,7 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   },
   {
@@ -331,12 +333,12 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       { assetType: 'mass-email', name: 'Safety Communication Email', estimatedHours: 8 }
     ],
     preFilledData: {
-      initiativeType: 'single-asset', // Removed ' as InitiativeType'
+      initiativeType: 'single-asset',
       brand: 'Ofev',
-      indication: 'IPF', // Removed ' as Indication'
-      primaryAudience: 'HCP', // Removed ' as AudienceType'
-      targetMarkets: ['US', 'EU', 'UK', 'Canada'], // Removed ' as Market[]'
-      selectedAssetTypes: ['mass-email'], // Removed ' as AssetType[]'
+      indication: 'IPF',
+      primaryAudience: 'HCP',
+      targetMarkets: ['US', 'EU', 'UK', 'Canada'],
+      selectedAssetTypes: ['mass-email'],
       primaryObjective: 'Communicate important safety information',
       keyMessage: 'Important safety update for healthcare providers',
       callToAction: 'Review safety information',
@@ -350,7 +352,7 @@ export const singleAssetTemplates = [ // Removed : IntakeTemplate[]
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: '',
-      status: 'draft' // Removed ' as const'
+      status: 'draft'
     }
   }
 ];

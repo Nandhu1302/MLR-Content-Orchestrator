@@ -1,8 +1,5 @@
-import { clsx } from "clsx";
+import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
-
-// Note: Removed 'type ClassValue' import as it's a TypeScript-only type.
-// The remaining code functions identically in JavaScript.
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));

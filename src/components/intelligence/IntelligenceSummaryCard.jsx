@@ -18,9 +18,10 @@ import {
 } from '@/components/ui/tooltip';
 import { IntelligenceDonutChart } from './IntelligenceDonutChart';
 
-// TypeScript interfaces removed
+// interface IntelligenceCategory removed
+// interface IntelligenceSummaryCardProps removed
 
-const CATEGORY_CONFIG = {
+const CATEGORY_CONFIG = { // Type annotation removed
   evidence: {
     icon: Shield,
     color: 'text-blue-600',
@@ -53,7 +54,7 @@ const CATEGORY_CONFIG = {
   }
 };
 
-const IntelligenceSummaryCard = ({ 
+export const IntelligenceSummaryCard = ({ 
   categories, 
   qualityScore,
   showDonutChart = true,
@@ -62,6 +63,7 @@ const IntelligenceSummaryCard = ({
   const totalCount = categories.reduce((sum, cat) => sum + cat.count, 0);
   
   // Prepare chart data
+  // Type annotations removed from map function
   const chartData = categories
     .filter(cat => cat.count > 0)
     .map(cat => ({
@@ -192,6 +194,3 @@ const IntelligenceSummaryCard = ({
     </Card>
   );
 };
-
-// FIX: Named export
-export { IntelligenceSummaryCard };

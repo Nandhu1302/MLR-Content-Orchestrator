@@ -1,73 +1,44 @@
-// Auto-save hook for GLOCAL workflow
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from './use-toast';
 
+import { useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAutoSaveWithRetry } from './useAutoSaveWithRetry';
+
+// JS version of useGlocalAutoSave (types removed, same context/logic)
 export const useGlocalAutoSave = ({
   projectId,
   workflowData,
   enabled = true,
   interval = 30000,
   onSaveSuccess,
-  onSaveError
+  onSaveError,
 }) => {
-  const { toast } = useToast();
-  const lastSavedDataRef = useRef('');
-  const saveTimeoutRef = useRef();
-  const [isSaving, setIsSaving] = useState(false);
-  const failureCountRef = useRef(0);
-  const circuitBreakerOpenRef = useRef(false);
-  const lastFailureTimeRef = useRef(0);
-
-  const saveWorkflow = useCallback(async () => {
-    if (isSaving || !enabled) return;
-
-    // Circuit breaker: stop trying after 3 consecutive failures
-    if (circuitBreakerOpenRef.current) {
-      const timeSinceLastFailure = Date.now() - lastFailureTimeRef.current;
-      // Reset circuit breaker after 5 minutes
-      if (timeSinceLastFailure > 300000) {
-        circuitBreakerOpenRef.current = false;
-        failureCountRef.current = 0;
-      } else {
-        return;
-      }
-    }
-
-    // Serialize data consistently for comparison
-    const currentData = JSON.stringify(workflowData, Object.keys(workflowData).sort());
-    // Skip if no meaningful changes (deep equality check)
-    if (currentData === lastSavedDataRef.current) {
-      return;
-    }
-
-    setIsSaving(true);
-
+  const handleSave = useCallback(async (currentData) => {
     try {
       // Update workflow record
       const { error: workflowError } = await supabase
         .from('glocal_workflows')
-        .upsert({
-          project_id: projectId,
-          workflow_name: workflowData.workflowName || 'Adaptation Workflow',
-          workflow_type: 'adaptation',
-          workflow_status: workflowData.status || 'in_progress',
-          phase_1_global_context: workflowData.phase1 || {},
-          phase_2_tm_intelligence: workflowData.phase2 || {},
-          phase_3_cultural_intelligence: workflowData.phase3 || {},
-          phase_4_regulatory_compliance: workflowData.phase4 || {},
-          phase_5_quality_assurance: workflowData.phase5 || {},
-          phase_6_dam_handoff: workflowData.phase6 || {},
-          phase_7_integration: workflowData.phase7 || {},
-          current_phase: workflowData.currentPhase || 'phase_1',
-          workflow_metadata: {
-            lastAutoSave: new Date().toISOString(),
-            version: workflowData.version || 1
+        .upsert(
+          {
+            project_id: projectId,
+            workflow_name: currentData?.workflowName || 'Adaptation Workflow',
+            workflow_type: 'adaptation',
+            workflow_status: currentData?.status || 'in_progress',
+            phase_1_global_context: currentData?.phase1 || {},
+            phase_2_tm_intelligence: currentData?.phase2 || {},
+            phase_3_cultural_intelligence: currentData?.phase3 || {},
+            phase_4_regulatory_compliance: currentData?.phase4 || {},
+            phase_5_quality_assurance: currentData?.phase5 || {},
+            phase_6_dam_handoff: currentData?.phase6 || {},
+            phase_7_integration: currentData?.phase7 || {},
+            current_phase: currentData?.currentPhase || 'phase_1',
+            workflow_metadata: {
+              lastAutoSave: new Date().toISOString(),
+              version: currentData?.version || 1,
+            },
+            last_auto_save: new Date().toISOString(),
           },
-          last_auto_save: new Date().toISOString()
-        }, {
-          onConflict: 'project_id'
-        });
+          { onConflict: 'project_id' }
+        );
 
       if (workflowError) throw workflowError;
 
@@ -75,83 +46,41 @@ export const useGlocalAutoSave = ({
       const { error: projectError } = await supabase
         .from('glocal_adaptation_projects')
         .update({
-          cultural_intelligence_score: workflowData.scores?.cultural || 0,
-          regulatory_compliance_score: workflowData.scores?.regulatory || 0,
-          tm_leverage_score: workflowData.scores?.tmLeverage || 0,
-          overall_quality_score: workflowData.scores?.overall || 0,
-          market_readiness_score: workflowData.scores?.marketReadiness || 0,
+          cultural_intelligence_score: currentData?.scores?.cultural || 0,
+          regulatory_compliance_score: currentData?.scores?.regulatory || 0,
+          tm_leverage_score: currentData?.scores?.tmLeverage || 0,
+          overall_quality_score: currentData?.scores?.overall || 0,
+          market_readiness_score: currentData?.scores?.marketReadiness || 0,
           workflow_state: {
-            currentPhase: workflowData.currentPhase || 'phase_1',
-            phasesCompleted: workflowData.completedPhases || [],
+            currentPhase: currentData?.currentPhase || 'phase_1',
+            phasesCompleted: currentData?.completedPhases || [],
             totalPhases: 7,
-            phaseData: workflowData
-          }
+            phaseData: currentData || {},
+          },
         })
         .eq('id', projectId);
 
       if (projectError) throw projectError;
 
-      lastSavedDataRef.current = currentData;
-      failureCountRef.current = 0;
-      onSaveSuccess && onSaveSuccess();
-
+      if (typeof onSaveSuccess === 'function') onSaveSuccess();
       console.log('✓ Auto-saved GLOCAL workflow:', new Date().toISOString());
+      return true;
     } catch (error) {
       console.error('Auto-save error:', error);
-      failureCountRef.current++;
-      lastFailureTimeRef.current = Date.now();
-      if (failureCountRef.current >= 3) {
-        circuitBreakerOpenRef.current = true;
-        toast({
-          title: 'Auto-save suspended',
-          description: 'Multiple save failures detected. Auto-save will retry in 5 minutes.',
-          variant: 'destructive'
-        });
-      } else {
-        if (failureCountRef.current === 1) {
-          toast({
-            title: 'Auto-save failed',
-            description: 'Your changes could not be saved automatically. Will retry.',
-            variant: 'destructive'
-          });
-        }
-      }
-      onSaveError && onSaveError(error);
-    } finally {
-      setIsSaving(false);
+      if (typeof onSaveError === 'function') onSaveError(error instanceof Error ? error : new Error(String(error)));
+      return false;
     }
-  }, [projectId, workflowData, enabled, onSaveSuccess, onSaveError, toast]);
+  }, [projectId, onSaveSuccess, onSaveError]);
 
-  // Set up auto-save interval
-  useEffect(() => {
-    if (!enabled) return;
-    const intervalId = setInterval(() => {
-      saveWorkflow();
-    }, interval);
-    return () => {
-      clearInterval(intervalId);
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [saveWorkflow, interval, enabled]);
-
-  // Save on unmount
-  useEffect(() => {
-    return () => {
-      if (enabled && workflowData) {
-        saveWorkflow();
-      }
-    };
-  }, [saveWorkflow, enabled, workflowData]);
-
-  // Manual save function
-  const forceSave = useCallback(() => {
-    return saveWorkflow();
-  }, [saveWorkflow]);
+  const result = useAutoSaveWithRetry({
+    data: workflowData,
+    onSave: handleSave,
+    enabled,
+    debounceMs: interval,
+  });
 
   return {
-    forceSave,
-    isSaving
+    forceSave: result.forceSave,
+    isSaving: result.isSaving,
   };
 };

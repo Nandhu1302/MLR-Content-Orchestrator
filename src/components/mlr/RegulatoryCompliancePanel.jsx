@@ -148,4 +148,4 @@ const RegulatoryCompliancePanel = ({
   );
 };
 
-export { RegulatoryCompliancePanel };
+export {RegulatoryCompliancePanel};

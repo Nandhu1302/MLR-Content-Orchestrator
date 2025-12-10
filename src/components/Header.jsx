@@ -74,7 +74,7 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-20 items-center justify-between gap-8 px-4 sm:px-6 lg:px-8 max-w-[2560px]">
-        {/* Left Section */}
+        {/* Left Section: Brand Logo & Navigation */}
         <div className="flex items-center gap-6 lg:gap-8 min-w-0">
           <Button
             variant="ghost"
@@ -105,7 +105,7 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Middle Section */}
+        {/* Middle Section: Search Bar */}
         <div className="flex-1 max-w-xl hidden lg:block">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -116,9 +116,9 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Right Section */}
+        {/* Right Section: Actions & User Profile */}
         <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-          {/* Guardrails */}
+          {/* Guardrails Button */}
           <Dialog open={guardrailsDialogOpen} onOpenChange={setGuardrailsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" className="relative hidden md:flex">
@@ -152,7 +152,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-3 h-auto p-2 hover:bg-muted/50">
                   <Avatar className="h-9 w-9">
-                    /placeholder.svg
+                    <AvatarImage src="/placeholder.svg" />
                     <AvatarFallback className="text-sm font-semibold">{userInitials}</AvatarFallback>
                   </Avatar>
                   <div className="hidden xl:block text-left">

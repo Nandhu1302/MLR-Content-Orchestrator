@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
+  // content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   content: ["./pages/**/*.{js,jsx}", "./components/**/*.{js,jsx}", "./app/**/*.{js,jsx}", "./src/**/*.{js,jsx}"],
   prefix: "",
   theme: {
@@ -82,9 +83,6 @@ module.exports = {
           ring: "hsl(var(--sidebar-ring))",
         },
         cognizant: {
-          // Note: Tailwind requires HSL variables (e.g., "var(--color)") 
-          // or simple strings (e.g., "#HEX") in the config.
-          // The provided HSL strings will be converted by Tailwind's engine.
           blue: "217 100% 31%", // #0033A0
           lightBlue: "197 100% 44%", // #00A3E0
           orange: "24 100% 50%", // #FF6900

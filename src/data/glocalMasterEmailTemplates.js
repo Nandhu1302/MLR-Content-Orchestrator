@@ -1,10 +1,9 @@
-// GLOCAL Master Email Templates for All 7 Brands
-// Content-rich simulation data for testing all GLOCAL functions
 
-import { GlocalMasterEmailTemplate } from '@/types/glocal';
+// GLOCAL Master Email Templates for 7 Brands
+// Content-rich simulation data for testing all GLOCAL functions (segmentation, TM, cultural, regulatory, export)
 
-export const glocalMasterEmailTemplates: GlocalMasterEmailTemplate[] = [
-  // 1. JARDIANCE (Type 2 Diabetes)
+export const glocalMasterEmailTemplates = [
+  // 1) JARDIANCE (Type 2 Diabetes, CV risk)
   {
     templateId: 'jardiance-hcp-clinical-excellence',
     brandName: 'Jardiance',
@@ -12,19 +11,27 @@ export const glocalMasterEmailTemplates: GlocalMasterEmailTemplate[] = [
     therapeuticArea: 'Cardiovascular & Metabolic',
     indication: 'Type 2 Diabetes with CV Risk Reduction',
     emailType: 'HCP Clinical Excellence Email',
-    
     contentSegments: [
       {
         segmentIndex: 1,
         segmentType: 'subject_line',
         segmentName: 'Subject Line Segment',
-        sourceText: 'New EMPA-REG OUTCOME Data: CV Risk Reduction in Type 2 Diabetes Patients with Jardiance',
+        sourceText: 'New EMPA-REG OUTCOME Data: CV Risk Reduction in Adults with Type 2 Diabetes',
         complexityLevel: 'medium',
         culturalSensitivityLevel: 'medium',
         regulatoryRiskLevel: 'medium'
       },
       {
         segmentIndex: 2,
+        segmentType: 'preheader',
+        segmentName: 'Preheader Text',
+        sourceText: 'Evidence you can rely on—see the latest CV outcomes with Jardiance.',
+        complexityLevel: 'low',
+        culturalSensitivityLevel: 'medium',
+        regulatoryRiskLevel: 'low'
+      },
+      {
+        segmentIndex: 3,
         segmentType: 'greeting',
         segmentName: 'Professional Greeting',
         sourceText: 'Dear Dr. [Last Name],',
@@ -33,88 +40,60 @@ export const glocalMasterEmailTemplates: GlocalMasterEmailTemplate[] = [
         regulatoryRiskLevel: 'low'
       },
       {
-        segmentIndex: 3,
-        segmentType: 'primary_efficacy',
-        segmentName: 'Primary Efficacy Claims Segment',
-        sourceText: 'Jardiance (empagliflozin) demonstrated a 38% relative risk reduction in cardiovascular death in adults with type 2 diabetes and established cardiovascular disease in the landmark EMPA-REG OUTCOME trial (HR 0.62, 95% CI 0.49-0.77, p<0.001).',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
         segmentIndex: 4,
-        segmentType: 'secondary_outcomes',
-        segmentName: 'Secondary Outcomes & Data',
-        sourceText: 'Additionally, Jardiance showed significant reductions in hospitalization for heart failure (35% RRR, HR 0.65, 95% CI 0.50-0.85, p=0.002) and all-cause mortality (32% RRR, HR 0.68, 95% CI 0.57-0.82, p<0.001) versus placebo.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
+        segmentType: 'key_message',
+        segmentName: 'Key Message',
+        sourceText: 'Jardiance demonstrated a significant reduction in CV death in adults with T2D at increased CV risk.',
+        complexityLevel: 'medium',
+        culturalSensitivityLevel: 'medium',
         regulatoryRiskLevel: 'high'
       },
       {
         segmentIndex: 5,
-        segmentType: 'mechanism_of_action',
-        segmentName: 'Mechanism of Action',
-        sourceText: 'Jardiance is a sodium-glucose co-transporter 2 (SGLT2) inhibitor that reduces renal glucose reabsorption, promoting urinary glucose excretion and providing glycemic control independent of insulin secretion or action.',
+        segmentType: 'supporting_copy',
+        segmentName: 'Clinical Evidence Summary',
+        sourceText: 'In a landmark outcomes study, Jardiance reduced the risk of CV death vs placebo when added to standard of care.',
         complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'medium'
+        culturalSensitivityLevel: 'medium',
+        regulatoryRiskLevel: 'high'
       },
       {
         segmentIndex: 6,
-        segmentType: 'safety_profile',
-        segmentName: 'Safety & Tolerability Information',
-        sourceText: 'The most common adverse reactions (≥5% incidence) include urinary tract infections and female genital mycotic infections. Jardiance is contraindicated in patients with severe renal impairment (eGFR <30 mL/min/1.73m²), end-stage renal disease, or on dialysis.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
+        segmentType: 'cta',
+        segmentName: 'Call to Action',
+        sourceText: 'Review the EMPA-REG publication and CV outcomes details.',
+        complexityLevel: 'low',
+        culturalSensitivityLevel: 'low',
+        regulatoryRiskLevel: 'medium'
       },
       {
         segmentIndex: 7,
-        segmentType: 'patient_population',
-        segmentName: 'Target Patient Population',
-        sourceText: 'Consider Jardiance for your adult patients with type 2 diabetes, particularly those with established cardiovascular disease who may benefit from the proven CV risk reduction.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 8,
-        segmentType: 'dosing_administration',
-        segmentName: 'Dosing & Administration',
-        sourceText: 'Jardiance is available in 10 mg and 25 mg tablets, taken orally once daily in the morning, with or without food. The recommended starting dose is 10 mg, which may be increased to 25 mg for additional glycemic control.',
-        complexityLevel: 'medium',
+        segmentType: 'fair_balance',
+        segmentName: 'Important Safety Information (ISI)',
+        sourceText: 'Contraindications include hypersensitivity. Monitor for ketoacidosis. See full Prescribing Information.',
+        complexityLevel: 'high',
         culturalSensitivityLevel: 'low',
         regulatoryRiskLevel: 'high'
       },
       {
-        segmentIndex: 9,
-        segmentType: 'resources_support',
-        segmentName: 'Resources & Support',
-        sourceText: 'Access comprehensive prescribing information, patient education materials, and reimbursement support tools at our healthcare professional portal.',
+        segmentIndex: 8,
+        segmentType: 'footer',
+        segmentName: 'Footer / Contact',
+        sourceText: 'For medical information, contact your Jardiance representative or visit the medical portal.',
         complexityLevel: 'low',
         culturalSensitivityLevel: 'low',
         regulatoryRiskLevel: 'low'
       },
       {
-        segmentIndex: 10,
-        segmentType: 'call_to_action',
-        segmentName: 'Call-to-Action Segment',
-        sourceText: 'Learn more about the EMPA-REG OUTCOME data and request a personalized consultation with our medical science liaison.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 11,
-        segmentType: 'closing_signature',
-        segmentName: 'Professional Closing',
-        sourceText: 'Best regards,\nThe Jardiance Medical Affairs Team',
+        segmentIndex: 9,
+        segmentType: 'unsubscribe',
+        segmentName: 'Unsubscribe',
+        sourceText: 'To opt out of future communications, click here.',
         complexityLevel: 'low',
-        culturalSensitivityLevel: 'medium',
+        culturalSensitivityLevel: 'low',
         regulatoryRiskLevel: 'low'
       }
     ],
-    
     culturalIntelligenceTestPoints: [
       {
         category: 'Formal vs. Informal Address',
@@ -125,67 +104,57 @@ export const glocalMasterEmailTemplates: GlocalMasterEmailTemplate[] = [
         ]
       },
       {
-        category: 'Clinical Evidence Presentation',
+        category: 'Terminology Sensitivity',
         testPoints: [
-          'Statistical data emphasis (Western markets prefer hard numbers)',
-          'Patient story integration (Asian markets value narratives)',
-          'Authority citation styles'
+          '“CV death” phrasing appropriateness',
+          'Local outcome terminology alignment',
+          'Use of abbreviations (T2D, CV) per market norms'
         ]
       },
       {
-        category: 'Risk Communication',
+        category: 'Evidence Emphasis',
         testPoints: [
-          'Direct vs. indirect adverse event disclosure',
-          'Probability framing (percentage vs. descriptive)',
-          'Balanced messaging requirements'
+          'Degree of benefit framing',
+          'Regulatory tone: avoid promotional overreach',
+          'Balance with risk information'
         ]
       }
     ],
-    
     smartTMMemoryBanks: [
       {
         category: 'Medical Terminology',
         entries: [
           'cardiovascular death → muerte cardiovascular (ES)',
           'type 2 diabetes → diabète de type 2 (FR)',
-          'heart failure hospitalization → hospitalisation pour insuffisance cardiaque (FR)'
+          'heart failure hospitalization → hospitalisation pour insuffisance cardiaque (FR)',
+          'CV risk → risco cardiovascular (PT-BR)'
         ]
       },
       {
-        category: 'Regulatory Language',
+        category: 'Regulatory Phrases',
         entries: [
-          'contraindicated → contraindicado (ES)',
-          'adverse reactions → réactions indésirables (FR)',
-          'established cardiovascular disease → maladie cardiovasculaire établie (FR)'
-        ]
-      },
-      {
-        category: 'Clinical Trial Data',
-        entries: [
-          'EMPA-REG OUTCOME → EMPA-REG OUTCOME (universal)',
-          'hazard ratio → rapport de risque (FR)',
-          'confidence interval → intervalle de confiance (FR)'
+          'See Prescribing Information → Consulte la Información de Prescripción (ES)',
+          'Important Safety Information → Informations de Sécurité Importantes (FR)'
         ]
       }
     ],
-    
     regulatoryAdaptationPoints: [
       {
         requirement: 'Indication Statement Localization',
         markets: ['US', 'EU', 'Japan', 'China', 'Brazil']
       },
       {
-        requirement: 'Safety Information Disclosure Level',
-        markets: ['US', 'EU', 'Canada']
+        requirement: 'Outcome Claim Substantiation',
+        markets: ['US', 'EU', 'Canada', 'Australia']
       },
       {
-        requirement: 'Fair Balance Requirements',
-        markets: ['US', 'Canada']
+        requirement: 'Fair Balance Placement',
+        markets: ['US', 'EU', 'UK']
       }
     ]
   },
 
-  // 2. OFEV (Idiopathic Pulmonary Fibrosis)
+  // 2) OFEV (Idiopathic Pulmonary Fibrosis)
   {
     templateId: 'ofev-hcp-clinical-excellence',
     brandName: 'Ofev',
@@ -193,881 +162,200 @@ export const glocalMasterEmailTemplates: GlocalMasterEmailTemplate[] = [
     therapeuticArea: 'Respiratory',
     indication: 'Idiopathic Pulmonary Fibrosis (IPF)',
     emailType: 'HCP Clinical Excellence Email',
-    
     contentSegments: [
-      {
-        segmentIndex: 1,
-        segmentType: 'subject_line',
-        segmentName: 'Subject Line Segment',
-        sourceText: 'INPULSIS Trial Data: Slowing IPF Progression with Ofev (nintedanib)',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 2,
-        segmentType: 'greeting',
-        segmentName: 'Professional Greeting',
-        sourceText: 'Dear Dr. [Last Name],',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'high',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 3,
-        segmentType: 'primary_efficacy',
-        segmentName: 'Primary Efficacy Claims Segment',
-        sourceText: 'Ofev (nintedanib) reduced the annual rate of decline in forced vital capacity (FVC) by approximately 50% compared to placebo in patients with idiopathic pulmonary fibrosis (IPF) in the pivotal INPULSIS trials (Treatment difference: 109.9 mL/year, p<0.001; 125.3 mL/year, p<0.001).',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 4,
-        segmentType: 'secondary_outcomes',
-        segmentName: 'Secondary Outcomes & Data',
-        sourceText: 'Secondary endpoints showed a reduction in time to first acute exacerbation and preserved quality of life as measured by SGRQ total score.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 5,
-        segmentType: 'mechanism_of_action',
-        segmentName: 'Mechanism of Action',
-        sourceText: 'Ofev is a tyrosine kinase inhibitor that targets multiple pathways involved in the pathogenesis of IPF, including VEGFR, FGFR, and PDGFR, thereby inhibiting fibroblast proliferation, migration, and transformation.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 6,
-        segmentType: 'safety_profile',
-        segmentName: 'Safety & Tolerability Information',
-        sourceText: 'The most common adverse reaction is diarrhea (62% vs. 18% placebo), which is typically manageable with dose modification and supportive care. Other common adverse reactions include nausea, abdominal pain, and elevated liver enzymes.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 7,
-        segmentType: 'patient_population',
-        segmentName: 'Target Patient Population',
-        sourceText: 'Ofev is indicated for the treatment of idiopathic pulmonary fibrosis (IPF) in adults, helping to slow disease progression and preserve lung function.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 8,
-        segmentType: 'dosing_administration',
-        segmentName: 'Dosing & Administration',
-        sourceText: 'The recommended dosage of Ofev is 150 mg twice daily, approximately 12 hours apart, taken with food. Dose reduction to 100 mg twice daily may be considered for management of adverse reactions.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 9,
-        segmentType: 'resources_support',
-        segmentName: 'Resources & Support',
-        sourceText: 'Access IPF management resources, patient support programs, and reimbursement assistance through our comprehensive support services.',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 10,
-        segmentType: 'call_to_action',
-        segmentName: 'Call-to-Action Segment',
-        sourceText: 'Request a personalized IPF management guide or connect with our pulmonary disease specialists for clinical consultation.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 11,
-        segmentType: 'closing_signature',
-        segmentName: 'Professional Closing',
-        sourceText: 'Sincerely,\nThe Ofev Medical Affairs Team',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'low'
-      }
+      { segmentIndex: 1, segmentType: 'subject_line', segmentName: 'Subject', sourceText: 'IPF Management: Data-driven insights with Ofev', complexityLevel: 'medium', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 2, segmentType: 'preheader', segmentName: 'Preheader', sourceText: 'Explore lung function decline data and safety information.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 3, segmentType: 'greeting', segmentName: 'Greeting', sourceText: 'Dear Dr. [Last Name],', complexityLevel: 'low', culturalSensitivityLevel: 'high', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 4, segmentType: 'key_message', segmentName: 'Key Message', sourceText: 'Ofev helped slow the rate of FVC decline vs placebo in patients with IPF.', complexityLevel: 'medium', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 5, segmentType: 'supporting_copy', segmentName: 'Supporting Copy', sourceText: 'Across pivotal trials, Ofev demonstrated consistent efficacy on lung function endpoints.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 6, segmentType: 'cta', segmentName: 'CTA', sourceText: 'Review clinical trial data and dosing guidance.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 7, segmentType: 'fair_balance', segmentName: 'ISI', sourceText: 'Common adverse reactions include diarrhea, nausea, and abdominal pain. See PI and Medication Guide.', complexityLevel: 'high', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 8, segmentType: 'footer', segmentName: 'Footer', sourceText: 'Medical Information: Visit the Ofev HCP site for details.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 9, segmentType: 'unsubscribe', segmentName: 'Unsubscribe', sourceText: 'Manage preferences or unsubscribe.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' }
     ],
-    
     culturalIntelligenceTestPoints: [
-      {
-        category: 'Formal vs. Informal Address',
-        testPoints: [
-          'Professional medical communication standards',
-          'Specialist vs. generalist physician address',
-          'Academic title recognition'
-        ]
-      },
-      {
-        category: 'Clinical Evidence Presentation',
-        testPoints: [
-          'Pulmonary function data interpretation',
-          'Quality of life metrics emphasis',
-          'Exacerbation terminology'
-        ]
-      },
-      {
-        category: 'Risk Communication',
-        testPoints: [
-          'GI adverse event disclosure',
-          'Hepatotoxicity warning emphasis',
-          'Dose modification guidance'
-        ]
-      }
+      { category: 'Clinical Tone & Empathy', testPoints: ['Avoid fear-based language', 'Highlight evidence without overstating', 'Respectful tone regarding disease burden'] },
+      { category: 'Terminology Localization', testPoints: ['IPF translation standards', 'FVC unit consistency', 'Prevent misinterpretation of endpoints'] }
     ],
-    
     smartTMMemoryBanks: [
-      {
-        category: 'Medical Terminology',
-        entries: [
-          'forced vital capacity → capacité vitale forcée (FR)',
-          'idiopathic pulmonary fibrosis → fibrose pulmonaire idiopathique (FR)',
-          'acute exacerbation → exacerbation aiguë (FR)'
-        ]
-      },
-      {
-        category: 'Regulatory Language',
-        entries: [
-          'indicated for → indiqué pour (FR)',
-          'adverse reaction → réaction indésirable (FR)',
-          'dose modification → modification de la dose (FR)'
-        ]
-      }
+      { category: 'Respiratory Terms', entries: ['forced vital capacity → capacité vitale forcée (FR)', 'idiopathic pulmonary fibrosis → fibrose pulmonaire idiopathique (FR)'] },
+      { category: 'Safety Phrases', entries: ['Medication Guide → Guia do Medicamento (PT-BR)', 'adverse reactions → reações adversas (PT-BR)'] }
     ],
-    
     regulatoryAdaptationPoints: [
-      {
-        requirement: 'IPF Indication Wording',
-        markets: ['US', 'EU', 'Japan', 'Canada']
-      },
-      {
-        requirement: 'Hepatotoxicity Warning',
-        markets: ['US', 'EU', 'Canada', 'Australia']
-      }
+      { requirement: 'Endpoint Claim Localization', markets: ['US', 'EU', 'Japan'] },
+      { requirement: 'Safety Statement Prominence', markets: ['US', 'EU', 'UK'] }
     ]
   },
 
-  // 3. PRADAXA (Atrial Fibrillation)
+  // 3) PRADAXA (Anticoagulant)
   {
     templateId: 'pradaxa-hcp-clinical-excellence',
     brandName: 'Pradaxa',
     brandId: 'pradaxa-brand-id',
-    therapeuticArea: 'Cardiovascular',
-    indication: 'Stroke Prevention in Atrial Fibrillation',
+    therapeuticArea: 'Cardiology',
+    indication: 'Non-valvular Atrial Fibrillation (NVAF) – stroke prevention',
     emailType: 'HCP Clinical Excellence Email',
-    
     contentSegments: [
-      {
-        segmentIndex: 1,
-        segmentType: 'subject_line',
-        segmentName: 'Subject Line Segment',
-        sourceText: 'RE-LY Trial Results: Pradaxa for Stroke Prevention in Non-Valvular Atrial Fibrillation',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 2,
-        segmentType: 'greeting',
-        segmentName: 'Professional Greeting',
-        sourceText: 'Dear Dr. [Last Name],',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'high',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 3,
-        segmentType: 'primary_efficacy',
-        segmentName: 'Primary Efficacy Claims Segment',
-        sourceText: 'Pradaxa (dabigatran etexilate) 150 mg twice daily demonstrated superior efficacy compared to warfarin in reducing the risk of stroke and systemic embolism in patients with non-valvular atrial fibrillation (HR 0.66, 95% CI 0.53-0.82, p<0.001 for superiority) in the landmark RE-LY trial.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 4,
-        segmentType: 'secondary_outcomes',
-        segmentName: 'Secondary Outcomes & Data',
-        sourceText: 'Pradaxa 150 mg also showed significantly lower rates of hemorrhagic stroke (HR 0.26, 95% CI 0.14-0.49, p<0.001) and intracranial bleeding (HR 0.40, 95% CI 0.27-0.60, p<0.001) compared to warfarin.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 5,
-        segmentType: 'mechanism_of_action',
-        segmentName: 'Mechanism of Action',
-        sourceText: 'Pradaxa is a direct thrombin inhibitor that prevents the conversion of fibrinogen to fibrin, providing predictable anticoagulation without the need for routine monitoring.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 6,
-        segmentType: 'safety_profile',
-        segmentName: 'Safety & Tolerability Information',
-        sourceText: 'The most serious adverse reaction is bleeding. Pradaxa 150 mg showed similar rates of major bleeding compared to warfarin but increased GI bleeding. A specific reversal agent (idarucizumab) is available.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 7,
-        segmentType: 'patient_population',
-        segmentName: 'Target Patient Population',
-        sourceText: 'Consider Pradaxa for adult patients with non-valvular atrial fibrillation to reduce the risk of stroke and systemic embolism.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 8,
-        segmentType: 'dosing_administration',
-        segmentName: 'Dosing & Administration',
-        sourceText: 'The recommended dose is 150 mg taken orally twice daily. For patients with moderate renal impairment (CrCl 30-50 mL/min), consider dose reduction to 110 mg twice daily (where approved).',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 9,
-        segmentType: 'resources_support',
-        segmentName: 'Resources & Support',
-        sourceText: 'Access atrial fibrillation management tools, patient education materials, and anticoagulation support resources.',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 10,
-        segmentType: 'call_to_action',
-        segmentName: 'Call-to-Action Segment',
-        sourceText: 'Download the RE-LY trial summary or schedule a consultation with our cardiology medical science liaison.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 11,
-        segmentType: 'closing_signature',
-        segmentName: 'Professional Closing',
-        sourceText: 'Best regards,\nThe Pradaxa Medical Affairs Team',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'low'
-      }
+      { segmentIndex: 1, segmentType: 'subject_line', segmentName: 'Subject', sourceText: 'Pradaxa: Stroke Prevention in NVAF—Key Evidence', complexityLevel: 'medium', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 2, segmentType: 'preheader', segmentName: 'Preheader', sourceText: 'Explore efficacy data, dosing, and safety considerations.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 3, segmentType: 'greeting', segmentName: 'Greeting', sourceText: 'Dear Dr. [Last Name],', complexityLevel: 'low', culturalSensitivityLevel: 'high', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 4, segmentType: 'key_message', segmentName: 'Key Message', sourceText: 'Pradaxa reduced stroke risk vs warfarin in adults with NVAF in pivotal trials.', complexityLevel: 'medium', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 5, segmentType: 'supporting_copy', segmentName: 'Supporting Copy', sourceText: 'Consistent efficacy profile observed across subgroups; dosing options available for renal function considerations.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 6, segmentType: 'cta', segmentName: 'CTA', sourceText: 'Access dosing guide and patient eligibility criteria.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 7, segmentType: 'fair_balance', segmentName: 'ISI', sourceText: 'Bleeding risk: counsel patients on signs/symptoms. Contraindicated in mechanical heart valves. See PI.', complexityLevel: 'high', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 8, segmentType: 'footer', segmentName: 'Footer', sourceText: 'For more information, visit the Pradaxa HCP portal.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 9, segmentType: 'unsubscribe', segmentName: 'Unsubscribe', sourceText: 'Click here to unsubscribe.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' }
     ],
-    
     culturalIntelligenceTestPoints: [
-      {
-        category: 'Formal vs. Informal Address',
-        testPoints: [
-          'Cardiologist professional address',
-          'Academic vs. community practice tone',
-          'International cardiology society norms'
-        ]
-      },
-      {
-        category: 'Clinical Evidence Presentation',
-        testPoints: [
-          'Non-inferiority vs. superiority messaging',
-          'Bleeding risk communication',
-          'Warfarin comparison context'
-        ]
-      }
+      { category: 'Risk Communication', testPoints: ['Clarity in bleeding risks', 'Non-alarming yet precise language', 'Local emergency guidance references'] },
+      { category: 'Therapeutic Equivalence Phrasing', testPoints: ['Avoid absolute superiority claims', 'Maintain balanced comparison tone', 'Adhere to national guidelines on anticoagulants'] }
     ],
-    
     smartTMMemoryBanks: [
-      {
-        category: 'Medical Terminology',
-        entries: [
-          'atrial fibrillation → fibrillation auriculaire (FR)',
-          'systemic embolism → embolie systémique (FR)',
-          'hemorrhagic stroke → accident vasculaire cérébral hémorragique (FR)'
-        ]
-      }
+      { category: 'Cardio Terms', entries: ['non-valvular atrial fibrillation → fibrilación auricular no valvular (ES)', 'stroke prevention → prévention des AVC (FR)'] },
+      { category: 'Risk Phrases', entries: ['bleeding risk → risque hémorragique (FR)', 'contraindicated → contraindicado (PT-BR)'] }
     ],
-    
     regulatoryAdaptationPoints: [
-      {
-        requirement: 'Bleeding Risk Boxed Warning',
-        markets: ['US']
-      },
-      {
-        requirement: 'Reversal Agent Availability',
-        markets: ['US', 'EU', 'Canada', 'Australia']
-      }
+      { requirement: 'Bleeding Risk Prominence', markets: ['US', 'EU', 'Canada'] },
+      { requirement: 'Comparative Claims Control', markets: ['US', 'EU', 'Australia'] }
     ]
   },
 
-  // 4. ERBITUX (Colorectal Cancer)
+  // 4) ERBITUX (Oncology – EGFR inhibitor)
   {
     templateId: 'erbitux-hcp-clinical-excellence',
     brandName: 'Erbitux',
     brandId: 'erbitux-brand-id',
     therapeuticArea: 'Oncology',
-    indication: 'Metastatic Colorectal Cancer',
+    indication: 'EGFR-expressing metastatic colorectal cancer / head and neck cancer (market-dependent)',
     emailType: 'HCP Clinical Excellence Email',
-    
     contentSegments: [
-      {
-        segmentIndex: 1,
-        segmentType: 'subject_line',
-        segmentName: 'Subject Line Segment',
-        sourceText: 'CRYSTAL Trial Data: Erbitux + FOLFIRI in RAS Wild-Type mCRC',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 2,
-        segmentType: 'greeting',
-        segmentName: 'Professional Greeting',
-        sourceText: 'Dear Dr. [Last Name],',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'high',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 3,
-        segmentType: 'primary_efficacy',
-        segmentName: 'Primary Efficacy Claims Segment',
-        sourceText: 'Erbitux (cetuximab) plus FOLFIRI significantly improved progression-free survival (PFS) and overall survival (OS) in patients with RAS wild-type metastatic colorectal cancer. In the CRYSTAL trial RAS analysis, median PFS was 11.4 months vs. 8.4 months (HR 0.56, p<0.0001) and median OS was 28.4 months vs. 20.2 months (HR 0.69, p=0.0024).',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 4,
-        segmentType: 'biomarker_testing',
-        segmentName: 'Biomarker Testing Requirements',
-        sourceText: 'RAS (KRAS and NRAS) mutation testing is required prior to initiating Erbitux therapy. Erbitux is only indicated in patients with RAS wild-type (no mutations detected) colorectal cancer.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 5,
-        segmentType: 'mechanism_of_action',
-        segmentName: 'Mechanism of Action',
-        sourceText: 'Erbitux is a monoclonal antibody that specifically binds to the extracellular domain of EGFR, blocking ligand-induced receptor phosphorylation and activation of downstream signaling pathways involved in cell proliferation and survival.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 6,
-        segmentType: 'safety_profile',
-        segmentName: 'Safety & Tolerability Information',
-        sourceText: 'The most common adverse reactions (≥25%) include cutaneous adverse reactions (acneiform rash, pruritus, nail changes), diarrhea, infection, asthenia, and nausea. Serious reactions include infusion reactions, cardiopulmonary arrest, and dermatologic toxicity.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 7,
-        segmentType: 'patient_population',
-        segmentName: 'Target Patient Population',
-        sourceText: 'Erbitux is indicated for the treatment of RAS wild-type, EGFR-expressing, metastatic colorectal cancer in combination with FOLFIRI for first-line treatment.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 8,
-        segmentType: 'dosing_administration',
-        segmentName: 'Dosing & Administration',
-        sourceText: 'The recommended initial dose is 400 mg/m² infused over 120 minutes, followed by 250 mg/m² infused over 60 minutes weekly. Premedication with an H1 antagonist is recommended.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 9,
-        segmentType: 'resources_support',
-        segmentName: 'Resources & Support',
-        sourceText: 'Access RAS testing resources, patient support programs, and reimbursement assistance for Erbitux therapy.',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 10,
-        segmentType: 'call_to_action',
-        segmentName: 'Call-to-Action Segment',
-        sourceText: 'Request the complete CRYSTAL trial RAS analysis or connect with our oncology medical science liaison.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 11,
-        segmentType: 'closing_signature',
-        segmentName: 'Professional Closing',
-        sourceText: 'Sincerely,\nThe Erbitux Medical Affairs Team',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'low'
-      }
+      { segmentIndex: 1, segmentType: 'subject_line', segmentName: 'Subject', sourceText: 'Erbitux: EGFR-Targeted Therapy—Clinical Insights', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 2, segmentType: 'preheader', segmentName: 'Preheader', sourceText: 'Review biomarker considerations and evidence summaries.', complexityLevel: 'medium', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 3, segmentType: 'greeting', segmentName: 'Greeting', sourceText: 'Dear Dr. [Last Name],', complexityLevel: 'low', culturalSensitivityLevel: 'high', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 4, segmentType: 'key_message', segmentName: 'Key Message', sourceText: 'Erbitux provides EGFR-targeted treatment options; biomarker selection is critical.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 5, segmentType: 'supporting_copy', segmentName: 'Supporting Copy', sourceText: 'Clinical outcomes may vary with RAS mutation status; consult guidelines for biomarker-based selection.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 6, segmentType: 'cta', segmentName: 'CTA', sourceText: 'Explore biomarker testing recommendations.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 7, segmentType: 'fair_balance', segmentName: 'ISI', sourceText: 'Infusion reactions and dermatologic toxicity may occur. Monitor per label guidance.', complexityLevel: 'high', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 8, segmentType: 'footer', segmentName: 'Footer', sourceText: 'Visit the oncology resource center for Erbitux details.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 9, segmentType: 'unsubscribe', segmentName: 'Unsubscribe', sourceText: 'Update email preferences here.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' }
     ],
-    
     culturalIntelligenceTestPoints: [
-      {
-        category: 'Oncology Communication',
-        testPoints: [
-          'Survival data presentation preferences',
-          'Biomarker testing emphasis',
-          'Toxicity vs. efficacy balance'
-        ]
-      }
+      { category: 'Biomarker Language', testPoints: ['Local acceptance of RAS/KRAS terminology', 'Clarity on testing prerequisites', 'Avoiding misinterpretation of predictive vs prognostic'] },
+      { category: 'Oncology Etiquette', testPoints: ['Sensitivity to patient journey', 'Avoid outcome overpromises', 'Contextualize evidence with guidelines'] }
     ],
-    
     smartTMMemoryBanks: [
-      {
-        category: 'Oncology Terminology',
-        entries: [
-          'metastatic colorectal cancer → cancer colorectal métastatique (FR)',
-          'progression-free survival → survie sans progression (FR)',
-          'overall survival → survie globale (FR)'
-        ]
-      }
+      { category: 'Oncology Terms', entries: ['epidermal growth factor receptor → récepteur du facteur de croissance épidermique (FR)', 'biomarker testing → pruebas de biomarcadores (ES)'] },
+      { category: 'Safety Phrases', entries: ['infusion reaction → réaction à la perfusion (FR)', 'dermatologic toxicity → toxicidad dermatológica (ES)'] }
     ],
-    
     regulatoryAdaptationPoints: [
-      {
-        requirement: 'RAS Testing Requirement',
-        markets: ['US', 'EU', 'Canada', 'Australia', 'Japan']
-      }
+      { requirement: 'Biomarker Claim Controls', markets: ['US', 'EU', 'Japan'] },
+      { requirement: 'Oncology Safety Detail Emphasis', markets: ['US', 'EU', 'UK'] }
     ]
   },
 
-  // 5. ENTRESTO (Heart Failure)
+  // 5) ENTRESTO (Cardiology – HFrEF)  [Note: brand outside BI; used for cross-testing]
   {
     templateId: 'entresto-hcp-clinical-excellence',
     brandName: 'Entresto',
     brandId: 'entresto-brand-id',
-    therapeuticArea: 'Cardiovascular',
-    indication: 'Heart Failure with Reduced Ejection Fraction',
+    therapeuticArea: 'Cardiology',
+    indication: 'Heart Failure with reduced ejection fraction (HFrEF)',
     emailType: 'HCP Clinical Excellence Email',
-    
     contentSegments: [
-      {
-        segmentIndex: 1,
-        segmentType: 'subject_line',
-        segmentName: 'Subject Line Segment',
-        sourceText: 'PARADIGM-HF Study: Groundbreaking Results with Entresto in HFrEF',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 2,
-        segmentType: 'greeting',
-        segmentName: 'Professional Greeting',
-        sourceText: 'Dear Dr. [Last Name],',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'high',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 3,
-        segmentType: 'primary_efficacy',
-        segmentName: 'Primary Efficacy Claims Segment',
-        sourceText: 'Entresto (sacubitril/valsartan) reduced the risk of cardiovascular death by 20% (HR 0.80, 95% CI 0.71-0.89, p<0.001) and heart failure hospitalization by 21% (HR 0.79, 95% CI 0.71-0.89, p<0.001) compared to enalapril in the landmark PARADIGM-HF trial.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 4,
-        segmentType: 'secondary_outcomes',
-        segmentName: 'Secondary Outcomes & Data',
-        sourceText: 'Additionally, Entresto demonstrated a 16% reduction in all-cause mortality (HR 0.84, 95% CI 0.76-0.93, p<0.001) and improved symptoms and physical limitations in patients with HFrEF.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 5,
-        segmentType: 'mechanism_of_action',
-        segmentName: 'Mechanism of Action',
-        sourceText: 'Entresto combines neprilysin inhibition (sacubitril) and angiotensin II receptor blockade (valsartan) to enhance the effects of natriuretic peptides while suppressing the renin-angiotensin-aldosterone system.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 6,
-        segmentType: 'safety_profile',
-        segmentName: 'Safety & Tolerability Information',
-        sourceText: 'The most common adverse reactions include hypotension, hyperkalemia, cough, dizziness, and renal dysfunction. Entresto is contraindicated with concomitant ACE inhibitor use (36-hour washout required) and in patients with angioedema history.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 7,
-        segmentType: 'patient_population',
-        segmentName: 'Target Patient Population',
-        sourceText: 'Entresto is indicated to reduce the risk of cardiovascular death and hospitalization in patients with chronic heart failure (NYHA Class II-IV) and reduced ejection fraction.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 8,
-        segmentType: 'dosing_administration',
-        segmentName: 'Dosing & Administration',
-        sourceText: 'The recommended starting dose is 49/51 mg twice daily, doubled every 2-4 weeks to the target maintenance dose of 97/103 mg twice daily, as tolerated.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 9,
-        segmentType: 'resources_support',
-        segmentName: 'Resources & Support',
-        sourceText: 'Access heart failure management tools, patient education resources, and transition support programs.',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 10,
-        segmentType: 'call_to_action',
-        segmentName: 'Call-to-Action Segment',
-        sourceText: 'Review the PARADIGM-HF data in detail or request a consultation with our heart failure specialist.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 11,
-        segmentType: 'closing_signature',
-        segmentName: 'Professional Closing',
-        sourceText: 'Best regards,\nThe Entresto Medical Affairs Team',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'low'
-      }
+      { segmentIndex: 1, segmentType: 'subject_line', segmentName: 'Subject', sourceText: 'Entresto in HFrEF: Clinical Outcomes and Dosing', complexityLevel: 'medium', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 2, segmentType: 'preheader', segmentName: 'Preheader', sourceText: 'Review data on hospitalization risk and dosing titration.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 3, segmentType: 'greeting', segmentName: 'Greeting', sourceText: 'Dear Dr. [Last Name],', complexityLevel: 'low', culturalSensitivityLevel: 'high', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 4, segmentType: 'key_message', segmentName: 'Key Message', sourceText: 'Entresto reduced the risk of CV death and HF hospitalization vs ACE inhibitor in pivotal trials.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 5, segmentType: 'supporting_copy', segmentName: 'Supporting Copy', sourceText: 'Guideline recommendations support Entresto for eligible HFrEF patients; monitor BP and renal function.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 6, segmentType: 'cta', segmentName: 'CTA', sourceText: 'Access dosing initiation and titration guidance.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 7, segmentType: 'fair_balance', segmentName: 'ISI', sourceText: 'Risk of hypotension; contraindicated with ACE inhibitors. See PI and Medication Guide.', complexityLevel: 'high', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 8, segmentType: 'footer', segmentName: 'Footer', sourceText: 'Visit the HFrEF resource hub for Entresto materials.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 9, segmentType: 'unsubscribe', segmentName: 'Unsubscribe', sourceText: 'Unsubscribe or manage preferences.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' }
     ],
-    
     culturalIntelligenceTestPoints: [
-      {
-        category: 'Heart Failure Communication',
-        testPoints: [
-          'NYHA classification usage',
-          'Mortality vs. hospitalization emphasis',
-          'Transition from ACE inhibitor messaging'
-        ]
-      }
+      { category: 'Guideline Referencing', testPoints: ['Local HF guidelines alignment', 'Avoid guideline overreliance language', 'Use neutral framing when guideline variance exists'] },
+      { category: 'Risk Communication', testPoints: ['BP monitoring phrasing', 'Clear instruction for ACE inhibitor washout', 'Localization of dosing schedules'] }
     ],
-    
     smartTMMemoryBanks: [
-      {
-        category: 'Cardiology Terminology',
-        entries: [
-          'heart failure → insuffisance cardiaque (FR)',
-          'reduced ejection fraction → fraction d\'éjection réduite (FR)',
-          'cardiovascular death → décès cardiovasculaire (FR)'
-        ]
-      }
+      { category: 'Cardiac Terms', entries: ['heart failure → insuficiencia cardíaca (ES)', 'reduced ejection fraction → fraction d’éjection réduite (FR)'] },
+      { category: 'Dosing Phrases', entries: ['titration → titration (FR)', 'contraindicated → contraindicada (ES)'] }
     ],
-    
     regulatoryAdaptationPoints: [
-      {
-        requirement: 'ACE Inhibitor Contraindication',
-        markets: ['US', 'EU', 'Canada', 'Australia', 'Japan']
-      }
+      { requirement: 'Comparative Claims Scrutiny', markets: ['US', 'EU', 'Canada'] },
+      { requirement: 'Dosing Safety Instructions', markets: ['US', 'EU', 'UK'] }
     ]
   },
 
-  // 6. TAGRISSO (NSCLC)
+  // 6) TAGRISSO (Oncology – EGFR-mutated NSCLC) [cross-testing]
   {
     templateId: 'tagrisso-hcp-clinical-excellence',
     brandName: 'Tagrisso',
     brandId: 'tagrisso-brand-id',
     therapeuticArea: 'Oncology',
-    indication: 'EGFR-Mutated Non-Small Cell Lung Cancer',
+    indication: 'EGFR-mutated non–small cell lung cancer',
     emailType: 'HCP Clinical Excellence Email',
-    
     contentSegments: [
-      {
-        segmentIndex: 1,
-        segmentType: 'subject_line',
-        segmentName: 'Subject Line Segment',
-        sourceText: 'FLAURA Trial Results: First-Line Tagrisso in EGFR-Mutated NSCLC',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 2,
-        segmentType: 'greeting',
-        segmentName: 'Professional Greeting',
-        sourceText: 'Dear Dr. [Last Name],',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'high',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 3,
-        segmentType: 'primary_efficacy',
-        segmentName: 'Primary Efficacy Claims Segment',
-        sourceText: 'Tagrisso (osimertinib) demonstrated superior progression-free survival compared to first-generation EGFR TKIs in treatment-naive patients with EGFR mutation-positive (exon 19 deletion or L858R) metastatic NSCLC in the FLAURA trial (median PFS 18.9 months vs. 10.2 months, HR 0.46, 95% CI 0.37-0.57, p<0.001).',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 4,
-        segmentType: 'cns_efficacy',
-        segmentName: 'CNS Efficacy Data',
-        sourceText: 'Tagrisso showed significant CNS activity with a CNS objective response rate of 91% in patients with CNS metastases at baseline, compared to 68% with comparator EGFR TKIs.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 5,
-        segmentType: 'mechanism_of_action',
-        segmentName: 'Mechanism of Action',
-        sourceText: 'Tagrisso is a third-generation, irreversible EGFR tyrosine kinase inhibitor that selectively targets both EGFR-TKI sensitizing and T790M resistance mutations with nanomolar potency, while sparing wild-type EGFR.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 6,
-        segmentType: 'safety_profile',
-        segmentName: 'Safety & Tolerability Information',
-        sourceText: 'The most common adverse reactions (≥20%) include diarrhea, rash, dry skin, nail toxicity, fatigue, and decreased appetite. Serious adverse reactions include interstitial lung disease (ILD)/pneumonitis, QTc interval prolongation, and cardiomyopathy.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 7,
-        segmentType: 'patient_population',
-        segmentName: 'Target Patient Population',
-        sourceText: 'Tagrisso is indicated for first-line treatment of patients with metastatic NSCLC whose tumors have EGFR exon 19 deletions or exon 21 L858R mutations, as detected by an FDA-approved test.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 8,
-        segmentType: 'dosing_administration',
-        segmentName: 'Dosing & Administration',
-        sourceText: 'The recommended dose of Tagrisso is 80 mg orally once daily, with or without food, until disease progression or unacceptable toxicity.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 9,
-        segmentType: 'resources_support',
-        segmentName: 'Resources & Support',
-        sourceText: 'Access EGFR testing resources, patient support programs, and comprehensive reimbursement assistance.',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 10,
-        segmentType: 'call_to_action',
-        segmentName: 'Call-to-Action Segment',
-        sourceText: 'Request the FLAURA trial data package or connect with our thoracic oncology medical science liaison.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 11,
-        segmentType: 'closing_signature',
-        segmentName: 'Professional Closing',
-        sourceText: 'Sincerely,\nThe Tagrisso Medical Affairs Team',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'low'
-      }
+      { segmentIndex: 1, segmentType: 'subject_line', segmentName: 'Subject', sourceText: 'EGFR-mutated NSCLC: Tagrisso Evidence Overview', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 2, segmentType: 'preheader', segmentName: 'Preheader', sourceText: 'Review survival outcomes and safety profile.', complexityLevel: 'medium', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 3, segmentType: 'greeting', segmentName: 'Greeting', sourceText: 'Dear Dr. [Last Name],', complexityLevel: 'low', culturalSensitivityLevel: 'high', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 4, segmentType: 'key_message', segmentName: 'Key Message', sourceText: 'Tagrisso demonstrated improved outcomes versus comparator in EGFR-mutated NSCLC settings.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 5, segmentType: 'supporting_copy', segmentName: 'Supporting Copy', sourceText: 'Consider biomarker testing pathways and local diagnostic access; review adverse event management.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 6, segmentType: 'cta', segmentName: 'CTA', sourceText: 'Explore biomarker workflow and AE management guide.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 7, segmentType: 'fair_balance', segmentName: 'ISI', sourceText: 'Interstitial lung disease/pneumonitis has been reported. Monitor patients closely per label.', complexityLevel: 'high', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 8, segmentType: 'footer', segmentName: 'Footer', sourceText: 'Access oncology portal for Tagrisso resources.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 9, segmentType: 'unsubscribe', segmentName: 'Unsubscribe', sourceText: 'Update subscription preferences.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' }
     ],
-    
     culturalIntelligenceTestPoints: [
-      {
-        category: 'Oncology Biomarker Communication',
-        testPoints: [
-          'EGFR mutation testing emphasis',
-          'CNS metastases discussion',
-          'Resistance mutation education'
-        ]
-      }
+      { category: 'Biomarker Access', testPoints: ['Local diagnostic pathway constraints', 'Terminology clarity for EGFR testing', 'Cost sensitivity messaging'] },
+      { category: 'Safety Framing', testPoints: ['AE language sensitivity', 'Avoid alarmist tone', 'Balance with monitoring recommendations'] }
     ],
-    
     smartTMMemoryBanks: [
-      {
-        category: 'Oncology Terminology',
-        entries: [
-          'non-small cell lung cancer → cancer du poumon non à petites cellules (FR)',
-          'EGFR mutation → mutation EGFR (FR)',
-          'progression-free survival → survie sans progression (FR)'
-        ]
-      }
+      { category: 'Oncology Terms', entries: ['non–small cell lung cancer → cáncer de pulmón no microcítico (ES)', 'biomarker → biomarqueur (FR)'] },
+      { category: 'Safety Phrases', entries: ['interstitial lung disease → maladie pulmonaire interstitielle (FR)', 'pneumonitis → neumonitis (ES)'] }
     ],
-    
     regulatoryAdaptationPoints: [
-      {
-        requirement: 'EGFR Testing Requirement',
-        markets: ['US', 'EU', 'Canada', 'Australia', 'Japan', 'China']
-      }
+      { requirement: 'Outcome Claim Localization', markets: ['US', 'EU', 'Japan'] },
+      { requirement: 'AE Disclosure Prominence', markets: ['US', 'EU', 'UK'] }
     ]
   },
 
-  // 7. XARELTO (Venous Thromboembolism)
+  // 7) XARELTO (Anticoagulant – VTE / AF) [cross-testing]
   {
     templateId: 'xarelto-hcp-clinical-excellence',
     brandName: 'Xarelto',
     brandId: 'xarelto-brand-id',
-    therapeuticArea: 'Cardiovascular',
-    indication: 'Venous Thromboembolism Treatment & Prevention',
+    therapeuticArea: 'Cardiology / Hematology',
+    indication: 'VTE treatment/prophylaxis; NVAF stroke prevention (market-dependent)',
     emailType: 'HCP Clinical Excellence Email',
-    
     contentSegments: [
-      {
-        segmentIndex: 1,
-        segmentType: 'subject_line',
-        segmentName: 'Subject Line Segment',
-        sourceText: 'EINSTEIN Trial Program: Xarelto for VTE Treatment Without Routine Monitoring',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 2,
-        segmentType: 'greeting',
-        segmentName: 'Professional Greeting',
-        sourceText: 'Dear Dr. [Last Name],',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'high',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 3,
-        segmentType: 'primary_efficacy',
-        segmentName: 'Primary Efficacy Claims Segment',
-        sourceText: 'Xarelto (rivaroxaban) demonstrated non-inferiority to standard therapy (enoxaparin/VKA) for the treatment of acute DVT and PE in the EINSTEIN trials. The primary efficacy outcome (recurrent VTE) occurred in 2.1% of Xarelto patients vs. 3.0% of standard therapy (HR 0.68, 95% CI 0.44-1.04, p<0.001 for non-inferiority).',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 4,
-        segmentType: 'safety_profile',
-        segmentName: 'Safety & Bleeding Data',
-        sourceText: 'Major bleeding occurred in 0.8% of Xarelto-treated patients compared to 1.2% with standard therapy (HR 0.65, 95% CI 0.33-1.30). The composite of major plus clinically relevant non-major bleeding was 8.1% vs. 8.1% (HR 0.97, 95% CI 0.76-1.22).',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 5,
-        segmentType: 'mechanism_of_action',
-        segmentName: 'Mechanism of Action',
-        sourceText: 'Xarelto is a direct Factor Xa inhibitor that selectively blocks the active site of Factor Xa, providing predictable anticoagulation without the need for routine monitoring.',
-        complexityLevel: 'high',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 6,
-        segmentType: 'patient_convenience',
-        segmentName: 'Treatment Convenience',
-        sourceText: 'Xarelto offers the convenience of a single-drug approach with no bridging required and no routine monitoring needed, simplifying VTE management for both patients and clinicians.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 7,
-        segmentType: 'patient_population',
-        segmentName: 'Target Patient Population',
-        sourceText: 'Xarelto is indicated for the treatment of deep vein thrombosis (DVT) and pulmonary embolism (PE), and to reduce the risk of recurrent DVT and PE.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 8,
-        segmentType: 'dosing_administration',
-        segmentName: 'Dosing & Administration',
-        sourceText: 'For VTE treatment, the recommended dose is 15 mg twice daily with food for the first 21 days, followed by 20 mg once daily with food for continued treatment and prevention.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'high'
-      },
-      {
-        segmentIndex: 9,
-        segmentType: 'resources_support',
-        segmentName: 'Resources & Support',
-        sourceText: 'Access VTE management guidelines, patient education materials, and reimbursement support resources.',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'low',
-        regulatoryRiskLevel: 'low'
-      },
-      {
-        segmentIndex: 10,
-        segmentType: 'call_to_action',
-        segmentName: 'Call-to-Action Segment',
-        sourceText: 'Download the EINSTEIN trial summary or request a consultation with our thrombosis specialist.',
-        complexityLevel: 'medium',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'medium'
-      },
-      {
-        segmentIndex: 11,
-        segmentType: 'closing_signature',
-        segmentName: 'Professional Closing',
-        sourceText: 'Best regards,\nThe Xarelto Medical Affairs Team',
-        complexityLevel: 'low',
-        culturalSensitivityLevel: 'medium',
-        regulatoryRiskLevel: 'low'
-      }
+      { segmentIndex: 1, segmentType: 'subject_line', segmentName: 'Subject', sourceText: 'Xarelto: Evidence Summary for NVAF/VTE—Dosing & Safety', complexityLevel: 'medium', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 2, segmentType: 'preheader', segmentName: 'Preheader', sourceText: 'Explore dosing options, renal considerations, and safety messaging.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 3, segmentType: 'greeting', segmentName: 'Greeting', sourceText: 'Dear Dr. [Last Name],', complexityLevel: 'low', culturalSensitivityLevel: 'high', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 4, segmentType: 'key_message', segmentName: 'Key Message', sourceText: 'Xarelto demonstrated risk reduction across approved indications; review label specifics by market.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 5, segmentType: 'supporting_copy', segmentName: 'Supporting Copy', sourceText: 'Consider renal dosing adjustments and patient risk factors; balanced decision-making supported by label.', complexityLevel: 'high', culturalSensitivityLevel: 'medium', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 6, segmentType: 'cta', segmentName: 'CTA', sourceText: 'Access dosing charts and label references.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'medium' },
+      { segmentIndex: 7, segmentType: 'fair_balance', segmentName: 'ISI', sourceText: 'Bleeding risks exist; assess renal function and concomitant medications. See PI/SmPC.', complexityLevel: 'high', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'high' },
+      { segmentIndex: 8, segmentType: 'footer', segmentName: 'Footer', sourceText: 'Visit HCP portal for Xarelto guidance and materials.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' },
+      { segmentIndex: 9, segmentType: 'unsubscribe', segmentName: 'Unsubscribe', sourceText: 'Unsubscribe or update your preferences.', complexityLevel: 'low', culturalSensitivityLevel: 'low', regulatoryRiskLevel: 'low' }
     ],
-    
     culturalIntelligenceTestPoints: [
-      {
-        category: 'Anticoagulation Communication',
-        testPoints: [
-          'No monitoring convenience emphasis',
-          'Bleeding risk communication',
-          'Bridge therapy elimination'
-        ]
-      }
+      { category: 'Risk Tone', testPoints: ['Non-alarmin’ phrasing', 'Local emergency instruction norms', 'Medication interaction sensitivity'] },
+      { category: 'Dosing Localization', testPoints: ['Unit formats & renal function ranges', 'Charts vs narrative preference', 'Local SmPC/PI citation rules'] }
     ],
-    
     smartTMMemoryBanks: [
-      {
-        category: 'Thrombosis Terminology',
-        entries: [
-          'deep vein thrombosis → thrombose veineuse profonde (FR)',
-          'pulmonary embolism → embolie pulmonaire (FR)',
-          'venous thromboembolism → thromboembolie veineuse (FR)'
-        ]
-      }
+      { category: 'Heme/Cardio Terms', entries: ['venous thromboembolism → thromboembolie veineuse (FR)', 'renal function → función renal (ES)'] },
+      { category: 'Label Phrases', entries: ['Summary of Product Characteristics → Résumé des Caractéristiques du Produit (FR)', 'Prescribing Information → Información de Prescripción (ES)'] }
     ],
-    
     regulatoryAdaptationPoints: [
-      {
-        requirement: 'Bleeding Risk Warning',
-        markets: ['US', 'EU', 'Canada', 'Australia']
-      }
+      { requirement: 'Bleeding Risk Prominence', markets: ['US', 'EU', 'Canada', 'Brazil'] },
+      { requirement: 'Label-Specific Indication Alignment', markets: ['US', 'EU', 'Japan'] }
     ]
   }
 ];
+
+// Optional helper: build a quick index for retrieval by templateId or brandName
+export const glocalEmailTemplateIndex = glocalMasterEmailTemplates.reduce((acc, t) => {
+  acc.byId[t.templateId] = t;
+  acc.byBrand[t.brandName.toLowerCase()] = t;
+  return acc;
+}, { byId: {}, byBrand: {} });

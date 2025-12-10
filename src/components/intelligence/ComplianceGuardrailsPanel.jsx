@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { EnhancedGuardrailsService } from "@/services/EnhancedGuardrailsService";
+import { EnhancedGuardrailsService } from "@/services/enhancedGuardrailsService";
 
 function ComplianceGuardrailsPanel({ brandId, filters }) {
   const { data: requirements, isLoading } = useQuery({

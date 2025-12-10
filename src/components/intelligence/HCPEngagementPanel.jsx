@@ -158,4 +158,4 @@ export const HCPEngagementPanel = ({ brandId, filters }) => {
   );
 };
 
-export {HCPEngagementPanel};
+export default HCPEngagementPanel;

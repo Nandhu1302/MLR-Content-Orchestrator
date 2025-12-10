@@ -1,52 +1,8 @@
-/**
- * @typedef {Object} PhaseCompletion
- * @property {number} phase
- * @property {string} name
- * @property {number} completion
- * @property {'complete' | 'in-progress' | 'needs-config'} status
- * @property {string[]} builtFeatures
- * @property {string[]} neededFeatures
- * @property {string} [demoEvidence]
- */
 
-/**
- * @typedef {Object} TimelinePhase
- * @property {string} name
- * @property {string} duration
- * @property {number} [startWeek]
- * @property {string[]} deliverables
- */
+// NOTE: TypeScript interfaces removed: PhaseCompletion, TimelinePhase, RiskAssessment, ROIMetrics.
+// The runtime data exports remain identical in structure and values.
 
-/**
- * @typedef {Object} RiskAssessment
- * @property {string} category
- * @property {'high' | 'medium' | 'low'} traditional
- * @property {'high' | 'medium' | 'low'} prototype
- * @property {string} mitigation
- */
-
-/**
- * @typedef {Object} ROIMetrics
- * @property {Object} traditional
- * @property {string} traditional.timeline
- * @property {string} traditional.cost
- * @property {string} traditional.team
- * @property {string} traditional.risk
- * @property {string} traditional.firstValue
- * @property {string} traditional.year1Total
- * @property {Object} prototype
- * @property {string} prototype.timeline
- * @property {string} prototype.cost
- * @property {string} prototype.team
- * @property {string} prototype.risk
- * @property {string} prototype.firstValue
- * @property {string} prototype.year1Total
- * @property {Object} savings
- * @property {string} savings.year1
- * @property {string} savings.year2Plus
- * @property {string} savings.payback
- */
-
+// Phase completions
 export const phaseCompletions = [
   {
     phase: 1,
@@ -59,15 +15,15 @@ export const phaseCompletions = [
       'Market selection with 15+ pre-configured markets',
       'MLR status preservation',
       'Asset relationship tracking',
-      'Source content validation'
+      'Source content validation',
     ],
     neededFeatures: [
       'Integration with BI content systems',
       'Respiratory/ILD specific tagging',
       'BI brand guideline linking',
-      'Custom metadata fields for BI'
+      'Custom metadata fields for BI',
     ],
-    demoEvidence: 'IPF patient brochure uploaded and automatically tagged for 5 markets'
+    demoEvidence: 'IPF patient brochure uploaded and automatically tagged for 5 markets',
   },
   {
     phase: 2,
@@ -81,15 +37,15 @@ export const phaseCompletions = [
       'Real-time leverage calculation',
       'Segment-level translation UI',
       'Quality confidence scoring',
-      'Side-by-side comparison view'
+      'Side-by-side comparison view',
     ],
     neededFeatures: [
       'Integration of BI existing TM databases',
       'Respiratory terminology model training',
       'Custom glossary integration',
-      'BI-specific translation workflows'
+      'BI-specific translation workflows',
     ],
-    demoEvidence: '92% TM leverage achieved on IPF brochure demo'
+    demoEvidence: '92% TM leverage achieved on IPF brochure demo',
   },
   {
     phase: 3,
@@ -101,15 +57,15 @@ export const phaseCompletions = [
       'Market-specific analysis framework',
       'Segment-level recommendations',
       'Risk identification for cultural taboos',
-      'Tone and messaging analysis'
+      'Tone and messaging analysis',
     ],
     neededFeatures: [
       'BI-specific market profiles (US, EU, Japan, China)',
       'Therapeutic area cultural considerations',
       'Historical learnings integration',
-      'Custom cultural criteria for BI markets'
+      'Custom cultural criteria for BI markets',
     ],
-    demoEvidence: 'Cultural appropriateness score: 87/100 for German market'
+    demoEvidence: 'Cultural appropriateness score: 87/100 for German market',
   },
   {
     phase: 4,
@@ -122,15 +78,15 @@ export const phaseCompletions = [
       'Fair balance validation',
       'Prohibited claim detection',
       'Audit trail generation',
-      'Real-time compliance scoring'
+      'Real-time compliance scoring',
     ],
     neededFeatures: [
       'FDA, EMA, PMDA, NMPA rule configurations',
       'Respiratory/ILD regulatory requirements',
       'BI MLR workflow integration',
-      'Custom compliance criteria'
+      'Custom compliance criteria',
     ],
-    demoEvidence: '3 FDA warnings flagged proactively during demo'
+    demoEvidence: '3 FDA warnings flagged proactively during demo',
   },
   {
     phase: 5,
@@ -143,15 +99,15 @@ export const phaseCompletions = [
       'Feedback threading',
       'Approval workflow engine',
       'Overall readiness scoring',
-      'Reviewer assignment system'
+      'Reviewer assignment system',
     ],
     neededFeatures: [
       'BI-specific quality criteria',
       'Role-based reviewer assignments',
       'Custom approval chains',
-      'Integration with BI approval systems'
+      'Integration with BI approval systems',
     ],
-    demoEvidence: 'Final quality score: 91/100 in demo'
+    demoEvidence: 'Final quality score: 91/100 in demo',
   },
   {
     phase: 6,
@@ -163,16 +119,16 @@ export const phaseCompletions = [
       'Metadata preservation',
       'Asset naming conventions',
       'Folder structure generation',
-      'Multi-format export support'
+      'Multi-format export support',
     ],
     neededFeatures: [
       'Veeva Vault API integration',
       'BI DAM taxonomy mapping',
       'SharePoint connector',
       'BI-specific export templates',
-      'Custom metadata mapping'
+      'Custom metadata mapping',
     ],
-    demoEvidence: 'Export ready for Veeva handoff demonstrated'
+    demoEvidence: 'Export ready for Veeva handoff demonstrated',
   },
   {
     phase: 7,
@@ -185,67 +141,45 @@ export const phaseCompletions = [
       'Complete audit trail',
       'Analytics dashboard',
       'Version history tracking',
-      'Data lineage visualization'
+      'Data lineage visualization',
     ],
     neededFeatures: [
       'Veeva Vault API integration',
       'BI system authentication',
       'Custom webhook configurations',
       'BI-specific reporting templates',
-      'SSO integration'
-    ]
-  }
+      'SSO integration',
+    ],
+  },
 ];
 
+// Timeline comparison
 export const timelineComparison = {
   traditional: [
     { name: 'Requirements Gathering', duration: '2 months', deliverables: ['BRD', 'Technical specs', 'User stories'] },
     { name: 'Architecture & Design', duration: '2 months', deliverables: ['System architecture', 'Database design', 'UI/UX mockups'] },
     { name: 'Development', duration: '6-10 months', deliverables: ['Backend services', 'Frontend UI', 'AI model training'] },
     { name: 'Testing & QA', duration: '2 months', deliverables: ['Test cases', 'Bug fixes', 'Performance optimization'] },
-    { name: 'Deployment', duration: '2 months', deliverables: ['Production deployment', 'User training', 'Documentation'] }
+    { name: 'Deployment', duration: '2 months', deliverables: ['Production deployment', 'User training', 'Documentation'] },
   ],
   prototype: [
     { name: 'Foundation & Configuration', duration: '4 weeks', startWeek: 1, deliverables: ['Configured platform instance', 'TM database migration', 'User provisioning'] },
     { name: 'BI-Specific Features', duration: '4 weeks', startWeek: 5, deliverables: ['Veeva integration', 'Terminology training', 'Custom workflows'] },
     { name: 'Integration & Testing', duration: '4 weeks', startWeek: 9, deliverables: ['System integration', 'UAT completion', 'Performance optimization'] },
-    { name: 'Training & Go-Live', duration: '4 weeks', startWeek: 13, deliverables: ['User training', 'Production deployment', 'Support handover'] }
-  ]
+    { name: 'Training & Go-Live', duration: '4 weeks', startWeek: 13, deliverables: ['User training', 'Production deployment', 'Support handover'] },
+  ],
 };
 
+// Risk assessments
 export const riskAssessments = [
-  {
-    category: 'Technical Risk',
-    traditional: 'high',
-    prototype: 'low',
-    mitigation: 'Already proven in production environment with live demo'
-  },
-  {
-    category: 'Timeline Risk',
-    traditional: 'high',
-    prototype: 'low',
-    mitigation: '60% complete = predictable remaining work with clear scope'
-  },
-  {
-    category: 'Cost Overrun',
-    traditional: 'medium',
-    prototype: 'low',
-    mitigation: 'Fixed-scope implementation with known architecture'
-  },
-  {
-    category: 'Adoption Risk',
-    traditional: 'medium',
-    prototype: 'low',
-    mitigation: 'BI already saw it work (demo buy-in from stakeholders)'
-  },
-  {
-    category: 'Integration Risk',
-    traditional: 'high',
-    prototype: 'low',
-    mitigation: 'API-first architecture with flexible integration patterns'
-  }
+  { category: 'Technical Risk', traditional: 'high', prototype: 'low', mitigation: 'Already proven in production environment with live demo' },
+  { category: 'Timeline Risk', traditional: 'high', prototype: 'low', mitigation: '60% complete = predictable remaining work with clear scope' },
+  { category: 'Cost Overrun', traditional: 'medium', prototype: 'low', mitigation: 'Fixed-scope implementation with known architecture' },
+  { category: 'Adoption Risk', traditional: 'medium', prototype: 'low', mitigation: 'BI already saw it work (demo buy-in from stakeholders)' },
+  { category: 'Integration Risk', traditional: 'high', prototype: 'low', mitigation: 'API-first architecture with flexible integration patterns' },
 ];
 
+// ROI metrics
 export const roiMetrics = {
   traditional: {
     timeline: '12-18 months',
@@ -253,7 +187,7 @@ export const roiMetrics = {
     team: '12-15 FTE',
     risk: 'High (unproven)',
     firstValue: 'Month 6-8',
-    year1Total: '$1.5M - $2.2M'
+    year1Total: '$1.5M - $2.2M',
   },
   prototype: {
     timeline: '16-20 weeks',
@@ -261,15 +195,16 @@ export const roiMetrics = {
     team: '6-8 FTE',
     risk: 'Low (proven)',
     firstValue: 'Week 8',
-    year1Total: '$1.04M'
+    year1Total: '$1.04M',
   },
   savings: {
     year1: '$460K - $1.2M',
     year2Plus: '$900K/year',
-    payback: '8-10 months'
-  }
+    payback: '8-10 months',
+  },
 };
 
+// Prototype stats
 export const prototypeStats = {
   functionalityComplete: 60,
   databaseTables: 7,
@@ -278,42 +213,20 @@ export const prototypeStats = {
   marketsConfigured: 15,
   aiIntegrated: 'Google Gemini Pro',
   demoCompleted: true,
-  productionReady: 'Production-grade architecture'
+  productionReady: 'Production-grade architecture',
 };
 
+// Demo proof points
 export const demoProofPoints = [
-  {
-    phase: 'Phase 1',
-    achievement: 'IPF patient brochure uploaded and segmented',
-    status: 'success'
-  },
-  {
-    phase: 'Phase 2',
-    achievement: 'German translation with 92% TM leverage',
-    status: 'success'
-  },
-  {
-    phase: 'Phase 3',
-    achievement: 'Cultural appropriateness score: 87/100 for German market',
-    status: 'success'
-  },
-  {
-    phase: 'Phase 4',
-    achievement: 'Regulatory compliance: 3 FDA warnings flagged proactively',
-    status: 'success'
-  },
-  {
-    phase: 'Phase 5',
-    achievement: 'Final quality score: 91/100',
-    status: 'success'
-  },
-  {
-    phase: 'Phase 6',
-    achievement: 'Export ready for Veeva handoff',
-    status: 'success'
-  }
+  { phase: 'Phase 1', achievement: 'IPF patient brochure uploaded and segmented', status: 'success' },
+  { phase: 'Phase 2', achievement: 'German translation with 92% TM leverage', status: 'success' },
+  { phase: 'Phase 3', achievement: 'Cultural appropriateness score: 87/100 for German market', status: 'success' },
+  { phase: 'Phase 4', achievement: 'Regulatory compliance: 3 FDA warnings flagged proactively', status: 'success' },
+  { phase: 'Phase 5', achievement: 'Final quality score: 91/100', status: 'success' },
+  { phase: 'Phase 6', achievement: 'Export ready for Veeva handoff', status: 'success' },
 ];
 
+// Implementation roadmap
 export const implementationRoadmap = [
   {
     name: 'Foundation & Configuration',
@@ -323,8 +236,8 @@ export const implementationRoadmap = [
       'TM database migration',
       'Market and regulatory rule configuration',
       'User provisioning',
-      'Configured platform instance'
-    ]
+      'Configured platform instance',
+    ],
   },
   {
     name: 'BI-Specific Feature Build',
@@ -333,8 +246,8 @@ export const implementationRoadmap = [
       'Veeva Vault integration',
       'Respiratory terminology model training',
       'Custom workflow implementations',
-      '2 pilot projects completed'
-    ]
+      '2 pilot projects completed',
+    ],
   },
   {
     name: 'Integration & Testing',
@@ -343,8 +256,8 @@ export const implementationRoadmap = [
       'Full system integration testing',
       'UAT with BI teams',
       'Performance optimization',
-      'Production-ready platform'
-    ]
+      'Production-ready platform',
+    ],
   },
   {
     name: 'Training & Go-Live',
@@ -353,11 +266,12 @@ export const implementationRoadmap = [
       'User training (50 users)',
       'Production deployment',
       'Support handover',
-      'Live platform + documentation'
-    ]
-  }
+      'Live platform + documentation',
+    ],
+  },
 ];
 
+// Client dependencies
 export const clientDependencies = [
   {
     category: 'Stakeholder Availability',
@@ -365,8 +279,8 @@ export const clientDependencies = [
       'Regulatory SMEs (2-3 people): 20-30% time in Weeks 1-8',
       'Translation Team Lead: 50% time in Weeks 1-4, 20% ongoing',
       'IT Integration Team: API access and technical support',
-      'Executive Sponsor: Phase gate approvals'
-    ]
+      'Executive Sponsor: Phase gate approvals',
+    ],
   },
   {
     category: 'Data & Assets',
@@ -374,8 +288,8 @@ export const clientDependencies = [
       'Translation Memory export (TMX, XLIFF, or CSV)',
       'Glossaries and terminology databases',
       '5-10 sample assets per content type',
-      'Regulatory documentation by market'
-    ]
+      'Regulatory documentation by market',
+    ],
   },
   {
     category: 'System Access',
@@ -383,7 +297,7 @@ export const clientDependencies = [
       'Veeva Vault API credentials',
       'DAM system access',
       'SharePoint credentials',
-      'SSO configuration details'
-    ]
-  }
+      'SSO configuration details',
+    ],
+  },
 ];

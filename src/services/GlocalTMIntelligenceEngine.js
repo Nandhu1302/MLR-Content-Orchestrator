@@ -2,7 +2,7 @@
 // Provides smart TM matching, quality scoring, and context-aware suggestions
 
 // NOTE: Assuming '@/integrations/supabase/client' resolves correctly in the JS environment.
-import { supabase } from "../integrations/supabase/client.js";
+import { supabase } from './integrations/supabase/client';
 
 export class GlocalTMIntelligenceEngine {
   /**

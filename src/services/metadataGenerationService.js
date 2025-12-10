@@ -1,6 +1,6 @@
 import { BrowserAIService } from './browserAIService';
 import { taxonomyService } from './taxonomyService';
-import { supabase } from "../integrations/supabase/client.js";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * @typedef {Object} MetadataGenerationOptions

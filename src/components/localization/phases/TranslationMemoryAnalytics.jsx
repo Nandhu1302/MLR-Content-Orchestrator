@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,36 +8,33 @@ import { Database, TrendingUp, Clock, Target } from 'lucide-react';
 export const TranslationMemoryAnalytics = ({
   sourceWordCount,
   segmentUsage,
-  targetLanguage,
+  targetLanguage
 }) => {
   // Calculate statistics based on actual segment TM usage
   // Only count words from segments that actually used TM (matchPercentage >= 70)
-  const matchedWords = (segmentUsage || [])
-    .filter(seg => (seg.matchPercentage ?? 0) >= 70)
-    .reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
-
-  const newWords = (segmentUsage || [])
-    .filter(seg => (seg.matchPercentage ?? 0) < 70)
-    .reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
-
-  const totalSource = sourceWordCount ?? 0;
-  const leveragePercentage = totalSource > 0 ? (matchedWords / totalSource) * 100 : 0;
+  const matchedWords = segmentUsage
+    .filter(seg => seg.matchPercentage >= 70)
+    .reduce((sum, seg) => sum + seg.wordCount, 0);
+  const newWords = segmentUsage
+    .filter(seg => seg.matchPercentage < 70)
+    .reduce((sum, seg) => sum + seg.wordCount, 0);
+  const leveragePercentage = sourceWordCount > 0 ? (matchedWords / sourceWordCount) * 100 : 0;
 
   // Group segments by match quality
-  const exactMatches     = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 95);
-  const fuzzyMatches     = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 75 && (m.matchPercentage ?? 0) < 95);
-  const contextMatches = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) >= 50 && (m.matchPercentage ?? 0) < 75);
-  const noMatches        = (segmentUsage || []).filter(m => (m.matchPercentage ?? 0) < 50);
+  const exactMatches = segmentUsage.filter(m => m.matchPercentage >= 95);
+  const fuzzyMatches = segmentUsage.filter(m => m.matchPercentage >= 75 && m.matchPercentage < 95);
+  const contextMatches = segmentUsage.filter(m => m.matchPercentage >= 50 && m.matchPercentage < 75);
+  const noMatches = segmentUsage.filter(m => m.matchPercentage < 50);
 
-  const exactWords       = exactMatches.reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
-  const fuzzyWords       = fuzzyMatches.reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
-  const contextWords     = contextMatches.reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
-  const newContentWords  = noMatches.reduce((sum, seg) => sum + (seg.wordCount ?? 0), 0);
+  const exactWords = exactMatches.reduce((sum, seg) => sum + seg.wordCount, 0);
+  const fuzzyWords = fuzzyMatches.reduce((sum, seg) => sum + seg.wordCount, 0);
+  const contextWords = contextMatches.reduce((sum, seg) => sum + seg.wordCount, 0);
+  const newContentWords = noMatches.reduce((sum, seg) => sum + seg.wordCount, 0);
 
-  // Estimated savings (same assumptions as original)
+  // Calculate estimated savings
   const estimatedSavings = {
-    time: Math.round((leveragePercentage / 100) * 8),    // Assume 8 hours base translation time
-    cost: Math.round((leveragePercentage / 100) * 500),  // Assume $500 base cost
+    time: Math.round((leveragePercentage / 100) * 8), // Assume 8 hours base translation time
+    cost: Math.round((leveragePercentage / 100) * 500) // Assume $500 base cost
   };
 
   return (
@@ -47,25 +45,21 @@ export const TranslationMemoryAnalytics = ({
           Translation Memory Analytics
         </CardTitle>
       </CardHeader>
-
       <CardContent className="space-y-6">
         {/* Overall Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center space-y-1">
-            <div className="text-2xl font-bold text-primary">{totalSource}</div>
+            <div className="text-2xl font-bold text-primary">{sourceWordCount}</div>
             <div className="text-sm text-muted-foreground">Source Words</div>
           </div>
-
           <div className="text-center space-y-1">
             <div className="text-2xl font-bold text-success">{matchedWords}</div>
             <div className="text-sm text-muted-foreground">TM Matched</div>
           </div>
-
           <div className="text-center space-y-1">
             <div className="text-2xl font-bold text-warning">{newWords}</div>
             <div className="text-sm text-muted-foreground">New Words</div>
           </div>
-
           <div className="text-center space-y-1">
             <div className="text-2xl font-bold text-accent">{Math.round(leveragePercentage)}%</div>
             <div className="text-sm text-muted-foreground">TM Leverage</div>
@@ -136,7 +130,6 @@ export const TranslationMemoryAnalytics = ({
             {/* New Content */}
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
-                {/* FIX APPLIED HERE: Changed </</Badge> to </Badge> */}
                 <Badge variant="outline">0-49%</Badge>
                 <div>
                   <div className="font-medium text-sm">New Content</div>
@@ -162,7 +155,6 @@ export const TranslationMemoryAnalytics = ({
                 <div className="text-xs text-muted-foreground">Time Saved</div>
               </div>
             </div>
-            
             <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg">
               <TrendingUp className="h-8 w-8 text-primary" />
               <div>
@@ -179,29 +171,29 @@ export const TranslationMemoryAnalytics = ({
           <div className="space-y-2 text-sm text-muted-foreground">
             {leveragePercentage > 70 && (
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full" />
-                Excellent TM leverage – significant cost and time savings expected
+                <div className="w-2 h-2 bg-success rounded-full"></div>
+                Excellent TM leverage - significant cost and time savings expected
               </div>
             )}
             {leveragePercentage > 40 && leveragePercentage <= 70 && (
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full" />
-                Good TM coverage – moderate savings with quality improvements
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                Good TM coverage - moderate savings with quality improvements
               </div>
             )}
             {leveragePercentage <= 40 && (
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-warning rounded-full" />
-                Lower TM leverage – opportunity to build memory for future projects
+                <div className="w-2 h-2 bg-warning rounded-full"></div>
+                Lower TM leverage - opportunity to build memory for future projects
               </div>
             )}
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-accent rounded-full" />
-              Target Language: {(targetLanguage || '').toUpperCase()} – ensure cultural adaptation
+              <div className="w-2 h-2 bg-accent rounded-full"></div>
+              Target Language: {targetLanguage.toUpperCase()} - ensure cultural adaptation
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-};
+}

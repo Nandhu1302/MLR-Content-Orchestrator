@@ -1,6 +1,9 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useVisualAssets } from './useVisualAssets';
 
+// JS version of useEvidenceLibrary (types removed, same context/logic)
 export const useEvidenceLibrary = (brandId) => {
   const claims = useQuery({
     queryKey: ['clinical-claims', brandId],
@@ -12,7 +15,7 @@ export const useEvidenceLibrary = (brandId) => {
         .eq('brand_id', brandId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return data;
     },
     enabled: !!brandId,
   });
@@ -27,7 +30,7 @@ export const useEvidenceLibrary = (brandId) => {
         .eq('brand_id', brandId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return data;
     },
     enabled: !!brandId,
   });
@@ -42,7 +45,7 @@ export const useEvidenceLibrary = (brandId) => {
         .eq('brand_id', brandId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return data;
     },
     enabled: !!brandId,
   });
@@ -57,17 +60,30 @@ export const useEvidenceLibrary = (brandId) => {
         .eq('brand_id', brandId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return data;
     },
     enabled: !!brandId,
   });
+
+  const visualAssets = useVisualAssets(brandId);
 
   return {
     claims: claims.data || [],
     references: references.data || [],
     segments: segments.data || [],
     safetyStatements: safetyStatements.data || [],
-    isLoading: claims.isLoading || references.isLoading || segments.isLoading || safetyStatements.isLoading,
-    error: claims.error || references.error || segments.error || safetyStatements.error,
+    visualAssets: visualAssets.data || [],
+    isLoading:
+      claims.isLoading ||
+      references.isLoading ||
+      segments.isLoading ||
+      safetyStatements.isLoading ||
+      visualAssets.isLoading,
+    error:
+      claims.error ||
+      references.error ||
+      segments.error ||
+      safetyStatements.error ||
+      visualAssets.error,
   };
 };
